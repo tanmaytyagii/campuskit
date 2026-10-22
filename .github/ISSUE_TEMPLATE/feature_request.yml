@@ -1,0 +1,28 @@
+name: Feature request
+description: Suggest an improvement to the website, the generator or a template.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe who has the problem and when it happens.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you've considered
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: CampusKit's constraints
+      options:
+        - label: The idea works without a server, user accounts, paid services or an AI API.
+          required: true

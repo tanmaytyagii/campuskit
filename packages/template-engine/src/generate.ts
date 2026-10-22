@@ -1,0 +1,138 @@
+/**
+ * Project generation: template bundle + student choices -> project files -> ZIP.
+ *
+ * Generation is split in two so the browser can show a review screen first:
+ *   1. `generateProject` validates everything and computes the final files.
+ *   2. `packageProject` turns those files into a ZIP archive.
+ * Nothing here executes template code or shell commands.
+ */
+import { applyEdits, type AppliedEdit, type WorkingFile } from './edits.ts';
+import { base64ToBytes, utf8Encode } from './encoding.ts';
+import { renderGettingStarted, type SetupGuide } from './instructions.ts';
+import { resolveValues, type ResolvedValues } from './options.ts';
+import { assertSafeRelativePath, getExclusionReason, RESERVED_OUTPUT_FILES } from './paths.ts';
+import {
+  customizationSpecSchema,
+  templateBundleSchema,
+  type CustomizationSpec,
+  type TemplateBundle,
+} from './spec.ts';
+import { createZipArchive, type ArchiveFile } from './zip.ts';
+
+export const MAX_PROJECT_BYTES = 30 * 1024 * 1024;
+export const GETTING_STARTED_FILE = 'GETTING_STARTED.md';
+
+export interface GenerateProjectOptions {
+  bundle: TemplateBundle;
+  customization: CustomizationSpec;
+  /** Raw option values, for example straight from a form. */
+  input: Readonly<Record<string, unknown>>;
+  /** Builds the setup instructions for the resolved values. */
+  createGuide: (values: ResolvedValues) => SetupGuide;
+}
+
+export interface ExcludedFile {
+  path: string;
+  reason: string;
+}
+
+export interface GeneratedProject {
+  templateId: string;
+  rootFolder: string;
+  values: ResolvedValues;
+  files: WorkingFile[];
+  edits: AppliedEdit[];
+  excluded: ExcludedFile[];
+  guide: SetupGuide;
+  totalBytes: number;
+}
+
+export class TemplateBundleError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'TemplateBundleError';
+  }
+}
+
+function byteLength(file: WorkingFile): number {
+  if (file.encoding === 'utf8') return utf8Encode(file.content).length;
+  // Decoded size of base64 without allocating the bytes.
+  const padding = file.content.endsWith('==') ? 2 : file.content.endsWith('=') ? 1 : 0;
+  return (file.content.length * 3) / 4 - padding;
+}
+
+export function generateProject(options: GenerateProjectOptions): GeneratedProject {
+  const parsedBundle = templateBundleSchema.safeParse(options.bundle);
+  if (!parsedBundle.success) {
+    const issue = parsedBundle.error.issues[0];
+    throw new TemplateBundleError(
+      `The template bundle is malformed (${issue?.path.join('.') || 'root'}: ${issue?.message ?? 'invalid'})`,
+    );
+  }
+  const bundle = parsedBundle.data;
+  const spec: CustomizationSpec = customizationSpecSchema.parse(options.customization);
+  const values = resolveValues(spec, options.input, bundle.templateId);
+
+  const files = new Map<string, WorkingFile>();
+  const excluded: ExcludedFile[] = [];
+  for (const file of bundle.files) {
+    assertSafeRelativePath(file.path);
+    const reason = getExclusionReason(file.path);
+    if (reason) {
+      excluded.push({ path: file.path, reason });
+      continue;
+    }
+    if (RESERVED_OUTPUT_FILES.has(file.path)) {
+      throw new TemplateBundleError(
+        `${file.path} is reserved for the file CampusKit adds to every project`,
+      );
+    }
+    if (files.has(file.path))
+      throw new TemplateBundleError(`Duplicate file in bundle: ${file.path}`);
+    files.set(file.path, { path: file.path, encoding: file.encoding, content: file.content });
+  }
+
+  const edits = applyEdits(files, spec.edits, values);
+
+  const guide = options.createGuide(values);
+  files.set(GETTING_STARTED_FILE, {
+    path: GETTING_STARTED_FILE,
+    encoding: 'utf8',
+    content: renderGettingStarted(guide),
+  });
+
+  const output = [...files.values()].sort((a, b) => a.path.localeCompare(b.path, 'en'));
+  const totalBytes = output.reduce((sum, file) => sum + byteLength(file), 0);
+  if (totalBytes > MAX_PROJECT_BYTES) {
+    throw new TemplateBundleError('The generated project is larger than the 30 MB limit');
+  }
+
+  return {
+    templateId: bundle.templateId,
+    rootFolder: values.projectSlug,
+    values,
+    files: output,
+    edits,
+    excluded,
+    guide,
+    totalBytes,
+  };
+}
+
+/** Packages a generated project as a ZIP with a single root folder. */
+export async function packageProject(project: GeneratedProject, date?: Date): Promise<Uint8Array> {
+  const archiveFiles: ArchiveFile[] = project.files.map((file) => ({
+    path: file.path,
+    data: file.encoding === 'utf8' ? file.content : base64ToBytes(file.content),
+  }));
+  return createZipArchive(project.rootFolder, archiveFiles, date ? { date } : {});
+}
+
+/** Convenience helper used by tests and scripts: validate, generate and zip. */
+export async function generateProjectZip(
+  options: GenerateProjectOptions & { date?: Date },
+): Promise<{ project: GeneratedProject; zip: Uint8Array }> {
+  const project = generateProject(options);
+  const zip = await packageProject(project, options.date);
+  return { project, zip };
+}

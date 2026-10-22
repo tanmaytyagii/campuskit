@@ -1,0 +1,31 @@
+{
+  "name": "@campuskit/project-catalog",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Typed, validated project manifests: the single source of truth for the CampusKit gallery and generator.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": [
+    "./src/zod.ts"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./node": "./src/node/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "validate": "tsx scripts/validate-catalog.ts",
+    "schema": "tsx scripts/write-json-schema.ts"
+  },
+  "dependencies": {
+    "@campuskit/template-engine": "workspace:*",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "vitest": "5.0.5"
+  }
+}

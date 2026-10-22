@@ -1,0 +1,404 @@
+{
+  "$schema": "../manifest.schema.json",
+  "schemaVersion": 1,
+  "id": "student-result-analyzer",
+  "slug": "student-result-analyzer",
+  "name": "Student Result Analyzer",
+  "tagline": "Upload exam marks as CSV and get validated statistics, grades, missing-data checks and plain-language explanations.",
+  "description": "A Python data app built with pandas and Streamlit. It validates a CSV of student marks (reporting every problem with its line number), then calculates descriptive statistics for each subject, every student’s percentage, grade, result and rank, the grade distribution and missing scores. Results are explained in plain language and can be downloaded as CSV files and a Markdown report. The analysis code is a separate, fully tested Python package.",
+  "category": "data-analysis",
+  "projectType": "data-app",
+  "tags": ["python", "pandas", "streamlit", "statistics", "csv", "data-validation", "grades"],
+  "audience": ["school", "college"],
+  "difficulty": "intermediate",
+  "languages": ["Python"],
+  "frameworks": ["pandas", "Streamlit", "Altair"],
+  "version": "1.0.0",
+  "addedOn": "2026-10-21",
+  "updatedOn": "2026-10-21",
+  "featured": true,
+  "features": [
+    "A fictional sample dataset of 40 students, and a second file with deliberate mistakes to demonstrate validation.",
+    "CSV upload with checks for required columns, numeric scores, score range, duplicate or empty IDs, empty names, encoding and malformed rows, each reported with its line number.",
+    "Descriptive statistics per subject: count, missing, mean, median, standard deviation, quartiles, minimum, maximum and pass rate.",
+    "Student results with total, percentage, grade, Pass/Fail/Incomplete result, rank and subjects below the pass mark.",
+    "Grade distribution charts and tables for the whole class and for any single subject.",
+    "Missing-value detection per subject and per student, including cells marked AB or Absent.",
+    "Plain-language explanations generated from the actual results, plus a glossary of each statistic.",
+    "Downloads: student results and subject statistics as CSV, and a Markdown summary report."
+  ],
+  "limitations": [
+    "All subjects must share the same maximum marks.",
+    "Grades use fixed percentage bands; credit-based GPA or CGPA systems are not implemented.",
+    "Only one file is analysed at a time; exams are not compared over time.",
+    "Files are limited to 5 MB and 10,000 students.",
+    "There is no login; the app only accepts connections from your own computer unless you change its Streamlit settings."
+  ],
+  "learningObjectives": [
+    "Load, clean and validate tabular data with pandas.",
+    "Compute and interpret descriptive statistics, including how missing values affect them.",
+    "Separate analysis logic from the user interface so it can be tested.",
+    "Build an interactive data app with Streamlit and Altair charts.",
+    "Test data code with pytest and run a Streamlit app headlessly in tests."
+  ],
+  "ideasForExtension": [
+    "Allow a different maximum mark for each subject.",
+    "Compare two exams and show each student’s improvement.",
+    "Export the report as a PDF.",
+    "Add correlation analysis between subjects with an explanation of what correlation does and doesn’t show."
+  ],
+  "prerequisites": [
+    {
+      "name": "Python",
+      "version": "3.11 or newer",
+      "url": "https://www.python.org/downloads/",
+      "note": "On Windows, tick “Add python.exe to PATH” during installation."
+    },
+    {
+      "name": "A modern web browser",
+      "note": "Streamlit opens the app in your default browser."
+    }
+  ],
+  "setup": {
+    "steps": [
+      {
+        "title": "Create and activate a virtual environment",
+        "commands": [
+          {
+            "command": "python -m venv .venv",
+            "platform": "windows"
+          },
+          {
+            "command": ".venv\\Scripts\\Activate.ps1",
+            "platform": "windows"
+          },
+          {
+            "command": "python3 -m venv .venv",
+            "platform": "macos-linux"
+          },
+          {
+            "command": "source .venv/bin/activate",
+            "platform": "macos-linux"
+          }
+        ],
+        "note": "If PowerShell blocks the activation script, run Set-ExecutionPolicy -Scope CurrentUser RemoteSigned once and try again."
+      },
+      {
+        "title": "Install the dependencies",
+        "commands": [
+          {
+            "command": "pip install -r requirements.txt",
+            "platform": "all"
+          }
+        ],
+        "note": "Needs an internet connection the first time and downloads roughly 500 MB of packages into .venv."
+      },
+      {
+        "title": "Start the app",
+        "commands": [
+          {
+            "command": "streamlit run app.py",
+            "platform": "all"
+          }
+        ],
+        "note": "Streamlit opens http://localhost:8501/ in your browser. Press Ctrl+C in the terminal to stop."
+      },
+      {
+        "title": "Run the tests",
+        "commands": [
+          {
+            "command": "pip install -r requirements-dev.txt",
+            "platform": "all"
+          },
+          {
+            "command": "python -m pytest",
+            "platform": "all"
+          }
+        ]
+      }
+    ],
+    "localUrl": "http://localhost:8501/",
+    "notes": [
+      "Uploaded files are processed in memory on your own computer and are not saved or sent anywhere.",
+      "Change the app name, institution, pass mark and maximum marks in app_config.json, and the accent colour in .streamlit/config.toml.",
+      "Activate the virtual environment again each time you open a new terminal."
+    ]
+  },
+  "testing": {
+    "tools": ["pytest", "streamlit.testing"],
+    "commands": [
+      {
+        "command": "pip install -r requirements-dev.txt",
+        "platform": "all"
+      },
+      {
+        "command": "python -m pytest",
+        "platform": "all"
+      }
+    ],
+    "covers": [
+      "Configuration loading and validation.",
+      "Every CSV validation rule, including line numbers, encodings, aliases and Unicode names.",
+      "Statistics compared with hand-calculated values, grade boundaries, results and ranks.",
+      "Missing-value detection and the explanations generated from results.",
+      "CSV and Markdown downloads, including formula-injection protection.",
+      "A headless run of the Streamlit app with the sample data."
+    ]
+  },
+  "environment": {
+    "variables": []
+  },
+  "network": {
+    "installNeedsInternet": true,
+    "runsOffline": true,
+    "externalServices": [],
+    "notes": "pip install downloads packages once. The app then runs locally; anonymous Streamlit usage statistics are switched off in .streamlit/config.toml."
+  },
+  "media": {
+    "cover": "docs/screenshots/overview.png",
+    "screenshots": [
+      {
+        "file": "docs/screenshots/overview.png",
+        "alt": "Overview tab with student count, subjects, average percentage, pass count and written explanations",
+        "caption": "Overview of the sample class"
+      },
+      {
+        "file": "docs/screenshots/subjects.png",
+        "alt": "Bar chart of average score per subject with a dashed pass-mark line, above a statistics table",
+        "caption": "Subject statistics"
+      },
+      {
+        "file": "docs/screenshots/grades.png",
+        "alt": "Bar chart showing how many students received each grade from A+ to F",
+        "caption": "Grade distribution"
+      },
+      {
+        "file": "docs/screenshots/validation.png",
+        "alt": "Validation messages listing the problems found in a CSV file, each with a line number",
+        "caption": "Validation of a file with mistakes"
+      }
+    ]
+  },
+  "docs": [
+    {
+      "title": "README",
+      "file": "README.md",
+      "kind": "readme"
+    },
+    {
+      "title": "Architecture",
+      "file": "docs/ARCHITECTURE.md",
+      "kind": "architecture"
+    },
+    {
+      "title": "Viva questions",
+      "file": "docs/VIVA_QUESTIONS.md",
+      "kind": "viva"
+    }
+  ],
+  "template": {
+    "directory": "templates/student-result-analyzer",
+    "packageManager": "pip"
+  },
+  "customization": {
+    "options": [
+      {
+        "id": "projectName",
+        "label": "Project name",
+        "description": "The app title, the browser tab and the heading of the downloaded report.",
+        "group": "identity",
+        "type": "text",
+        "required": true,
+        "default": "Student Result Analyzer",
+        "minLength": 3,
+        "maxLength": 60,
+        "placeholder": "e.g. Term 1 Result Analysis"
+      },
+      {
+        "id": "institutionName",
+        "label": "Institution name",
+        "description": "Shown under the title and in the report. Leave empty to hide it.",
+        "group": "identity",
+        "type": "text",
+        "required": false,
+        "default": "",
+        "minLength": 2,
+        "maxLength": 80,
+        "placeholder": "e.g. Riverside Public School"
+      },
+      {
+        "id": "authorName",
+        "label": "Your name",
+        "description": "Shown in the footer as “Built by …” and in the README. Leave empty to hide it.",
+        "group": "identity",
+        "type": "text",
+        "required": false,
+        "default": "",
+        "minLength": 2,
+        "maxLength": 60,
+        "placeholder": "e.g. Arjun Nair"
+      },
+      {
+        "id": "passMark",
+        "label": "Pass mark",
+        "description": "Minimum percentage needed to pass a subject. Also sets the lower limit of grade D.",
+        "group": "behaviour",
+        "type": "number",
+        "default": 40,
+        "min": 30,
+        "max": 60,
+        "step": 1,
+        "integer": true,
+        "unit": "%"
+      },
+      {
+        "id": "theme",
+        "label": "Accent colour",
+        "description": "Streamlit’s primary colour, used for charts, buttons and selected options.",
+        "group": "appearance",
+        "type": "select",
+        "default": "violet",
+        "choices": [
+          {
+            "value": "violet",
+            "label": "Violet",
+            "swatch": "#6D28D9"
+          },
+          {
+            "value": "teal",
+            "label": "Teal",
+            "swatch": "#0F766E"
+          },
+          {
+            "value": "blue",
+            "label": "Blue",
+            "swatch": "#1D4ED8"
+          },
+          {
+            "value": "crimson",
+            "label": "Crimson",
+            "swatch": "#B91C1C"
+          }
+        ]
+      }
+    ],
+    "edits": [
+      {
+        "kind": "json-set",
+        "label": "App name",
+        "file": "app_config.json",
+        "pointer": "/app_name",
+        "value": {
+          "option": "projectName"
+        }
+      },
+      {
+        "kind": "json-set",
+        "label": "Institution name",
+        "file": "app_config.json",
+        "pointer": "/institution_name",
+        "value": {
+          "option": "institutionName"
+        }
+      },
+      {
+        "kind": "json-set",
+        "label": "Author name",
+        "file": "app_config.json",
+        "pointer": "/author_name",
+        "value": {
+          "option": "authorName"
+        }
+      },
+      {
+        "kind": "json-set",
+        "label": "Pass mark",
+        "file": "app_config.json",
+        "pointer": "/pass_mark",
+        "value": {
+          "option": "passMark"
+        }
+      },
+      {
+        "kind": "replace",
+        "label": "Streamlit accent colour",
+        "file": ".streamlit/config.toml",
+        "find": "#6D28D9",
+        "escape": "none",
+        "expectedCount": 1,
+        "value": {
+          "option": "theme",
+          "map": {
+            "violet": "#6D28D9",
+            "teal": "#0F766E",
+            "blue": "#1D4ED8",
+            "crimson": "#B91C1C"
+          }
+        }
+      },
+      {
+        "kind": "replace",
+        "label": "README title and introduction",
+        "file": "README.md",
+        "find": "Student Result Analyzer",
+        "escape": "markdown",
+        "expectedCount": 2,
+        "value": {
+          "option": "projectName"
+        }
+      },
+      {
+        "kind": "replace",
+        "label": "README institution",
+        "file": "README.md",
+        "find": "Riverside Public School",
+        "escape": "markdown",
+        "expectedCount": 1,
+        "value": {
+          "option": "institutionName",
+          "whenEmpty": "_Add your institution_"
+        }
+      },
+      {
+        "kind": "replace",
+        "label": "README author",
+        "file": "README.md",
+        "find": "_Add your name_",
+        "escape": "markdown",
+        "expectedCount": 1,
+        "value": {
+          "option": "authorName",
+          "whenEmpty": "_Add your name_"
+        }
+      }
+    ]
+  },
+  "license": {
+    "spdx": "MIT",
+    "file": "LICENSE",
+    "attribution": "Created by CampusKit contributors. Keep the LICENSE file when you share or submit the project.",
+    "thirdParty": [
+      {
+        "name": "Streamlit",
+        "license": "Apache-2.0",
+        "url": "https://streamlit.io/"
+      },
+      {
+        "name": "pandas",
+        "license": "BSD-3-Clause",
+        "url": "https://pandas.pydata.org/"
+      },
+      {
+        "name": "Altair",
+        "license": "BSD-3-Clause",
+        "url": "https://altair-viz.github.io/"
+      },
+      {
+        "name": "pytest",
+        "license": "MIT",
+        "url": "https://docs.pytest.org/"
+      }
+    ]
+  },
+  "repositoryUrl": null
+}

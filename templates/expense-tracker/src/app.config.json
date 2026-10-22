@@ -1,0 +1,8 @@
+{
+  "appName": "Personal Expense Tracker",
+  "authorName": "",
+  "currency": "INR",
+  "monthlyBudget": 15000,
+  "theme": "emerald",
+  "seedDemoData": true
+}

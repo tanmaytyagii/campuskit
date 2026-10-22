@@ -1,0 +1,448 @@
+{
+  "$schema": "../manifest.schema.json",
+  "schemaVersion": 1,
+  "id": "expense-tracker",
+  "slug": "expense-tracker",
+  "name": "Personal Expense Tracker",
+  "tagline": "Record income and spending, set a monthly budget and see where your money goes in charts.",
+  "description": "A React and TypeScript web app for tracking personal finances. Add income and expenses with categories, filter them by period, type, category and note, follow a monthly budget, and explore spending in a category donut chart and a six-month income-versus-spending bar chart. Amounts are stored as whole minor units to avoid rounding errors, and all data stays in the browser.",
+  "category": "web-development",
+  "projectType": "web-app",
+  "tags": ["finance", "budget", "react", "typescript", "charts", "recharts", "localstorage"],
+  "audience": ["school", "college"],
+  "difficulty": "intermediate",
+  "languages": ["TypeScript", "CSS"],
+  "frameworks": ["React", "Vite", "Recharts"],
+  "version": "1.0.0",
+  "addedOn": "2026-10-21",
+  "updatedOn": "2026-10-21",
+  "featured": true,
+  "features": [
+    "Add, edit and delete income and expense transactions with an amount, category, date and optional note.",
+    "Eight spending categories and five income categories, each with its own chart colour.",
+    "Filter by this month, last month, last 30 days, this year, all time or a custom date range, and by type, category and note text.",
+    "Income, spending and balance totals calculated from the filtered transactions.",
+    "Monthly budget with a progress bar showing the amount left or how far over budget you are.",
+    "Spending-by-category donut chart and a six-month income-versus-spending bar chart, each with a table view.",
+    "Export filtered transactions as CSV, and export or import a validated JSON backup.",
+    "Currency formatting for INR, USD, EUR, GBP and JPY, including Indian digit grouping.",
+    "Money stored as integer minor units and parsed without floating-point rounding."
+  ],
+  "limitations": [
+    "Data is stored in one browser on one device; there is no sync or account.",
+    "There is no bank or UPI integration; every transaction is entered by hand.",
+    "Changing the currency does not convert amounts that were already saved.",
+    "Categories are fixed in the code; adding custom categories needs a small code change.",
+    "Recurring transactions such as monthly rent must be entered each time."
+  ],
+  "learningObjectives": [
+    "Represent money safely with integers and format it with Intl.NumberFormat.",
+    "Derive totals and chart data from state with pure, testable functions.",
+    "Draw accessible charts with Recharts and provide table alternatives.",
+    "Validate imported JSON before trusting it.",
+    "Test React components and user flows with Vitest and Testing Library."
+  ],
+  "ideasForExtension": [
+    "Support recurring transactions such as rent and subscriptions.",
+    "Let users create their own categories and store them with the data.",
+    "Add per-category budgets with alerts when a budget is close to running out.",
+    "Import transactions from a bank statement CSV file."
+  ],
+  "prerequisites": [
+    {
+      "name": "Node.js",
+      "version": "22.12 or newer",
+      "url": "https://nodejs.org/",
+      "note": "Node.js 24 LTS is recommended. npm is included."
+    },
+    {
+      "name": "A modern web browser",
+      "note": "Chrome, Edge, Firefox or Safari."
+    }
+  ],
+  "setup": {
+    "steps": [
+      {
+        "title": "Install the dependencies",
+        "commands": [
+          {
+            "command": "npm install",
+            "platform": "all"
+          }
+        ],
+        "note": "Needs an internet connection the first time and downloads about 180 MB into node_modules."
+      },
+      {
+        "title": "Start the app",
+        "commands": [
+          {
+            "command": "npm run dev",
+            "platform": "all"
+          }
+        ],
+        "note": "Open the address Vite prints, usually http://localhost:5173/. Press Ctrl+C in the terminal to stop."
+      },
+      {
+        "title": "Run the tests",
+        "commands": [
+          {
+            "command": "npm test",
+            "platform": "all"
+          }
+        ]
+      },
+      {
+        "title": "Build for production (optional)",
+        "commands": [
+          {
+            "command": "npm run build",
+            "platform": "all"
+          },
+          {
+            "command": "npm run preview",
+            "platform": "all"
+          }
+        ],
+        "note": "Creates an optimised copy in the dist folder and serves it locally."
+      }
+    ],
+    "localUrl": "http://localhost:5173/",
+    "notes": [
+      "Transactions are saved in your browser’s localStorage under the key campuskit-expenses:v1.",
+      "To reset data, use Budget & data in the app, or delete that localStorage entry from your browser’s developer tools.",
+      "Change the app name, currency, default budget, accent colour and demo data in src/app.config.json."
+    ]
+  },
+  "testing": {
+    "tools": ["Vitest", "Testing Library", "jsdom"],
+    "commands": [
+      {
+        "command": "npm test",
+        "platform": "all"
+      }
+    ],
+    "covers": [
+      "Parsing and formatting money in several currencies without rounding errors.",
+      "Date ranges for every period filter, totals, category shares and monthly series.",
+      "Budget status, including going over budget.",
+      "Backup and localStorage validation with clear error messages.",
+      "Demo data scaling and CSV formula-injection protection.",
+      "User flows: adding and editing transactions, validation, chart table view, filtering and deleting."
+    ]
+  },
+  "environment": {
+    "variables": []
+  },
+  "network": {
+    "installNeedsInternet": true,
+    "runsOffline": true,
+    "externalServices": [],
+    "notes": "npm install downloads packages once. After that the app runs offline and never sends data anywhere."
+  },
+  "media": {
+    "cover": "docs/screenshots/overview.png",
+    "screenshots": [
+      {
+        "file": "docs/screenshots/overview.png",
+        "alt": "Overview with this month’s income, spending and balance, a budget bar, a category donut chart and a monthly bar chart",
+        "caption": "Overview with demo transactions"
+      },
+      {
+        "file": "docs/screenshots/transactions.png",
+        "alt": "Transactions screen with period, type, category and search filters above a list of transactions",
+        "caption": "Filtering transactions"
+      },
+      {
+        "file": "docs/screenshots/settings.png",
+        "alt": "Budget and data screen with the monthly budget form and backup options",
+        "caption": "Budget and data settings"
+      }
+    ]
+  },
+  "docs": [
+    {
+      "title": "README",
+      "file": "README.md",
+      "kind": "readme"
+    },
+    {
+      "title": "Architecture",
+      "file": "docs/ARCHITECTURE.md",
+      "kind": "architecture"
+    },
+    {
+      "title": "Viva questions",
+      "file": "docs/VIVA_QUESTIONS.md",
+      "kind": "viva"
+    }
+  ],
+  "template": {
+    "directory": "templates/expense-tracker",
+    "packageManager": "npm"
+  },
+  "customization": {
+    "options": [
+      {
+        "id": "projectName",
+        "label": "Project name",
+        "description": "Shown in the app header, the browser tab and the README.",
+        "group": "identity",
+        "type": "text",
+        "required": true,
+        "default": "Personal Expense Tracker",
+        "minLength": 3,
+        "maxLength": 60,
+        "placeholder": "e.g. Hostel Budget Buddy"
+      },
+      {
+        "id": "authorName",
+        "label": "Your name",
+        "description": "Shown in the footer as “Built by …” and in the README. Leave empty to hide it.",
+        "group": "identity",
+        "type": "text",
+        "required": false,
+        "default": "",
+        "minLength": 2,
+        "maxLength": 60,
+        "placeholder": "e.g. Kiran Rao"
+      },
+      {
+        "id": "currency",
+        "label": "Currency",
+        "description": "Used to format every amount. Demo amounts are scaled to look realistic in this currency.",
+        "group": "behaviour",
+        "type": "select",
+        "default": "inr",
+        "choices": [
+          {
+            "value": "inr",
+            "label": "Indian rupee (₹)"
+          },
+          {
+            "value": "usd",
+            "label": "US dollar ($)"
+          },
+          {
+            "value": "eur",
+            "label": "Euro (€)"
+          },
+          {
+            "value": "gbp",
+            "label": "Pound sterling (£)"
+          },
+          {
+            "value": "jpy",
+            "label": "Japanese yen (¥)"
+          }
+        ]
+      },
+      {
+        "id": "monthlyBudget",
+        "label": "Default monthly budget",
+        "description": "In whole units of the chosen currency. Use 0 for no budget. It can be changed later in the app.",
+        "group": "behaviour",
+        "type": "number",
+        "default": 15000,
+        "min": 0,
+        "max": 10000000,
+        "step": 1,
+        "integer": true
+      },
+      {
+        "id": "theme",
+        "label": "Accent colour",
+        "description": "Used for buttons, the active tab and the budget bar.",
+        "group": "appearance",
+        "type": "select",
+        "default": "emerald",
+        "choices": [
+          {
+            "value": "emerald",
+            "label": "Emerald",
+            "swatch": "#047857"
+          },
+          {
+            "value": "ocean",
+            "label": "Ocean",
+            "swatch": "#0369A1"
+          },
+          {
+            "value": "plum",
+            "label": "Plum",
+            "swatch": "#7E22CE"
+          },
+          {
+            "value": "coral",
+            "label": "Coral",
+            "swatch": "#C2410C"
+          }
+        ]
+      },
+      {
+        "id": "seedDemoData",
+        "label": "Include demo transactions",
+        "description": "Adds six months of fictional student transactions on first run. Turn off to start empty.",
+        "group": "data",
+        "type": "boolean",
+        "default": true
+      }
+    ],
+    "edits": [
+      {
+        "kind": "json-set",
+        "label": "npm package name",
+        "file": "package.json",
+        "pointer": "/name",
+        "value": {
+          "option": "projectSlug"
+        }
+      },
+      {
+        "kind": "json-set",
+        "label": "Lockfile package name",
+        "file": "package-lock.json",
+        "pointer": "/name",
+        "value": {
+          "option": "projectSlug"
+        }
+      },
+      {
+        "kind": "json-set",
+        "label": "Lockfile root package name",
+        "file": "package-lock.json",
+        "pointer": "/packages//name",
+        "value": {
+          "option": "projectSlug"
+        }
+      },
+      {
+        "kind": "replace",
+        "label": "Browser tab title",
+        "file": "index.html",
+        "find": "Personal Expense Tracker",
+        "escape": "html",
+        "expectedCount": 1,
+        "value": {
+          "option": "projectName"
+        }
+      },
+      {
+        "kind": "json-set",
+        "label": "App name",
+        "file": "src/app.config.json",
+        "pointer": "/appName",
+        "value": {
+          "option": "projectName"
+        }
+      },
+      {
+        "kind": "json-set",
+        "label": "Author name",
+        "file": "src/app.config.json",
+        "pointer": "/authorName",
+        "value": {
+          "option": "authorName"
+        }
+      },
+      {
+        "kind": "json-set",
+        "label": "Currency",
+        "file": "src/app.config.json",
+        "pointer": "/currency",
+        "value": {
+          "option": "currency",
+          "map": {
+            "inr": "INR",
+            "usd": "USD",
+            "eur": "EUR",
+            "gbp": "GBP",
+            "jpy": "JPY"
+          }
+        }
+      },
+      {
+        "kind": "json-set",
+        "label": "Default monthly budget",
+        "file": "src/app.config.json",
+        "pointer": "/monthlyBudget",
+        "value": {
+          "option": "monthlyBudget"
+        }
+      },
+      {
+        "kind": "json-set",
+        "label": "Accent colour",
+        "file": "src/app.config.json",
+        "pointer": "/theme",
+        "value": {
+          "option": "theme"
+        }
+      },
+      {
+        "kind": "json-set",
+        "label": "Demo data on first run",
+        "file": "src/app.config.json",
+        "pointer": "/seedDemoData",
+        "value": {
+          "option": "seedDemoData"
+        }
+      },
+      {
+        "kind": "replace",
+        "label": "README title and introduction",
+        "file": "README.md",
+        "find": "Personal Expense Tracker",
+        "escape": "markdown",
+        "expectedCount": 2,
+        "value": {
+          "option": "projectName"
+        }
+      },
+      {
+        "kind": "replace",
+        "label": "README author",
+        "file": "README.md",
+        "find": "_Add your name_",
+        "escape": "markdown",
+        "expectedCount": 1,
+        "value": {
+          "option": "authorName",
+          "whenEmpty": "_Add your name_"
+        }
+      }
+    ]
+  },
+  "license": {
+    "spdx": "MIT",
+    "file": "LICENSE",
+    "attribution": "Created by CampusKit contributors. Keep the LICENSE file when you share or submit the project.",
+    "thirdParty": [
+      {
+        "name": "React",
+        "license": "MIT",
+        "url": "https://react.dev/"
+      },
+      {
+        "name": "Recharts",
+        "license": "MIT",
+        "url": "https://github.com/recharts/recharts"
+      },
+      {
+        "name": "Vite",
+        "license": "MIT",
+        "url": "https://vite.dev/"
+      },
+      {
+        "name": "Vitest",
+        "license": "MIT",
+        "url": "https://vitest.dev/"
+      },
+      {
+        "name": "Testing Library",
+        "license": "MIT",
+        "url": "https://testing-library.com/"
+      }
+    ]
+  },
+  "repositoryUrl": null
+}

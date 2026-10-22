@@ -1,0 +1,74 @@
+name: New project proposal
+description: Propose a new template for the gallery.
+labels: [new template]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please read docs/adding-a-template.md and docs/new-project-checklist.md before proposing a template.
+  - type: input
+    id: name
+    attributes:
+      label: Project name
+      placeholder: Library Manager
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: What does it do, and who is it for?
+      description: Which students (school or college) would use it, and for which kind of course or assignment?
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - Web development
+        - Data analysis
+        - AI and machine learning
+    validations:
+      required: true
+  - type: dropdown
+    id: difficulty
+    attributes:
+      label: Difficulty
+      options:
+        - Beginner
+        - Intermediate
+        - Advanced
+    validations:
+      required: true
+  - type: input
+    id: stack
+    attributes:
+      label: Languages and main libraries
+      placeholder: Python, Flask, SQLite
+    validations:
+      required: true
+  - type: textarea
+    id: features
+    attributes:
+      label: Main features
+      placeholder: |
+        - …
+        - …
+    validations:
+      required: true
+  - type: textarea
+    id: customization
+    attributes:
+      label: What could students customize?
+      description: For example the project name, institution, theme colour, sample data or a threshold.
+  - type: checkboxes
+    id: requirements
+    attributes:
+      label: Requirements
+      options:
+        - label: It runs on a student's own computer with free, open-source tools only.
+          required: true
+        - label: It works offline once its dependencies are installed, or the proposal explains what needs the internet.
+          required: true
+        - label: I can include tests, real screenshots, an architecture document and viva questions.
+          required: true

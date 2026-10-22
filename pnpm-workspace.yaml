@@ -1,0 +1,21 @@
+# CampusKit workspace.
+#
+# Only the platform itself (the web app and its shared packages) is a workspace
+# member. The starter projects in templates/ are deliberately NOT members: each
+# one is a standalone project with its own package manager files, exactly as a
+# student receives it inside a generated ZIP.
+packages:
+  - apps/*
+  - packages/*
+
+# pnpm 10 blocks dependency install scripts unless they are allowed here.
+onlyBuiltDependencies:
+  - esbuild
+
+# eslint-plugin-jsx-a11y 6.10.2 declares ESLint <=9 as a peer, but it does not
+# use any API that ESLint 10 removed. ESLint 9 is end-of-life, so we run the
+# plugin on ESLint 10 and verify in CI that its rules still report problems
+# (see tests/lint-config.test.ts).
+peerDependencyRules:
+  allowedVersions:
+    eslint-plugin-jsx-a11y>eslint: '10'

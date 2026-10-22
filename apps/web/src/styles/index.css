@@ -1,0 +1,353 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/archivo/wdth.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * CampusKit design tokens.
+ *
+ * Navy surfaces carry the interface; violet marks everything interactive;
+ * lime is reserved for signals (keyboard focus in dark mode, "ready" states
+ * and the moment a ZIP is generated) and is never used as decoration.
+ */
+:root {
+  --ck-canvas: #f4f6fb;
+  --ck-surface: #ffffff;
+  --ck-raised: #eef1f8;
+  --ck-sunken: #e8ecf5;
+  --ck-line: #dce1ee;
+  --ck-line-strong: #c3cae0;
+  --ck-ink: #121a38;
+  --ck-ink-2: #3e4770;
+  --ck-ink-3: #5a6489;
+  --ck-violet: #5536e8;
+  --ck-violet-hover: #4426cf;
+  --ck-violet-soft: #eeeafe;
+  --ck-on-violet: #ffffff;
+  --ck-lime: #c8f23c;
+  --ck-lime-ink: #1a2600;
+  --ck-lime-text: #3d6600;
+  --ck-lime-soft: #f1fbd3;
+  --ck-danger: #c0263f;
+  --ck-danger-soft: #fdecef;
+  --ck-warn: #8a5300;
+  --ck-warn-soft: #fff4dd;
+  --ck-focus: #5536e8;
+  --ck-code-bg: #0f1834;
+  --ck-code-ink: #dfe5f7;
+  --ck-shadow: 0 1px 2px rgb(18 26 56 / 6%), 0 4px 16px rgb(18 26 56 / 6%);
+  --ck-shadow-lift: 0 2px 4px rgb(18 26 56 / 8%), 0 12px 32px rgb(18 26 56 / 10%);
+}
+
+.dark {
+  --ck-canvas: #0b1330;
+  --ck-surface: #111b3d;
+  --ck-raised: #16224a;
+  --ck-sunken: #0d1636;
+  --ck-line: #24305e;
+  --ck-line-strong: #34427a;
+  --ck-ink: #edf0fa;
+  --ck-ink-2: #b9c1dd;
+  --ck-ink-3: #8f9abf;
+  --ck-violet: #a79bff;
+  --ck-violet-hover: #c0b7ff;
+  --ck-violet-soft: #221e58;
+  --ck-on-violet: #0b1330;
+  --ck-lime: #c8f23c;
+  --ck-lime-ink: #1a2600;
+  --ck-lime-text: #c8f23c;
+  --ck-lime-soft: #1f2d10;
+  --ck-danger: #ff8a9b;
+  --ck-danger-soft: #3a1422;
+  --ck-warn: #ffc95c;
+  --ck-warn-soft: #33270f;
+  --ck-focus: #c8f23c;
+  --ck-code-bg: #070d24;
+  --ck-code-ink: #dfe5f7;
+  --ck-shadow: 0 1px 2px rgb(0 0 0 / 30%);
+  --ck-shadow-lift: 0 2px 4px rgb(0 0 0 / 35%), 0 14px 34px rgb(0 0 0 / 35%);
+}
+
+@theme inline {
+  --font-sans: 'Archivo Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --color-canvas: var(--ck-canvas);
+  --color-surface: var(--ck-surface);
+  --color-raised: var(--ck-raised);
+  --color-sunken: var(--ck-sunken);
+  --color-line: var(--ck-line);
+  --color-line-strong: var(--ck-line-strong);
+  --color-ink: var(--ck-ink);
+  --color-ink-2: var(--ck-ink-2);
+  --color-ink-3: var(--ck-ink-3);
+  --color-violet: var(--ck-violet);
+  --color-violet-hover: var(--ck-violet-hover);
+  --color-violet-soft: var(--ck-violet-soft);
+  --color-on-violet: var(--ck-on-violet);
+  --color-lime: var(--ck-lime);
+  --color-lime-ink: var(--ck-lime-ink);
+  --color-lime-text: var(--ck-lime-text);
+  --color-lime-soft: var(--ck-lime-soft);
+  --color-danger: var(--ck-danger);
+  --color-danger-soft: var(--ck-danger-soft);
+  --color-warn: var(--ck-warn);
+  --color-warn-soft: var(--ck-warn-soft);
+  --color-focus: var(--ck-focus);
+  --color-code-bg: var(--ck-code-bg);
+  --color-code-ink: var(--ck-code-ink);
+
+  --shadow-card: var(--ck-shadow);
+  --shadow-lift: var(--ck-shadow-lift);
+
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-panel: 18px;
+}
+
+@layer base {
+  html {
+    background: var(--ck-canvas);
+    color: var(--ck-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    min-height: 100vh;
+    background: var(--ck-canvas);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  ::selection {
+    background: var(--ck-violet-soft);
+    color: var(--ck-ink);
+  }
+
+  /* A grid's implicit column grows to its widest unbreakable content (a long
+     command, a row of thumbnails), which can push a single-column layout past
+     the edge of a phone screen. Clamp the default column to the available
+     width; grid-cols-* utilities, which live in a later layer, still win. */
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ck-focus);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  code,
+  kbd,
+  pre {
+    font-family: var(--font-mono);
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+}
+
+@layer components {
+  /* Headlines use Archivo's expanded width: the kit-box voice of the brand. */
+  .display {
+    font-stretch: 125%;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
+
+  .heading {
+    font-stretch: 112%;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+
+  .container-page {
+    width: min(1200px, 100% - 2rem);
+    margin-inline: auto;
+  }
+
+  .link {
+    color: var(--ck-violet);
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  .link:hover {
+    color: var(--ck-violet-hover);
+    text-decoration-thickness: 2px;
+  }
+
+  /* A subtle engineering-grid texture, used only behind the hero kit card. */
+  .grid-texture {
+    background-image:
+      linear-gradient(
+        to right,
+        color-mix(in oklab, var(--ck-line) 55%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--ck-line) 55%, transparent) 1px,
+        transparent 1px
+      );
+    background-size: 28px 28px;
+  }
+}
+
+/* Rendered Markdown (README files, guides, policies). */
+.prose-ck {
+  max-width: 74ch;
+  color: var(--ck-ink-2);
+  line-height: 1.7;
+  /* Long URLs and file paths may break anywhere rather than widen the page. */
+  overflow-wrap: anywhere;
+}
+
+.prose-ck > * + * {
+  margin-top: 1em;
+}
+
+.prose-ck h1,
+.prose-ck h2,
+.prose-ck h3,
+.prose-ck h4 {
+  color: var(--ck-ink);
+  font-stretch: 112%;
+  font-weight: 750;
+  line-height: 1.25;
+  scroll-margin-top: 6rem;
+}
+
+.prose-ck h1 {
+  font-size: 2.25rem;
+  font-stretch: 125%;
+  font-weight: 800;
+}
+
+.prose-ck h2 {
+  font-size: 1.5rem;
+  margin-top: 2em;
+  padding-top: 1rem;
+  border-top: 1px solid var(--ck-line);
+}
+
+.prose-ck h3 {
+  font-size: 1.15rem;
+  margin-top: 1.6em;
+}
+
+.prose-ck a {
+  color: var(--ck-violet);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.prose-ck strong {
+  color: var(--ck-ink);
+}
+
+.prose-ck ul,
+.prose-ck ol {
+  padding-left: 1.4em;
+}
+
+.prose-ck ul {
+  list-style: disc;
+}
+
+.prose-ck ol {
+  list-style: decimal;
+}
+
+.prose-ck li + li {
+  margin-top: 0.35em;
+}
+
+.prose-ck code {
+  font-size: 0.875em;
+  background: var(--ck-raised);
+  color: var(--ck-ink);
+  border: 1px solid var(--ck-line);
+  border-radius: 6px;
+  padding: 0.1em 0.35em;
+}
+
+.prose-ck pre {
+  background: var(--ck-code-bg);
+  color: var(--ck-code-ink);
+  border-radius: 12px;
+  padding: 1rem 1.15rem;
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.prose-ck pre code {
+  background: transparent;
+  border: none;
+  color: inherit;
+  padding: 0;
+  font-size: inherit;
+}
+
+.prose-ck table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 0.925rem;
+}
+
+.prose-ck th,
+.prose-ck td {
+  border: 1px solid var(--ck-line);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.prose-ck th {
+  background: var(--ck-raised);
+  color: var(--ck-ink);
+}
+
+.prose-ck img {
+  border: 1px solid var(--ck-line);
+  border-radius: 12px;
+  max-width: 100%;
+  height: auto;
+}
+
+.prose-ck blockquote {
+  border-left: 3px solid var(--ck-violet);
+  padding-left: 1rem;
+  color: var(--ck-ink-2);
+}
+
+.prose-ck hr {
+  border: none;
+  border-top: 1px solid var(--ck-line);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

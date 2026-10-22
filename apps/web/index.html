@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="CampusKit: free, open-source student project templates you can customize, download as a ZIP, run locally and explain in your viva."
+    />
+    <meta name="theme-color" content="#0b1330" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f4f6fb" media="(prefers-color-scheme: light)" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>CampusKit: Build it. Understand it. Present it.</title>
+    <script>
+      // Apply the saved colour theme before the first paint to avoid a flash.
+      (function () {
+        // useTheme.tsx stores the preference as JSON, e.g. "dark" with quotes.
+        var stored = null;
+        try {
+          stored = JSON.parse(localStorage.getItem('campuskit:theme'));
+        } catch (error) {
+          stored = null;
+        }
+        var dark =
+          stored === 'dark' ||
+          ((stored === null || stored === 'system') &&
+            matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.classList.toggle('dark', dark);
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      })();
+    </script>
+  </head>
+  <body>
+    <noscript
+      >CampusKit needs JavaScript to browse and generate projects. The source code is in the
+      repository.</noscript
+    >
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

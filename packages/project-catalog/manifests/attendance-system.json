@@ -1,0 +1,431 @@
+{
+  "$schema": "../manifest.schema.json",
+  "schemaVersion": 1,
+  "id": "attendance-system",
+  "slug": "attendance-system",
+  "name": "Student Attendance System",
+  "tagline": "Keep a class roster, mark attendance every school day and flag students below the required percentage.",
+  "description": "A React and TypeScript web app for recording daily attendance. Teachers add students with roll numbers and classes, mark each student Present, Late or Absent for a date, and see attendance percentages per student and per class. Everything is saved in the browser’s localStorage, so it runs offline with no server or database to set up.",
+  "category": "web-development",
+  "projectType": "web-app",
+  "tags": ["attendance", "react", "typescript", "crud", "localstorage", "school-management"],
+  "audience": ["school", "college"],
+  "difficulty": "beginner",
+  "languages": ["TypeScript", "CSS"],
+  "frameworks": ["React", "Vite"],
+  "version": "1.0.0",
+  "addedOn": "2026-10-21",
+  "updatedOn": "2026-10-21",
+  "featured": true,
+  "features": [
+    "Add, edit and delete students with a roll number and class; duplicate roll numbers within a class are rejected.",
+    "Mark each student Present, Late or Absent for today or any past date, with a one-click “Mark all present”.",
+    "Reopen a saved date to correct attendance, with a warning before unsaved changes are discarded.",
+    "Search students by name or roll number and filter attendance records by date range, class, status and student.",
+    "Dashboard with today’s status, overall attendance, attendance by class and students below the threshold.",
+    "Per-student attendance percentages, counting Late as attended, calculated from the saved records.",
+    "Export filtered attendance records as CSV, and export or import a full JSON backup.",
+    "Automatic saving to localStorage with validation and safe recovery from corrupted data.",
+    "A fictional demo class on first run, plus in-app and manual instructions for resetting data."
+  ],
+  "limitations": [
+    "Data is stored in one browser on one device; there is no sync between devices or users.",
+    "There are no user accounts or permissions; anyone using the browser can change the data.",
+    "Attendance is recorded once per day, not per period or subject.",
+    "localStorage holds about 5 MB, which suits a few classes rather than a whole institution.",
+    "The interface text is English only; dates and numbers follow the browser’s locale."
+  ],
+  "learningObjectives": [
+    "Structure a multi-screen React app with TypeScript types for your data.",
+    "Manage state with useReducer and share it through React Context.",
+    "Save, load and validate data in localStorage without trusting what is stored.",
+    "Write unit and component tests with Vitest and Testing Library.",
+    "Build accessible forms, dialogs and status messages."
+  ],
+  "ideasForExtension": [
+    "Track attendance per period or subject by storing a period key under each date.",
+    "Add a chart of attendance over time for each class.",
+    "Replace localStorage with a backend API and database so several teachers can share data.",
+    "Print a monthly attendance register."
+  ],
+  "prerequisites": [
+    {
+      "name": "Node.js",
+      "version": "22.12 or newer",
+      "url": "https://nodejs.org/",
+      "note": "Node.js 24 LTS is recommended. npm is included."
+    },
+    {
+      "name": "A modern web browser",
+      "note": "Chrome, Edge, Firefox or Safari."
+    }
+  ],
+  "setup": {
+    "steps": [
+      {
+        "title": "Install the dependencies",
+        "commands": [
+          {
+            "command": "npm install",
+            "platform": "all"
+          }
+        ],
+        "note": "Needs an internet connection the first time and downloads about 135 MB into node_modules."
+      },
+      {
+        "title": "Start the app",
+        "commands": [
+          {
+            "command": "npm run dev",
+            "platform": "all"
+          }
+        ],
+        "note": "Open the address Vite prints, usually http://localhost:5173/. Press Ctrl+C in the terminal to stop."
+      },
+      {
+        "title": "Run the tests",
+        "commands": [
+          {
+            "command": "npm test",
+            "platform": "all"
+          }
+        ]
+      },
+      {
+        "title": "Build for production (optional)",
+        "commands": [
+          {
+            "command": "npm run build",
+            "platform": "all"
+          },
+          {
+            "command": "npm run preview",
+            "platform": "all"
+          }
+        ],
+        "note": "Creates an optimised copy in the dist folder and serves it locally."
+      }
+    ],
+    "localUrl": "http://localhost:5173/",
+    "notes": [
+      "Attendance data is saved in your browser’s localStorage under the key campuskit-attendance:v1.",
+      "To reset data, use Settings in the app, or delete that localStorage entry from your browser’s developer tools.",
+      "Change the app name, institution, threshold, accent colour and demo data in src/app.config.json."
+    ]
+  },
+  "testing": {
+    "tools": ["Vitest", "Testing Library", "jsdom"],
+    "commands": [
+      {
+        "command": "npm test",
+        "platform": "all"
+      }
+    ],
+    "covers": [
+      "Attendance percentages, per-class summaries and date ranges.",
+      "Local date handling and impossible dates.",
+      "Saving, loading and recovering from corrupted localStorage data.",
+      "CSV quoting and formula-injection protection.",
+      "Student form validation, including duplicate roll numbers and Unicode names.",
+      "User flows: adding and editing a student, marking and saving attendance, searching and deleting."
+    ]
+  },
+  "environment": {
+    "variables": []
+  },
+  "network": {
+    "installNeedsInternet": true,
+    "runsOffline": true,
+    "externalServices": [],
+    "notes": "npm install downloads packages once. After that the app runs offline and never sends data anywhere."
+  },
+  "media": {
+    "cover": "docs/screenshots/dashboard.png",
+    "screenshots": [
+      {
+        "file": "docs/screenshots/dashboard.png",
+        "alt": "Dashboard showing today’s attendance status, overall attendance, students below the threshold and attendance by class",
+        "caption": "Dashboard with the demo class"
+      },
+      {
+        "file": "docs/screenshots/mark-attendance.png",
+        "alt": "Mark attendance screen with Present, Late and Absent options for each student",
+        "caption": "Marking attendance for a date"
+      },
+      {
+        "file": "docs/screenshots/students.png",
+        "alt": "Student roster table with roll numbers, classes and attendance percentages",
+        "caption": "Student roster"
+      }
+    ]
+  },
+  "docs": [
+    {
+      "title": "README",
+      "file": "README.md",
+      "kind": "readme"
+    },
+    {
+      "title": "Architecture",
+      "file": "docs/ARCHITECTURE.md",
+      "kind": "architecture"
+    },
+    {
+      "title": "Viva questions",
+      "file": "docs/VIVA_QUESTIONS.md",
+      "kind": "viva"
+    }
+  ],
+  "template": {
+    "directory": "templates/attendance-system",
+    "packageManager": "npm"
+  },
+  "customization": {
+    "options": [
+      {
+        "id": "projectName",
+        "label": "Project name",
+        "description": "Shown in the app header, the browser tab and the README.",
+        "group": "identity",
+        "type": "text",
+        "required": true,
+        "default": "Student Attendance System",
+        "minLength": 3,
+        "maxLength": 60,
+        "placeholder": "e.g. Class 10 Attendance Register"
+      },
+      {
+        "id": "institutionName",
+        "label": "Institution name",
+        "description": "Shown under the app name and in the README. Leave empty to hide it.",
+        "group": "identity",
+        "type": "text",
+        "required": false,
+        "default": "",
+        "minLength": 2,
+        "maxLength": 80,
+        "placeholder": "e.g. Riverside Public School"
+      },
+      {
+        "id": "authorName",
+        "label": "Your name",
+        "description": "Shown in the footer as “Built by …” and in the README. Leave empty to hide it.",
+        "group": "identity",
+        "type": "text",
+        "required": false,
+        "default": "",
+        "minLength": 2,
+        "maxLength": 60,
+        "placeholder": "e.g. Priya Menon"
+      },
+      {
+        "id": "theme",
+        "label": "Accent colour",
+        "description": "Used for buttons, the active tab and highlights.",
+        "group": "appearance",
+        "type": "select",
+        "default": "indigo",
+        "choices": [
+          {
+            "value": "indigo",
+            "label": "Indigo",
+            "swatch": "#4F46E5"
+          },
+          {
+            "value": "teal",
+            "label": "Teal",
+            "swatch": "#0F766E"
+          },
+          {
+            "value": "rose",
+            "label": "Rose",
+            "swatch": "#BE123C"
+          },
+          {
+            "value": "amber",
+            "label": "Amber",
+            "swatch": "#B45309"
+          }
+        ]
+      },
+      {
+        "id": "attendanceThreshold",
+        "label": "Attendance threshold",
+        "description": "Students below this percentage are flagged on the dashboard. Many institutions use 75%.",
+        "group": "behaviour",
+        "type": "number",
+        "default": 75,
+        "min": 50,
+        "max": 100,
+        "step": 1,
+        "integer": true,
+        "unit": "%"
+      },
+      {
+        "id": "seedDemoData",
+        "label": "Include the demo class",
+        "description": "Loads 12 fictional students with 10 school days of attendance on first run. Turn off to start with an empty roster.",
+        "group": "data",
+        "type": "boolean",
+        "default": true
+      }
+    ],
+    "edits": [
+      {
+        "kind": "json-set",
+        "label": "npm package name",
+        "file": "package.json",
+        "pointer": "/name",
+        "value": {
+          "option": "projectSlug"
+        }
+      },
+      {
+        "kind": "json-set",
+        "label": "Lockfile package name",
+        "file": "package-lock.json",
+        "pointer": "/name",
+        "value": {
+          "option": "projectSlug"
+        }
+      },
+      {
+        "kind": "json-set",
+        "label": "Lockfile root package name",
+        "file": "package-lock.json",
+        "pointer": "/packages//name",
+        "value": {
+          "option": "projectSlug"
+        }
+      },
+      {
+        "kind": "replace",
+        "label": "Browser tab title",
+        "file": "index.html",
+        "find": "Student Attendance System",
+        "escape": "html",
+        "expectedCount": 1,
+        "value": {
+          "option": "projectName"
+        }
+      },
+      {
+        "kind": "json-set",
+        "label": "App name",
+        "file": "src/app.config.json",
+        "pointer": "/appName",
+        "value": {
+          "option": "projectName"
+        }
+      },
+      {
+        "kind": "json-set",
+        "label": "Institution name",
+        "file": "src/app.config.json",
+        "pointer": "/institutionName",
+        "value": {
+          "option": "institutionName"
+        }
+      },
+      {
+        "kind": "json-set",
+        "label": "Author name",
+        "file": "src/app.config.json",
+        "pointer": "/authorName",
+        "value": {
+          "option": "authorName"
+        }
+      },
+      {
+        "kind": "json-set",
+        "label": "Accent colour",
+        "file": "src/app.config.json",
+        "pointer": "/theme",
+        "value": {
+          "option": "theme"
+        }
+      },
+      {
+        "kind": "json-set",
+        "label": "Attendance threshold",
+        "file": "src/app.config.json",
+        "pointer": "/attendanceThreshold",
+        "value": {
+          "option": "attendanceThreshold"
+        }
+      },
+      {
+        "kind": "json-set",
+        "label": "Demo data on first run",
+        "file": "src/app.config.json",
+        "pointer": "/seedDemoData",
+        "value": {
+          "option": "seedDemoData"
+        }
+      },
+      {
+        "kind": "replace",
+        "label": "README title and introduction",
+        "file": "README.md",
+        "find": "Student Attendance System",
+        "escape": "markdown",
+        "expectedCount": 2,
+        "value": {
+          "option": "projectName"
+        }
+      },
+      {
+        "kind": "replace",
+        "label": "README institution",
+        "file": "README.md",
+        "find": "Riverside Public School",
+        "escape": "markdown",
+        "expectedCount": 1,
+        "value": {
+          "option": "institutionName",
+          "whenEmpty": "_Add your institution_"
+        }
+      },
+      {
+        "kind": "replace",
+        "label": "README author",
+        "file": "README.md",
+        "find": "_Add your name_",
+        "escape": "markdown",
+        "expectedCount": 1,
+        "value": {
+          "option": "authorName",
+          "whenEmpty": "_Add your name_"
+        }
+      }
+    ]
+  },
+  "license": {
+    "spdx": "MIT",
+    "file": "LICENSE",
+    "attribution": "Created by CampusKit contributors. Keep the LICENSE file when you share or submit the project.",
+    "thirdParty": [
+      {
+        "name": "React",
+        "license": "MIT",
+        "url": "https://react.dev/"
+      },
+      {
+        "name": "Vite",
+        "license": "MIT",
+        "url": "https://vite.dev/"
+      },
+      {
+        "name": "Vitest",
+        "license": "MIT",
+        "url": "https://vitest.dev/"
+      },
+      {
+        "name": "Testing Library",
+        "license": "MIT",
+        "url": "https://testing-library.com/"
+      }
+    ]
+  },
+  "repositoryUrl": null
+}

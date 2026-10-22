@@ -1,0 +1,8 @@
+{
+  "appName": "Student Attendance System",
+  "institutionName": "Riverside Public School",
+  "authorName": "",
+  "theme": "indigo",
+  "attendanceThreshold": 75,
+  "seedDemoData": true
+}

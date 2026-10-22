@@ -1,0 +1,16 @@
+node_modules
+dist
+coverage
+playwright-report
+test-results
+pnpm-lock.yaml
+package-lock.json
+*.png
+*.csv
+.venv
+__pycache__
+.scratch
+# Python sources are formatted with standard PEP 8 conventions, not Prettier.
+*.py
+# Generated from the Zod schema by `pnpm --filter @campuskit/project-catalog schema`.
+packages/project-catalog/manifest.schema.json

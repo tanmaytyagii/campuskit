@@ -1,0 +1,4 @@
+# Packages needed to run the app. Install with:  pip install -r requirements.txt
+streamlit>=1.50,<2
+pandas>=2.2,<4
+altair>=5.5,<7

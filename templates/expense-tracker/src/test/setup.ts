@@ -1,0 +1,30 @@
+import '@testing-library/jest-dom/vitest';
+import { cleanup } from '@testing-library/react';
+import { afterEach } from 'vitest';
+
+// jsdom does not implement <dialog>.showModal() / close(), so give it a
+// minimal version that toggles the `open` attribute like a real browser.
+if (typeof HTMLDialogElement !== 'undefined' && !HTMLDialogElement.prototype.showModal) {
+  HTMLDialogElement.prototype.showModal = function showModal(this: HTMLDialogElement) {
+    this.setAttribute('open', '');
+  };
+  HTMLDialogElement.prototype.close = function close(this: HTMLDialogElement) {
+    this.removeAttribute('open');
+  };
+}
+
+afterEach(() => {
+  cleanup();
+  window.localStorage.clear();
+  window.location.hash = '';
+});
+
+// Recharts' <ResponsiveContainer> measures its parent with ResizeObserver,
+// which jsdom does not provide.
+if (typeof globalThis.ResizeObserver === 'undefined') {
+  globalThis.ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+}

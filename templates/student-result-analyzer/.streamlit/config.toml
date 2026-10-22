@@ -1,0 +1,24 @@
+# Streamlit settings for this project.
+# Documentation: https://docs.streamlit.io/develop/api-reference/configuration/config.toml
+
+[theme]
+base = "light"
+primaryColor = "#6D28D9"
+
+[browser]
+# Don't send anonymous usage statistics to Streamlit.
+gatherUsageStats = false
+
+[server]
+# Only accept connections from this computer. To open the app from a phone or
+# another computer on the same network, delete this line; anyone on that
+# network can then use the app while it runs.
+address = "localhost"
+# Skip the "enter your email" prompt the first time Streamlit runs.
+showEmailPrompt = false
+# Uploads above this size (in MB) are rejected; the app also checks for 5 MB.
+maxUploadSize = 5
+
+[client]
+# Hide the "Deploy" button; the app's menu stays available.
+toolbarMode = "minimal"

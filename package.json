@@ -1,0 +1,48 @@
+{
+  "name": "campuskit",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CampusKit — a free, open-source student project factory. Build it. Understand it. Present it.",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@10.34.7",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @campuskit/web dev",
+    "build": "pnpm --filter @campuskit/web build",
+    "preview": "pnpm --filter @campuskit/web preview",
+    "validate": "pnpm validate:catalog && pnpm check:repo",
+    "validate:catalog": "tsx packages/project-catalog/scripts/validate-catalog.ts",
+    "check:repo": "tsx scripts/check-repo.ts",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "pnpm -r typecheck && tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "pnpm --filter @campuskit/web test:e2e",
+    "playwright:install": "pnpm --filter @campuskit/web exec playwright install chromium",
+    "verify:generated": "tsx scripts/verify-generated-projects.ts",
+    "screenshots": "tsx scripts/capture-screenshots.ts",
+    "check": "pnpm validate && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "@campuskit/project-catalog": "workspace:*",
+    "@campuskit/template-engine": "workspace:*",
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.19.2",
+    "eslint": "10.13.0",
+    "eslint-plugin-jsx-a11y": "6.10.2",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.13.0",
+    "jszip": "3.10.2",
+    "playwright-core": "1.64.1",
+    "prettier": "3.9.10",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.0",
+    "vitest": "5.0.5"
+  }
+}
