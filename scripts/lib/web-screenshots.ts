@@ -55,6 +55,8 @@ export async function captureWebApp(
         prepare: async (page) => {
           await page.getByRole('button', { name: 'localStorage persistence' }).click();
           await page.evaluate(() => window.scrollTo(0, 0));
+          // Move the pointer away so no hover style shows in the picture.
+          await page.mouse.move(0, 0);
         },
       },
       {
@@ -72,11 +74,11 @@ export async function captureWebApp(
             .fill('Amounts are whole numbers of paise, so adding them never rounds.');
           await page.getByRole('button', { name: 'Compare with the model answer' }).click();
           await page.getByRole('heading', { name: 'Model answer' }).waitFor();
-          // Start the picture at the question, below the sticky header.
+          // Start the picture at the session's progress line, below the sticky header.
           await page
-            .getByRole('heading', { level: 2, name: /\?$/ })
+            .getByText(/· Question \d+ of \d+/)
             .evaluate((element) =>
-              window.scrollTo(0, element.getBoundingClientRect().top + window.scrollY - 96),
+              window.scrollTo(0, element.getBoundingClientRect().top + window.scrollY - 88),
             );
         },
       },

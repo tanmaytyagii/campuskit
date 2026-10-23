@@ -65,10 +65,17 @@ export function SetupSteps({
             .filter((command) => command.platform === 'all' || command.platform === platform)
             .map((command) => command.command);
           return (
-            <li key={step.title} className="grid grid-cols-[2.25rem_1fr] gap-x-4">
+            <li key={step.title} className="relative grid grid-cols-[2.25rem_1fr] gap-x-4">
+              {/* A thin line joins the step markers into a timeline. */}
+              {index < steps.length - 1 ? (
+                <span
+                  aria-hidden="true"
+                  className="absolute top-10 -bottom-5 left-[1.075rem] w-px bg-line-strong"
+                />
+              ) : null}
               <span
                 aria-hidden="true"
-                className="flex size-9 items-center justify-center rounded-full border-2 border-violet font-mono text-sm font-medium text-violet"
+                className="relative flex size-9 items-center justify-center rounded-full border-2 border-violet font-mono text-sm font-medium text-violet"
               >
                 {index + 1}
               </span>

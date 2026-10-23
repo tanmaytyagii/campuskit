@@ -33,6 +33,18 @@ function applyTheme(dark: boolean): void {
   document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
 }
 
+/**
+ * When the student picks a theme, colours fade for a moment instead of
+ * flashing. Skipped when the system asks for reduced motion.
+ */
+function fadeThemeChange(): void {
+  if (typeof window.matchMedia !== 'function') return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const root = document.documentElement;
+  root.classList.add('theme-transition');
+  window.setTimeout(() => root.classList.remove('theme-transition'), 250);
+}
+
 interface ThemeContextValue {
   preference: ThemePreference;
   resolved: 'light' | 'dark';
@@ -62,6 +74,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [resolved]);
 
   const setPreference = useCallback((next: ThemePreference) => {
+    fadeThemeChange();
     setPreferenceState(next);
     writeStored(STORAGE_KEY, next);
   }, []);

@@ -51,11 +51,11 @@ export function ChecklistSection({
         front of a mirror. Ticks are saved in this browser only.
       </p>
 
-      <div className="space-y-2">
+      <div className="max-w-xl space-y-2">
         <p className="font-semibold text-ink" aria-live="polite">
           {done.size} of {total} ticked
         </p>
-        <div aria-hidden="true" className="h-2 overflow-hidden rounded-full bg-raised">
+        <div aria-hidden="true" className="h-1.5 overflow-hidden rounded-full bg-raised">
           <div
             className="h-full rounded-full bg-violet transition-[width] duration-300 motion-reduce:transition-none"
             style={{ width: `${total === 0 ? 0 : (done.size / total) * 100}%` }}
@@ -78,11 +78,18 @@ export function ChecklistSection({
           const items = guide.checklist.filter((item) => item.area === area);
           if (items.length === 0) return null;
           return (
-            <fieldset key={area} className="rounded-xl border border-line bg-surface p-5">
-              <legend className="px-1 text-sm font-bold text-ink">
-                {CHECKLIST_AREA_LABELS[area]}
+            <fieldset
+              key={area}
+              className="overflow-hidden rounded-xl border border-line bg-surface"
+            >
+              {/* Floated so the legend sits inside the card as its header, not on the border. */}
+              <legend className="float-left flex w-full items-center justify-between gap-3 border-b border-line bg-raised/50 px-5 py-3">
+                <span className="text-sm font-bold text-ink">{CHECKLIST_AREA_LABELS[area]}</span>
+                <span aria-hidden="true" className="type-meta font-mono">
+                  {items.filter((item) => done.has(item.id)).length}/{items.length}
+                </span>
               </legend>
-              <div className="mt-2 space-y-4">
+              <div className="clear-both space-y-4 p-5">
                 {items.map((item) => (
                   <div key={item.id} className="space-y-1">
                     <Checkbox
@@ -94,7 +101,7 @@ export function ChecklistSection({
                     {item.file ? (
                       <Link
                         to={fileHref(project, item.file)}
-                        className="ml-[1.9rem] inline-block font-mono text-xs text-ink-3 hover:text-violet"
+                        className="ml-[1.9rem] inline-block font-mono text-xs text-ink-2 underline decoration-line-strong underline-offset-4 hover:text-violet hover:decoration-violet"
                       >
                         {item.file}
                       </Link>

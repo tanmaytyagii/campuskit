@@ -4,6 +4,10 @@ import { Link, useSearchParams } from 'react-router';
 
 import { ButtonLink } from '../../components/ui/Button.tsx';
 import { cn } from '../../lib/cn.ts';
+
+/** Previous and next steps: bordered links whose titles can wrap on narrow screens. */
+const pagerClasses =
+  'group flex min-w-0 flex-col gap-0.5 rounded-xl border border-line bg-surface px-4 py-3 transition-colors hover:border-violet';
 import { fileHref, sourceHref, studioHref } from './links.ts';
 
 /**
@@ -63,10 +67,10 @@ export function WalkthroughSection({
 
       <article aria-labelledby="walkthrough-title" className="min-w-0 space-y-6">
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-ink-3">
+          <p className="type-eyebrow text-violet">
             Step {index + 1} of {entries.length}
           </p>
-          <h3 id="walkthrough-title" className="heading text-2xl text-ink">
+          <h3 id="walkthrough-title" className="type-h2 text-ink">
             {entry.title}
           </h3>
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -122,7 +126,7 @@ export function WalkthroughSection({
                     <li key={file}>
                       <Link
                         to={fileHref(project, file)}
-                        className="font-mono text-sm text-ink hover:text-violet"
+                        className="font-mono text-sm text-ink underline decoration-line-strong underline-offset-4 hover:text-violet hover:decoration-violet"
                       >
                         {file}
                       </Link>
@@ -142,7 +146,7 @@ export function WalkthroughSection({
                     <li key={file}>
                       <Link
                         to={sourceHref(project, file)}
-                        className="font-mono text-sm text-ink hover:text-violet"
+                        className="font-mono text-sm text-ink underline decoration-line-strong underline-offset-4 hover:text-violet hover:decoration-violet"
                       >
                         {file}
                       </Link>
@@ -154,26 +158,36 @@ export function WalkthroughSection({
           </div>
         ) : null}
 
-        <div className="flex flex-wrap justify-between gap-3 border-t border-line pt-6">
+        <div className="grid gap-3 border-t border-line pt-6 sm:grid-cols-2">
           {previous ? (
-            <ButtonLink
-              to={entryHref(previous.id)}
-              replace
-              variant="secondary"
-              icon={<ChevronLeft aria-hidden="true" className="size-4" />}
-            >
-              {previous.title}
-            </ButtonLink>
+            <Link to={entryHref(previous.id)} replace className={pagerClasses}>
+              <span className="type-meta inline-flex items-center gap-1">
+                <ChevronLeft aria-hidden="true" className="size-3.5" />
+                Previous
+              </span>
+              <span className="font-semibold text-ink group-hover:text-violet">
+                {previous.title}
+              </span>
+            </Link>
           ) : (
-            <span />
+            <span className="hidden sm:block" />
           )}
           {next ? (
-            <ButtonLink to={entryHref(next.id)} replace variant="secondary">
-              {next.title}
-              <ChevronRight aria-hidden="true" className="size-4" />
-            </ButtonLink>
+            <Link
+              to={entryHref(next.id)}
+              replace
+              className={cn(pagerClasses, 'sm:items-end sm:text-right')}
+            >
+              <span className="type-meta inline-flex items-center gap-1">
+                Next
+                <ChevronRight aria-hidden="true" className="size-3.5" />
+              </span>
+              <span className="font-semibold text-ink group-hover:text-violet">{next.title}</span>
+            </Link>
           ) : (
-            <ButtonLink to={studioHref(project, 'checklist')}>Check what you understand</ButtonLink>
+            <ButtonLink to={studioHref(project, 'checklist')} className="sm:justify-self-end">
+              Check what you understand
+            </ButtonLink>
           )}
         </div>
       </article>

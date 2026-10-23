@@ -229,7 +229,7 @@ export function GeneratorPage() {
 
   const stepHeading = (title: string, description: string) => (
     <div className="mb-6 space-y-1">
-      <h2 ref={heading} tabIndex={-1} className="heading text-2xl text-ink outline-none">
+      <h2 ref={heading} tabIndex={-1} className="type-h2 text-ink outline-none">
         {title}
       </h2>
       <p className="text-ink-3">{description}</p>
@@ -254,6 +254,7 @@ export function GeneratorPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Generator"
         title="Generate a project"
         description="Pick a template, make it yours, and download a ZIP with the source code, setup instructions and docs. Everything happens in your browser."
       />
@@ -262,6 +263,7 @@ export function GeneratorPage() {
           steps={steps}
           current={step}
           reachable={(target) => target !== 'done' && (target === 'template' || Boolean(manifest))}
+          invalid={() => Object.keys(errors).length > 0}
           onSelect={setStep}
         />
 
@@ -273,7 +275,7 @@ export function GeneratorPage() {
         >
           <section
             aria-label={STEP_LABELS[step]}
-            className="min-w-0 rounded-[18px] border border-line bg-surface p-5 shadow-card sm:p-8"
+            className="min-w-0 self-start rounded-2xl border border-line bg-surface p-5 shadow-card sm:p-8"
           >
             {step === 'template' ? (
               <>
@@ -645,7 +647,7 @@ function DonePanel({
             <PackageOpen aria-hidden="true" className="size-6" />
           </span>
           <div className="min-w-0 flex-1 space-y-1">
-            <h2 ref={headingRef} tabIndex={-1} className="heading text-2xl text-ink outline-none">
+            <h2 ref={headingRef} tabIndex={-1} className="type-h2 text-ink outline-none">
               {fileName} is ready
             </h2>
             <p className="text-ink-2">
@@ -664,7 +666,7 @@ function DonePanel({
       </div>
 
       <div>
-        <h3 className="heading text-xl text-ink">Run your project</h3>
+        <h3 className="type-h3 text-ink">Run your project</h3>
         <p className="mt-1 mb-5 text-ink-3">
           These are the exact steps for{' '}
           <span className="font-semibold text-ink-2">{project.guide.projectName}</span>. They are

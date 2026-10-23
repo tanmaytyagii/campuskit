@@ -1,5 +1,61 @@
 # Changelog
 
+## 3.1.0 (23 October 2026)
+
+A redesign of the whole website for a calmer, more consistent and more accessible interface. Features, templates (still version 1.0.0 and verified) and saved data are unchanged: checklist ticks, viva ratings and report drafts saved by 2.0 or 3.0 load exactly as before, and typed viva answers are still never saved.
+
+### Design system
+
+- One set of tokens for both themes, documented in [docs/design-system.md](docs/design-system.md) and on the site. The light theme moves to a warm, paper-like neutral; input and select borders use a new `control` colour at 3:1 or more against every surface (they were 1.6:1); a navy `inverse` pair is used for the closing band.
+- A type scale (`type-display`, `type-title`, `type-h2`, `type-h3`, `type-eyebrow`, `type-lead`, `type-meta`) replaces sizes chosen page by page. Corner radii have fixed roles, and shadows are softer.
+- Motion: 160 ms transitions, buttons move down 1 px while pressed, dialogs fade in, progress bars fill and the theme change fades. All of it is off when the system asks for reduced motion.
+
+### Header, footer and page structure
+
+- Compare is in the main navigation, and the current section is underlined.
+- A search field in the header opens the gallery filtered by the text. It is a field on wide screens, an icon link at laptop width, and in the menu on phones. The phone menu now scrolls when it is taller than the screen.
+- Breadcrumbs on project, source, project document, learning studio, viva practice and submission workspace pages. Every page header has a short label above its title.
+- The footer uses two columns on phones, and its repository link says it opens in a new tab.
+
+### Home page
+
+- A new hero with the verification count taken from the records, a “See it in action” tour with keyboard-operable tabs and real, labelled screenshots of five parts of the site, “How it works”, featured projects, the learning tools, categories (empty ones say so), an invitation to contribute and a closing call to action. The “Recently added” table was removed.
+
+### Gallery and project pages
+
+- Project cards lead with the screenshot and verification status, then the category, title and tagline, with the difficulty (a three-bar meter plus its name) and the main technologies at the bottom. Fewer badges.
+- The filter panel uses dividers instead of boxes and dims options with no matching projects. The search field has an icon.
+- Project pages have one main action (“Customize and download”), a facts row (difficulty, audience, technologies, offline use) and features and limitations side by side.
+
+### Generator
+
+- The stepper shows completed, current, upcoming and needs-attention states, with a progress bar and “Step 2 of 5: Details” on phones. Completed steps are buttons for going back, and a step with errors says so to screen readers.
+- The form panel no longer stretches to the height of the preview column.
+
+### Learning studio, viva practice and submission workspace
+
+- Studio overview: two columns with a sticky progress panel. Architecture layers form one list. Checklist groups have a header with a per-group count. Troubleshooting entries have an expand arrow and a quiet “General advice” label, while problems seen during verification keep their badge. The walkthrough's previous and next links wrap instead of overflowing on 320 px screens, and file links look like links.
+- Learning center and viva practice hubs: project cards show checklist and viva progress as meters with one main action. The viva hub explains how practice works, including that the key-idea check only looks for words and can't tell whether an answer is right.
+- Viva practice: a clearer progress panel, practice mode cards with icons and aligned buttons, and a focused session column with a progress bar.
+- Submission workspace: restyled through the shared components only; drafts and downloads are unchanged.
+
+### Compare, documentation and other pages
+
+- Compare: on phones, each attribute lists every chosen project's value, instead of a table that scrolled sideways.
+- Documentation: the index groups documents with a description per group; on phones the document list folds into an “All documents” menu; the sidebar marks the current document clearly; every code block has a copy button; Markdown tables keep their outer border.
+- The 404 page suggests where to go next, and the error page uses the same layout.
+
+### Accessibility
+
+- Every page type is checked by axe (WCAG 2.2 AA and best practices) in both themes at desktop and phone sizes, and for sideways scrolling at 1280, 360 and 320 px.
+- The two search areas on the home page are separately named landmarks. Checkboxes and radio buttons use the brand colour. Progress meters are valid description lists with the value in text.
+
+### Tests
+
+- 319 unit tests (312 before) and 149 end-to-end tests (146 before). No test was removed.
+- New tests cover the header navigation (including Compare), the header search (unit and end to end), the product tour's tabs and keyboard support, code copy buttons and raw HTML in Markdown, the stepper's needs-attention state, the comparison's phone layout, the learning center's progress meters and report links, and the phone document menu.
+- Updated tests: the home page test checks the new sections instead of the removed table; the learning center test reads the new progress meters; a gallery end-to-end locator is now exact because the header also has a search field. Testing Library waits up to 5 seconds for lazily loaded pages, because the full parallel run could exceed the 1-second default.
+
 ## 3.0.0 (23 October 2026)
 
 This release turns CampusKit into a learning studio: students can now understand, explain and present a project, not only download it. The three templates are unchanged (version 1.0.0) and still verified.

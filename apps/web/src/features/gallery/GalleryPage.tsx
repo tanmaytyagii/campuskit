@@ -1,5 +1,5 @@
 import { catalog } from '@campuskit/project-catalog';
-import { SearchX, SlidersHorizontal } from 'lucide-react';
+import { Search, SearchX, SlidersHorizontal } from 'lucide-react';
 import { useId, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 
@@ -79,12 +79,13 @@ export function GalleryPage() {
   return (
     <>
       <PageHeader
+        eyebrow="Explore"
         title="Projects"
         description="Complete, tested starter projects. Each one runs on your own computer and comes with setup steps, documentation and viva questions."
       />
       <div className="container-page grid gap-8 lg:grid-cols-[250px_minmax(0,1fr)]">
         <aside aria-label="Filters" className="hidden lg:block">
-          <div className="sticky top-24 rounded-xl border border-line bg-surface p-4">
+          <div className="sticky top-24 rounded-xl border border-line bg-surface p-5">
             <FilterPanel
               projects={catalog}
               filters={filters}
@@ -101,15 +102,21 @@ export function GalleryPage() {
               <label htmlFor={searchId} className="text-sm font-semibold text-ink">
                 Search
               </label>
-              <input
-                id={searchId}
-                type="search"
-                placeholder="Name, topic, language or framework"
-                value={searchText}
-                maxLength={100}
-                onChange={(event) => search(event.target.value)}
-                className={cn(controlClasses, 'h-11')}
-              />
+              <div className="relative">
+                <Search
+                  aria-hidden="true"
+                  className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-ink-3"
+                />
+                <input
+                  id={searchId}
+                  type="search"
+                  placeholder="Name, topic, language or framework"
+                  value={searchText}
+                  maxLength={100}
+                  onChange={(event) => search(event.target.value)}
+                  className={cn(controlClasses, 'h-11 pl-10')}
+                />
+              </div>
             </div>
             <div className="space-y-1.5 sm:w-60">
               <label htmlFor={sortId} className="text-sm font-semibold text-ink">

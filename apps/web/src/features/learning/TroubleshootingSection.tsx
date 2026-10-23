@@ -5,7 +5,7 @@ import {
   type TroubleshootingEntry,
   type TroubleshootingStep,
 } from '@campuskit/project-catalog';
-import { Eye, Info, ShieldCheck } from 'lucide-react';
+import { ChevronRight, Eye, Info, ShieldCheck } from 'lucide-react';
 import { useId, useState } from 'react';
 
 import { Badge } from '../../components/ui/Badge.tsx';
@@ -143,26 +143,34 @@ export function TroubleshootingSection({
         if (items.length === 0) return null;
         return (
           <section key={stage} aria-labelledby={`stage-${stage}`} className="space-y-3">
-            <h3 id={`stage-${stage}`} className="text-base font-bold text-ink">
+            <h3 id={`stage-${stage}`} className="type-eyebrow">
               {TROUBLESHOOTING_STAGE_LABELS[stage]}
             </h3>
-            <ul className="space-y-3">
+            <ul className="space-y-2">
               {items.map((entry) => (
                 <li key={entry.id}>
-                  <details className="group rounded-xl border border-line bg-surface">
-                    <summary className="flex cursor-pointer flex-wrap items-center gap-2 px-4 py-3">
-                      <span className="font-semibold text-ink">{entry.title}</span>
-                      {entry.observed ? (
-                        <Badge tone="warn">
-                          <Eye aria-hidden="true" className="size-3.5" />
-                          Seen during verification
-                        </Badge>
-                      ) : (
-                        <Badge tone="outline">General advice</Badge>
-                      )}
-                      {entry.platforms.map((platform) => (
-                        <Badge key={platform}>{PLATFORM_NAMES[platform]}</Badge>
-                      ))}
+                  <details className="group rounded-xl border border-line bg-surface transition-colors open:border-line-strong">
+                    <summary className="flex cursor-pointer list-none items-start gap-3 rounded-xl px-4 py-3.5 transition-colors hover:bg-raised/60 [&::-webkit-details-marker]:hidden">
+                      <ChevronRight
+                        aria-hidden="true"
+                        className="mt-0.5 size-4 shrink-0 text-ink-3 transition-transform group-open:rotate-90 motion-reduce:transition-none"
+                      />
+                      <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1.5">
+                        <span className="font-semibold text-ink">{entry.title}</span>
+                        <span className="flex flex-wrap items-center gap-1.5">
+                          {entry.observed ? (
+                            <Badge tone="warn">
+                              <Eye aria-hidden="true" className="size-3.5" />
+                              Seen during verification
+                            </Badge>
+                          ) : (
+                            <span className="type-meta">General advice</span>
+                          )}
+                          {entry.platforms.map((platform) => (
+                            <Badge key={platform}>{PLATFORM_NAMES[platform]}</Badge>
+                          ))}
+                        </span>
+                      </span>
                     </summary>
                     <div className="space-y-5 border-t border-line px-4 py-4 text-[0.95rem] text-ink-2">
                       {entry.observed ? (

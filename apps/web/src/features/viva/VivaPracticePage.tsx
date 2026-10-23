@@ -8,10 +8,20 @@ import {
   type VivaCategory,
   type VivaQuestion,
 } from '@campuskit/project-catalog';
-import { CircleCheck, CircleDashed, ExternalLink, RotateCcw, Trash } from 'lucide-react';
-import { useEffect, useId, useRef, useState } from 'react';
+import {
+  CircleCheck,
+  CircleDashed,
+  ExternalLink,
+  ListFilter,
+  RotateCcw,
+  Shuffle,
+  Trash,
+  Zap,
+} from 'lucide-react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router';
 
+import { Breadcrumbs } from '../../components/layout/Breadcrumbs.tsx';
 import { StatusBadge } from '../../components/StatusBadge.tsx';
 import { Badge } from '../../components/ui/Badge.tsx';
 import { Button, ButtonLink } from '../../components/ui/Button.tsx';
@@ -93,33 +103,19 @@ function VivaPractice({ project }: { project: ProjectManifest }) {
 
   return (
     <div className="container-page pt-8 pb-8 md:pt-12">
-      <nav aria-label="Breadcrumb" className="mb-6 text-sm text-ink-3">
-        <ol className="flex flex-wrap items-center gap-2">
-          <li>
-            <Link to="/projects" className="hover:text-violet hover:underline">
-              Projects
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li>
-            <Link to={`/projects/${project.slug}`} className="hover:text-violet hover:underline">
-              {project.name}
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li aria-current="page" className="text-ink-2">
-            Viva practice
-          </li>
-        </ol>
-      </nav>
+      <Breadcrumbs
+        items={[
+          { label: 'Projects', to: '/projects' },
+          { label: project.name, to: `/projects/${project.slug}` },
+        ]}
+        current="Viva practice"
+      />
       <div className="mb-8 max-w-3xl space-y-3">
         <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-violet">
           {project.name}
           <StatusBadge project={project} />
         </p>
-        <h1 className="display text-[1.9rem] text-ink min-[400px]:text-4xl md:text-5xl">
-          Viva practice
-        </h1>
+        <h1 className="type-title text-ink">Viva practice</h1>
         <p className="text-lg text-ink-2">
           Questions an examiner may ask about this project, with model answers based on its actual
           code. Answer first, then compare and judge your own answer honestly.
@@ -205,16 +201,26 @@ function Practice({ project, guide }: { project: ProjectManifest; guide: Learnin
     const question = phase.questions[phase.index];
     if (!question) return null;
     return (
-      <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm font-semibold text-ink-2">
-            {MODE_LABELS[phase.mode.kind]}
-            {phase.mode.kind === 'topic' ? `: ${VIVA_CATEGORY_LABELS[phase.mode.category]}` : ''} ·
-            Question {phase.index + 1} of {phase.questions.length}
-          </p>
-          <Button variant="ghost" size="sm" onClick={endSession}>
-            End session
-          </Button>
+      <div className="mx-auto max-w-3xl space-y-6">
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-ink-2">
+              {MODE_LABELS[phase.mode.kind]}
+              {phase.mode.kind === 'topic'
+                ? `: ${VIVA_CATEGORY_LABELS[phase.mode.category]}`
+                : ''}{' '}
+              · Question {phase.index + 1} of {phase.questions.length}
+            </p>
+            <Button variant="ghost" size="sm" onClick={endSession}>
+              End session
+            </Button>
+          </div>
+          <div aria-hidden="true" className="h-1.5 overflow-hidden rounded-full bg-raised">
+            <div
+              className="h-full rounded-full bg-violet transition-[width] duration-300 motion-reduce:transition-none"
+              style={{ width: `${((phase.index + 1) / phase.questions.length) * 100}%` }}
+            />
+          </div>
         </div>
         <QuestionCard
           key={`${question.id}-${phase.index}`}
@@ -250,6 +256,18 @@ function Practice({ project, guide }: { project: ProjectManifest; guide: Learnin
   );
 }
 
+/** The small icon tile at the top of each practice mode card. */
+function ModeIcon({ icon }: { icon: ReactNode }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="flex size-10 items-center justify-center rounded-lg bg-violet-soft text-violet"
+    >
+      {icon}
+    </span>
+  );
+}
+
 function ModeChooser({
   project,
   guide,
@@ -274,40 +292,28 @@ function ModeChooser({
   const [notice, setNotice] = useState<string | null>(null);
   const topicId = useId();
 
-  const card = 'flex flex-col gap-3 rounded-xl border border-line bg-surface p-5';
+  const card = 'flex flex-col gap-3 rounded-xl border border-line bg-surface p-5 shadow-card';
+  const stats = [
+    { label: 'Practised', value: summary.practised, of: summary.total },
+    { label: OUTCOME_LABELS.confident, value: summary.confident },
+    { label: OUTCOME_LABELS.partly, value: summary.partly },
+    { label: OUTCOME_LABELS.missed, value: summary.missed },
+  ];
   return (
     <div className="space-y-8">
       <section
         aria-labelledby="viva-progress"
-        className="rounded-xl border border-line bg-raised p-5"
+        className="rounded-2xl border border-line bg-surface p-5 shadow-card sm:p-6"
       >
-        <h2 id="viva-progress" className="text-base font-bold text-ink">
-          Your practice so far
-        </h2>
-        <dl className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <div>
-            <dt className="text-xs font-semibold text-ink-3">Practised</dt>
-            <dd className="text-lg font-semibold text-ink">
-              {summary.practised} of {summary.total}
-            </dd>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="space-y-1">
+            <h2 id="viva-progress" className="type-h3 text-ink">
+              Your practice so far
+            </h2>
+            <p className="type-meta">
+              Your ratings are saved in this browser only. The answers you type are never saved.
+            </p>
           </div>
-          <div>
-            <dt className="text-xs font-semibold text-ink-3">{OUTCOME_LABELS.confident}</dt>
-            <dd className="text-lg font-semibold text-ink">{summary.confident}</dd>
-          </div>
-          <div>
-            <dt className="text-xs font-semibold text-ink-3">{OUTCOME_LABELS.partly}</dt>
-            <dd className="text-lg font-semibold text-ink">{summary.partly}</dd>
-          </div>
-          <div>
-            <dt className="text-xs font-semibold text-ink-3">{OUTCOME_LABELS.missed}</dt>
-            <dd className="text-lg font-semibold text-ink">{summary.missed}</dd>
-          </div>
-        </dl>
-        <p className="mt-3 text-sm text-ink-3">
-          Your ratings are saved in this browser only. The answers you type are never saved.
-        </p>
-        <div className="mt-3 flex flex-wrap items-center gap-3">
           <Button
             variant="ghost"
             size="sm"
@@ -317,63 +323,92 @@ function ModeChooser({
           >
             Reset viva progress
           </Button>
-          {notice ? (
-            <p role="status" className="text-sm text-ink-2">
-              {notice}
-            </p>
-          ) : null}
         </div>
+        <dl className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-4">
+          {stats.map((stat) => (
+            <div key={stat.label} className="bg-surface px-4 py-3">
+              <dt className="type-meta">{stat.label}</dt>
+              <dd className="mt-1 text-2xl font-bold text-ink tabular-nums">
+                {stat.value}
+                {stat.of !== undefined ? (
+                  <span className="text-base font-semibold text-ink-3"> of {stat.of}</span>
+                ) : null}
+              </dd>
+            </div>
+          ))}
+        </dl>
+        {notice ? (
+          <p role="status" className="mt-3 text-sm text-ink-2">
+            {notice}
+          </p>
+        ) : null}
       </section>
 
       <div className="grid gap-5 md:grid-cols-2">
         <section aria-labelledby="mode-quick" className={card}>
-          <h2 id="mode-quick" className="heading text-lg text-ink">
+          <ModeIcon icon={<Zap className="size-5" />} />
+          <h2 id="mode-quick" className="type-h3 text-ink">
             Quick practice
           </h2>
           <p className="flex-1 text-sm text-ink-2">
             {Math.min(QUICK_PRACTICE_SIZE, guide.viva.length)} questions, starting with the ones you
             marked “Review again”, then ones you haven’t practised yet.
           </p>
-          <Button onClick={() => onStart({ kind: 'quick' })}>Start quick practice</Button>
+          <Button className="mt-2 self-start" onClick={() => onStart({ kind: 'quick' })}>
+            Start quick practice
+          </Button>
         </section>
 
         <section aria-labelledby="mode-topic" className={card}>
-          <h2 id="mode-topic" className="heading text-lg text-ink">
+          <ModeIcon icon={<ListFilter className="size-5" />} />
+          <h2 id="mode-topic" className="type-h3 text-ink">
             Practice by topic
           </h2>
-          <SelectField
-            id={topicId}
-            label="Topic"
-            value={category}
-            onChange={(event) => setCategory(event.target.value as VivaCategory)}
+          <div className="flex-1">
+            <SelectField
+              id={topicId}
+              label="Topic"
+              value={category}
+              onChange={(event) => setCategory(event.target.value as VivaCategory)}
+            >
+              {categories.map((value) => (
+                <option key={value} value={value}>
+                  {VIVA_CATEGORY_LABELS[value]} (
+                  {guide.viva.filter((question) => question.category === value).length})
+                </option>
+              ))}
+            </SelectField>
+          </div>
+          <Button
+            variant="secondary"
+            className="mt-2 self-start"
+            onClick={() => onStart({ kind: 'topic', category })}
           >
-            {categories.map((value) => (
-              <option key={value} value={value}>
-                {VIVA_CATEGORY_LABELS[value]} (
-                {guide.viva.filter((question) => question.category === value).length})
-              </option>
-            ))}
-          </SelectField>
-          <Button variant="secondary" onClick={() => onStart({ kind: 'topic', category })}>
             Start this topic
           </Button>
         </section>
 
         <section aria-labelledby="mode-mixed" className={card}>
-          <h2 id="mode-mixed" className="heading text-lg text-ink">
+          <ModeIcon icon={<Shuffle className="size-5" />} />
+          <h2 id="mode-mixed" className="type-h3 text-ink">
             Mixed practice
           </h2>
           <p className="flex-1 text-sm text-ink-2">
             All {guide.viva.length} questions from every topic in a random order, like a real viva.
             You can end the session at any time.
           </p>
-          <Button variant="secondary" onClick={() => onStart({ kind: 'mixed' })}>
+          <Button
+            variant="secondary"
+            className="mt-2 self-start"
+            onClick={() => onStart({ kind: 'mixed' })}
+          >
             Start mixed practice
           </Button>
         </section>
 
         <section aria-labelledby="mode-review" className={card}>
-          <h2 id="mode-review" className="heading text-lg text-ink">
+          <ModeIcon icon={<RotateCcw className="size-5" />} />
+          <h2 id="mode-review" className="type-h3 text-ink">
             Review questions to work on
           </h2>
           <p className="flex-1 text-sm text-ink-2">
@@ -383,6 +418,7 @@ function ModeChooser({
           </p>
           <Button
             variant="secondary"
+            className="mt-2 self-start"
             disabled={reviewCount === 0}
             onClick={() => onStart({ kind: 'review' })}
           >
@@ -393,12 +429,12 @@ function ModeChooser({
 
       <section
         aria-labelledby="viva-how"
-        className="rounded-xl border border-line p-5 text-sm text-ink-2"
+        className="rounded-xl border border-line p-5 text-sm text-ink-2 sm:p-6"
       >
-        <h2 id="viva-how" className="text-base font-bold text-ink">
+        <h2 id="viva-how" className="type-h3 text-ink">
           How practice works
         </h2>
-        <ul className="mt-2 list-disc space-y-1.5 pl-5">
+        <ul className="mt-3 max-w-[80ch] list-disc space-y-1.5 pl-5">
           <li>
             Write your answer the way you would say it, then compare it with the model answer.
           </li>
@@ -493,7 +529,7 @@ function QuestionCard({
   return (
     <article
       aria-labelledby="question-heading"
-      className="space-y-6 rounded-[18px] border border-line bg-surface p-5 shadow-card sm:p-8"
+      className="space-y-6 rounded-2xl border border-line bg-surface p-5 shadow-card sm:p-8"
     >
       <div className="space-y-3">
         <div className="flex flex-wrap gap-1.5">
@@ -504,7 +540,7 @@ function QuestionCard({
           id="question-heading"
           ref={heading}
           tabIndex={-1}
-          className="heading text-2xl text-ink outline-none"
+          className="type-h2 text-ink outline-none"
         >
           {question.question}
         </h2>
@@ -730,13 +766,13 @@ function SessionSummary({
   return (
     <section
       aria-labelledby="summary-heading"
-      className="space-y-6 rounded-[18px] border border-line bg-surface p-5 shadow-card sm:p-8"
+      className="mx-auto max-w-3xl space-y-6 rounded-2xl border border-line bg-surface p-5 shadow-card sm:p-8"
     >
       <h2
         id="summary-heading"
         ref={heading}
         tabIndex={-1}
-        className="heading text-2xl text-ink outline-none"
+        className="type-h2 text-ink outline-none"
       >
         Session complete
       </h2>

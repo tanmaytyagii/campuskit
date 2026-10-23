@@ -13,14 +13,20 @@ describe('learning center', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Learning center' }),
     ).toBeInTheDocument();
-    expect(await screen.findByText(/Checklist: 2 of 16 ticked/)).toBeInTheDocument();
     const card = screen
       .getByRole('heading', { name: 'Student Attendance System' })
       .closest('article');
     if (!card) throw new Error('missing card');
+    // Saved progress is shown as labelled amounts (the bars are decoration).
+    expect(await within(card).findByText('2 of 16 ticked')).toBeInTheDocument();
+    expect(within(card).getByText('Checklist')).toBeInTheDocument();
+    expect(within(card).getByText('0 of 20 practised')).toBeInTheDocument();
     expect(
       within(card).getByRole('link', { name: 'Learning studio for Student Attendance System' }),
     ).toHaveAttribute('href', '/projects/attendance-system/learn');
+    expect(
+      within(card).getByRole('link', { name: 'Report workspace for Student Attendance System' }),
+    ).toHaveAttribute('href', '/learn/report?project=attendance-system');
     expect(screen.getByRole('link', { name: 'Open the workspace' })).toHaveAttribute(
       'href',
       '/learn/report',

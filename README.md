@@ -31,7 +31,8 @@ It is a static website: no accounts, no server, no database and no AI service. P
 - **viva practice** with quick, topic, mixed and review modes: write your answer, compare it with a model answer based on the code, see which key ideas your answer mentions (a transparent word check, not an assessment), and rate yourself on four criteria;
 - a **submission workspace** that drafts every report section from the project's real features and limitations, keeps CampusKit's facts and verification results in a labelled appendix apart from what you write, and adds a demonstration checklist and a presentation outline you can copy as a slide list;
 - a **comparison page** that puts two or three projects side by side and suggests projects for goals such as “my first project” or “a Python project” using written rules over the projects' own data;
-- **documentation** for students and contributors.
+- **documentation** for students and contributors, with a copy button on every code block;
+- **one consistent interface**: a documented [design system](docs/design-system.md), light and dark themes, a search field in the header, breadcrumbs on nested pages, full keyboard support, and layouts tested from 320 px phones to wide screens. The home page tour shows real screenshots of each part of the site.
 
 | Gallery                                                                                                                          | Generator                                                                                                                                |
 | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
@@ -42,8 +43,8 @@ It is a static website: no accounts, no server, no database and no AI service. P
 | ![The architecture explorer for the attendance system with the storage component selected](docs/screenshots/learning-studio.png) | ![A viva question with the student's answer, the key ideas it mentions and the model answer](docs/screenshots/viva-practice.png)         |
 | **Submission workspace**                                                                                                         | **Compare projects**                                                                                                                     |
 | ![Report workspace with draft sections for an attendance project](docs/screenshots/learn.png)                                    | ![Comparison page with a goal suggestion and two projects chosen](docs/screenshots/compare.png)                                          |
-| **Dark theme**                                                                                                                   |                                                                                                                                          |
-| ![The home page in the dark theme](docs/screenshots/home-dark.png)                                                               |                                                                                                                                          |
+| **Dark theme**                                                                                                                   | **On a phone**                                                                                                                           |
+| ![The home page in the dark theme](docs/screenshots/home-dark.png)                                                               | ![The home page on a 390 px wide phone screen](docs/screenshots/mobile-home.png)                                                         |
 
 ## Quick start
 
@@ -115,7 +116,7 @@ docs/                      Guides for students and documentation for contributor
 
 - **Template engine:** escaping in every context, edits, Unicode names, path traversal and reserved names, secret and build-output exclusion, ZIP structure.
 - **Catalog:** every manifest is validated with Zod, and every declared edit is applied to the real template with the default values and with a name full of special characters and Unicode.
-- **Website:** component tests render the real routes with the real templates, including a full generation whose ZIP is inspected; axe-core checks every page type.
+- **Website:** component tests render the real routes with the real templates, including a full generation whose ZIP is inspected, and cover the shared interface: header search, the tour's keyboard tabs, the generator stepper's error state, code copy buttons and the phone layout of the comparison; axe-core checks every page type.
 - **End to end:** Playwright tests the production build in Chromium at desktop and phone sizes. They download and inspect real ZIP files, check keyboard navigation and the mobile menu, fail on any console error, failed request or Content Security Policy violation, and run axe with every rule, including colour contrast, in both themes.
 - **Generated projects:** `pnpm verify:generated` extracts each generated ZIP safely, checks the customized and excluded files, then installs the project and runs its own tests and build.
 
@@ -141,6 +142,8 @@ The site is static. `pnpm build` produces `apps/web/dist`, which you can host on
 - Verification records are written on a maintainer's computer and committed. CI repeats the verification on three operating systems but does not write records, so the website shows only the platforms someone recorded.
 - A record covers a template's files and its manifest settings. A change to the template engine itself is covered by CI, which verifies every template when the engine changes, rather than by the records.
 - Automated browser tests run in Chromium only. The site uses standard web features and should work in current Firefox and Safari, but those browsers are not tested automatically.
+- There are no automated visual-regression tests. Layout is checked by the overflow and accessibility tests and by reviewing screenshots; the README and home page screenshots are only as current as the last `pnpm screenshots web` run.
+- Accessibility is tested with axe and keyboard tests, not with screen reader users. Some issues only people using assistive technology will find.
 
 ## Contributing, security and licence
 

@@ -48,8 +48,17 @@ describe('project generator', () => {
     expect(name).toHaveAttribute('aria-invalid', 'true');
     expect(name).toHaveAccessibleDescription(expect.stringContaining('Project name is required'));
     expect(name).toHaveFocus();
+    // The stepper marks the step with errors, and the finished step stays a way back.
+    const steps = within(screen.getByRole('navigation', { name: 'Generator steps' }));
+    expect(steps.getByText('(needs attention)')).toBeInTheDocument();
+    expect(steps.getByRole('button', { name: 'Template (completed)' })).toBeInTheDocument();
+    const current = steps
+      .getAllByRole('listitem')
+      .filter((item) => item.getAttribute('aria-current') === 'step');
+    expect(current.map((item) => item.textContent)).toEqual(['Details (needs attention)']);
 
     await user.type(name, 'Riya’s Lab <Attendance> & “Notes” — हाज़िरी');
+    expect(steps.queryByText('(needs attention)')).not.toBeInTheDocument();
     await user.type(
       screen.getByRole('textbox', { name: 'Institution name (optional)' }),
       'St. Xavier’s College',

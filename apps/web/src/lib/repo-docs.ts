@@ -88,6 +88,13 @@ export const REPO_DOCS: readonly RepoDoc[] = [
     group: 'contributing',
   },
   {
+    slug: 'design-system',
+    title: 'Design system',
+    description: 'Colours, type, spacing, motion and the components the website is built from.',
+    path: 'docs/design-system.md',
+    group: 'contributing',
+  },
+  {
     slug: 'template-engine',
     title: 'Template engine',
     description: 'Options, edits, escaping, exclusion rules and ZIP safety in detail.',

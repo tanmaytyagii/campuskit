@@ -48,7 +48,12 @@ export function SearchBox({ className }: { className?: string }) {
   }
 
   return (
-    <form role="search" onSubmit={submit} className={cn('relative', className)}>
+    <form
+      role="search"
+      aria-label="Find a project"
+      onSubmit={submit}
+      className={cn('relative', className)}
+    >
       <label htmlFor={inputId} className="sr-only">
         Search projects
       </label>

@@ -13,19 +13,25 @@
  * and the moment a ZIP is generated) and is never used as decoration.
  */
 :root {
-  --ck-canvas: #f4f6fb;
+  /* Surfaces: a warm, paper-like neutral, so long reading feels calm. */
+  --ck-canvas: #f7f6f3;
   --ck-surface: #ffffff;
-  --ck-raised: #eef1f8;
-  --ck-sunken: #e8ecf5;
-  --ck-line: #dce1ee;
-  --ck-line-strong: #c3cae0;
-  --ck-ink: #121a38;
-  --ck-ink-2: #3e4770;
-  --ck-ink-3: #5a6489;
-  --ck-violet: #5536e8;
-  --ck-violet-hover: #4426cf;
-  --ck-violet-soft: #eeeafe;
+  --ck-raised: #f1f0eb;
+  --ck-sunken: #eae8e2;
+  --ck-line: #e4e2db;
+  --ck-line-strong: #cfccc3;
+  /* Borders that identify a control (inputs, selects): at least 3:1 against every surface. */
+  --ck-control: #8a8780;
+  /* Text: navy ink in three steps, each at least 4.5:1 on every surface. */
+  --ck-ink: #141a33;
+  --ck-ink-2: #3d4566;
+  --ck-ink-3: #5b6283;
+  /* Violet marks everything interactive. */
+  --ck-violet: #5434e6;
+  --ck-violet-hover: #4324c8;
+  --ck-violet-soft: #efebff;
   --ck-on-violet: #ffffff;
+  /* Lime is a signal (ready, verified, focus in dark mode), never decoration. */
   --ck-lime: #c8f23c;
   --ck-lime-ink: #1a2600;
   --ck-lime-text: #3d6600;
@@ -33,12 +39,15 @@
   --ck-danger: #c0263f;
   --ck-danger-soft: #fdecef;
   --ck-warn: #8a5300;
-  --ck-warn-soft: #fff4dd;
-  --ck-focus: #5536e8;
-  --ck-code-bg: #0f1834;
-  --ck-code-ink: #dfe5f7;
-  --ck-shadow: 0 1px 2px rgb(18 26 56 / 6%), 0 4px 16px rgb(18 26 56 / 6%);
-  --ck-shadow-lift: 0 2px 4px rgb(18 26 56 / 8%), 0 12px 32px rgb(18 26 56 / 10%);
+  --ck-warn-soft: #fff3da;
+  --ck-focus: #5434e6;
+  --ck-code-bg: #10172f;
+  --ck-code-ink: #e2e7f6;
+  /* The inverted band (closing call to action): navy in both themes. */
+  --ck-inverse: #121935;
+  --ck-on-inverse: #f1f3fb;
+  --ck-shadow: 0 1px 2px rgb(20 26 51 / 5%);
+  --ck-shadow-lift: 0 2px 6px rgb(20 26 51 / 6%), 0 16px 36px rgb(20 26 51 / 10%);
 }
 
 .dark {
@@ -48,6 +57,7 @@
   --ck-sunken: #0d1636;
   --ck-line: #24305e;
   --ck-line-strong: #34427a;
+  --ck-control: #6573a8;
   --ck-ink: #edf0fa;
   --ck-ink-2: #b9c1dd;
   --ck-ink-3: #8f9abf;
@@ -65,9 +75,11 @@
   --ck-warn-soft: #33270f;
   --ck-focus: #c8f23c;
   --ck-code-bg: #070d24;
-  --ck-code-ink: #dfe5f7;
+  --ck-code-ink: #e2e7f6;
+  --ck-inverse: #16224a;
+  --ck-on-inverse: #f1f3fb;
   --ck-shadow: 0 1px 2px rgb(0 0 0 / 30%);
-  --ck-shadow-lift: 0 2px 4px rgb(0 0 0 / 35%), 0 14px 34px rgb(0 0 0 / 35%);
+  --ck-shadow-lift: 0 2px 6px rgb(0 0 0 / 35%), 0 16px 36px rgb(0 0 0 / 40%);
 }
 
 @theme inline {
@@ -80,6 +92,7 @@
   --color-sunken: var(--ck-sunken);
   --color-line: var(--ck-line);
   --color-line-strong: var(--ck-line-strong);
+  --color-control: var(--ck-control);
   --color-ink: var(--ck-ink);
   --color-ink-2: var(--ck-ink-2);
   --color-ink-3: var(--ck-ink-3);
@@ -98,13 +111,22 @@
   --color-focus: var(--ck-focus);
   --color-code-bg: var(--ck-code-bg);
   --color-code-ink: var(--ck-code-ink);
+  --color-inverse: var(--ck-inverse);
+  --color-on-inverse: var(--ck-on-inverse);
 
   --shadow-card: var(--ck-shadow);
   --shadow-lift: var(--ck-shadow-lift);
 
-  --radius-control: 8px;
-  --radius-card: 12px;
-  --radius-panel: 18px;
+  /*
+   * Radii use Tailwind's scale with fixed roles: md (6px) for badges and
+   * chips, lg (8px) for buttons and inputs, xl (12px) for cards and panels,
+   * 2xl (16px) for large surfaces and dialogs.
+   */
+
+  /* Motion: short and calm; prefers-reduced-motion turns it off below. */
+  --default-transition-duration: 160ms;
+  --default-transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out-soft: cubic-bezier(0.2, 0, 0, 1);
 }
 
 @layer base {
@@ -142,6 +164,21 @@
     border-radius: 4px;
   }
 
+  /* Native checkboxes and radios follow the brand colour. */
+  input[type='checkbox'],
+  input[type='radio'] {
+    accent-color: var(--ck-violet);
+  }
+
+  /* Changing theme fades colours instead of flashing (see useTheme). */
+  html.theme-transition,
+  html.theme-transition * {
+    transition:
+      background-color 200ms ease,
+      border-color 200ms ease,
+      color 200ms ease !important;
+  }
+
   code,
   kbd,
   pre {
@@ -154,7 +191,64 @@
 }
 
 @layer components {
-  /* Headlines use Archivo's expanded width: the kit-box voice of the brand. */
+  /*
+   * Type scale. Archivo's width axis carries the brand: headlines are
+   * expanded, reading text stays at normal width.
+   */
+  .type-display {
+    font-size: clamp(2.4rem, 1.25rem + 4.2vw, 4.25rem);
+    font-stretch: 125%;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 1.02;
+  }
+
+  .type-title {
+    font-size: clamp(2rem, 1.55rem + 1.5vw, 2.75rem);
+    font-stretch: 120%;
+    font-weight: 780;
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+  }
+
+  .type-h2 {
+    font-size: clamp(1.4rem, 1.2rem + 0.6vw, 1.75rem);
+    font-stretch: 112%;
+    font-weight: 740;
+    letter-spacing: -0.012em;
+    line-height: 1.2;
+  }
+
+  .type-h3 {
+    font-size: 1.125rem;
+    font-stretch: 106%;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+    line-height: 1.3;
+  }
+
+  .type-eyebrow {
+    font-size: 0.75rem;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    line-height: 1.4;
+    text-transform: uppercase;
+    color: var(--ck-ink-3);
+  }
+
+  .type-lead {
+    font-size: 1.125rem;
+    line-height: 1.6;
+    color: var(--ck-ink-2);
+  }
+
+  .type-meta {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--ck-ink-3);
+  }
+
+  /* Older names, kept for headings that set their own size. */
   .display {
     font-stretch: 125%;
     font-weight: 800;
@@ -164,14 +258,20 @@
 
   .heading {
     font-stretch: 112%;
-    font-weight: 750;
+    font-weight: 740;
     letter-spacing: -0.01em;
     line-height: 1.2;
   }
 
   .container-page {
-    width: min(1200px, 100% - 2rem);
+    width: min(1240px, 100% - 2rem);
     margin-inline: auto;
+  }
+
+  @media (min-width: 640px) {
+    .container-page {
+      width: min(1240px, 100% - 3rem);
+    }
   }
 
   .link {
@@ -202,6 +302,31 @@
       );
     background-size: 28px 28px;
   }
+}
+
+/*
+ * Dialogs fade and rise in where the browser supports it; prefers-reduced-motion
+ * removes the movement (see the end of this file).
+ */
+dialog[open] {
+  opacity: 1;
+  translate: 0 0;
+  transition:
+    opacity 180ms var(--ease-out-soft),
+    translate 180ms var(--ease-out-soft),
+    overlay 180ms allow-discrete,
+    display 180ms allow-discrete;
+}
+
+@starting-style {
+  dialog[open] {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+
+dialog::backdrop {
+  transition: background-color 180ms ease;
 }
 
 /* Rendered Markdown (README files, guides, policies). */
@@ -236,8 +361,8 @@
 
 .prose-ck h2 {
   font-size: 1.5rem;
-  margin-top: 2em;
-  padding-top: 1rem;
+  margin-top: 2.2em;
+  padding-top: 1.1rem;
   border-top: 1px solid var(--ck-line);
 }
 
@@ -290,7 +415,16 @@
   padding: 1rem 1.15rem;
   overflow-x: auto;
   font-size: 0.875rem;
-  line-height: 1.6;
+  line-height: 1.65;
+}
+
+/* Code blocks with a copy button (see MarkdownView). */
+.prose-ck .code-block {
+  position: relative;
+}
+
+.prose-ck .code-block pre {
+  padding-right: 6.5rem;
 }
 
 .prose-ck pre code {
@@ -301,21 +435,34 @@
   font-size: inherit;
 }
 
+/* The outline is drawn on the scrolling box itself, so rounded corners don't clip cell borders. */
 .prose-ck table {
   display: block;
   width: max-content;
   max-width: 100%;
   overflow-x: auto;
-  border-collapse: collapse;
+  border: 1px solid var(--ck-line);
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 12px;
   font-size: 0.925rem;
 }
 
 .prose-ck th,
 .prose-ck td {
-  border: 1px solid var(--ck-line);
+  border-right: 1px solid var(--ck-line);
+  border-bottom: 1px solid var(--ck-line);
   padding: 0.5rem 0.75rem;
   text-align: left;
   vertical-align: top;
+}
+
+.prose-ck tr > :last-child {
+  border-right: 0;
+}
+
+.prose-ck tbody tr:last-child > * {
+  border-bottom: 0;
 }
 
 .prose-ck th {

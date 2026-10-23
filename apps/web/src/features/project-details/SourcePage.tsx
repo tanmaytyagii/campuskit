@@ -4,6 +4,7 @@ import { Check, Copy, Download, FileCode, Folder, RotateCcw } from 'lucide-react
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router';
 
+import { Breadcrumbs } from '../../components/layout/Breadcrumbs.tsx';
 import { MarkdownView } from '../../components/MarkdownView.tsx';
 import { Button } from '../../components/ui/Button.tsx';
 import { Callout } from '../../components/ui/Callout.tsx';
@@ -92,7 +93,7 @@ function FileViewer({
   }
 
   return (
-    <div className="min-w-0 overflow-hidden rounded-[18px] border border-line bg-surface shadow-card">
+    <div className="min-w-0 overflow-hidden rounded-2xl border border-line bg-surface shadow-card">
       <div className="flex flex-wrap items-center gap-3 border-b border-line bg-raised px-4 py-3">
         <h2 className="min-w-0 flex-1 truncate font-mono text-sm font-medium text-ink">
           {file.path}
@@ -223,12 +224,16 @@ function ProjectSource({ project }: { project: ProjectManifest }) {
 
   return (
     <div className="container-page pt-8 md:pt-12">
-      <div className="mb-6 space-y-2">
-        <Link to={`/projects/${project.slug}`} className="link text-sm">
-          Back to {project.name}
-        </Link>
-        <h1 className="display text-3xl text-ink md:text-4xl">Source code</h1>
-        <p className="max-w-3xl text-ink-2">
+      <Breadcrumbs
+        items={[
+          { label: 'Projects', to: '/projects' },
+          { label: project.name, to: `/projects/${project.slug}` },
+        ]}
+        current="Source code"
+      />
+      <div className="mb-6 space-y-3">
+        <h1 className="type-title text-ink">Source code</h1>
+        <p className="type-lead max-w-3xl">
           Every file in the <span className="font-mono text-[0.95em]">{project.id}</span> template,
           exactly as it goes into the ZIP. Dependencies are not included; they are installed by{' '}
           {project.template.packageManager}.

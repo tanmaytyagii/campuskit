@@ -1,3 +1,4 @@
+import { ExternalLink } from 'lucide-react';
 import { Link } from 'react-router';
 
 import { siteConfig } from '../../site.config.ts';
@@ -39,8 +40,8 @@ const COLUMNS = [
 export function SiteFooter() {
   return (
     <footer className="mt-24 border-t border-line bg-surface">
-      <div className="container-page grid gap-10 py-12 md:grid-cols-[1.3fr_repeat(3,1fr)]">
-        <div className="space-y-3">
+      <div className="container-page grid grid-cols-2 gap-x-6 gap-y-10 py-12 md:grid-cols-[1.3fr_repeat(3,1fr)]">
+        <div className="col-span-2 space-y-3 md:col-span-1">
           <Wordmark />
           <p className="max-w-xs text-sm text-ink-3">
             {siteConfig.tagline} Free, open-source project templates for school and college
@@ -48,24 +49,26 @@ export function SiteFooter() {
           </p>
           {siteConfig.repositoryUrl ? (
             <a
-              className="link text-sm"
+              className="link inline-flex items-center gap-1 text-sm"
               href={siteConfig.repositoryUrl}
               target="_blank"
               rel="noopener noreferrer"
             >
               Source code repository
+              <ExternalLink aria-hidden="true" className="size-3.5" />
+              <span className="sr-only"> (opens in a new tab)</span>
             </a>
           ) : null}
         </div>
         {COLUMNS.map((column) => (
           <nav key={column.title} aria-label={column.title}>
-            <h2 className="text-sm font-bold text-ink">{column.title}</h2>
+            <h2 className="type-eyebrow text-ink">{column.title}</h2>
             <ul className="mt-3 space-y-2">
               {column.links.map((link) => (
                 <li key={link.to}>
                   <Link
                     to={link.to}
-                    className="text-sm text-ink-2 hover:text-violet hover:underline"
+                    className="text-sm text-ink-2 underline-offset-4 transition-colors hover:text-violet hover:underline"
                   >
                     {link.label}
                   </Link>

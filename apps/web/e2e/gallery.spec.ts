@@ -6,7 +6,7 @@ test('filters are kept in the address, survive a reload and work with Back', asy
   await page.goto('/projects');
   await expect(page.getByRole('status').filter({ hasText: 'projects' })).toHaveText('3 projects');
 
-  await page.getByRole('searchbox', { name: 'Search' }).fill('react');
+  await page.getByRole('searchbox', { name: 'Search', exact: true }).fill('react');
   await expect(page).toHaveURL(/\?q=react$/);
   await expect(page.getByRole('status').filter({ hasText: 'projects' })).toHaveText(
     'Showing 2 of 3 projects',
@@ -29,7 +29,7 @@ test('filters are kept in the address, survive a reload and work with Back', asy
   ).toBeVisible();
 
   await page.reload();
-  await expect(page.getByRole('searchbox', { name: 'Search' })).toHaveValue('react');
+  await expect(page.getByRole('searchbox', { name: 'Search', exact: true })).toHaveValue('react');
   await expect(page.getByRole('status').filter({ hasText: 'projects' })).toHaveText(
     'Showing 1 of 3 projects',
   );

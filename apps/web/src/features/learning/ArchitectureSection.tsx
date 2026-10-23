@@ -51,15 +51,18 @@ export function ArchitectureSection({
         <div>
           <h3 className="text-base font-bold text-ink">Layers and components</h3>
           <p className="mt-1 text-sm text-ink-3">Choose a component to see what it does.</p>
-          <ol className="mt-4 space-y-3" aria-label="Architecture layers">
+          <ol
+            className="mt-4 divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface"
+            aria-label="Architecture layers"
+          >
             {architecture.layers.map((layer) => (
               <li
                 key={layer.id}
-                className="grid gap-3 rounded-xl border border-line bg-surface p-4 md:grid-cols-[11rem_minmax(0,1fr)]"
+                className="grid gap-3 p-4 md:grid-cols-[11rem_minmax(0,1fr)] md:gap-5"
               >
                 <div>
                   <p className="font-semibold text-ink">{layer.label}</p>
-                  <p className="text-xs text-ink-3">{layer.description}</p>
+                  <p className="type-meta mt-0.5">{layer.description}</p>
                 </div>
                 <ul className="flex flex-wrap gap-2" aria-label={`${layer.label} components`}>
                   {architecture.components
@@ -97,7 +100,7 @@ export function ArchitectureSection({
                 {KIND_LABELS[selected.kind]} ·{' '}
                 {architecture.layers.find((layer) => layer.id === selected.layer)?.label}
               </p>
-              <h3 className="heading text-xl text-ink">{selected.name}</h3>
+              <h3 className="type-h3 text-ink">{selected.name}</h3>
             </div>
             <p className="text-ink-2">{selected.responsibility}</p>
             <div>

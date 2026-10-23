@@ -3,6 +3,7 @@ import { FileText, MessageCircleQuestion, RotateCcw, Wand } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { Link, Navigate, NavLink, useParams } from 'react-router';
 
+import { Breadcrumbs } from '../../components/layout/Breadcrumbs.tsx';
 import { StatusBadge } from '../../components/StatusBadge.tsx';
 import { Button, ButtonLink } from '../../components/ui/Button.tsx';
 import { Callout } from '../../components/ui/Callout.tsx';
@@ -54,25 +55,13 @@ function Studio({ project, section }: { project: ProjectManifest; section: Studi
 
   return (
     <div className="container-page pt-8 md:pt-12">
-      <nav aria-label="Breadcrumb" className="mb-6 text-sm text-ink-3">
-        <ol className="flex flex-wrap items-center gap-2">
-          <li>
-            <Link to="/projects" className="hover:text-violet hover:underline">
-              Projects
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li>
-            <Link to={`/projects/${project.slug}`} className="hover:text-violet hover:underline">
-              {project.name}
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li aria-current="page" className="text-ink-2">
-            Learning studio
-          </li>
-        </ol>
-      </nav>
+      <Breadcrumbs
+        items={[
+          { label: 'Projects', to: '/projects' },
+          { label: project.name, to: `/projects/${project.slug}` },
+        ]}
+        current="Learning studio"
+      />
 
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div className="max-w-3xl space-y-3">
@@ -80,9 +69,7 @@ function Studio({ project, section }: { project: ProjectManifest; section: Studi
             {project.name}
             <StatusBadge project={project} />
           </p>
-          <h1 className="display text-[1.9rem] text-ink min-[400px]:text-4xl md:text-5xl">
-            Learning studio
-          </h1>
+          <h1 className="type-title text-ink">Learning studio</h1>
           <p className="text-lg text-ink-2">
             Understand how the project works before you change it: its architecture, the important
             files, what to check you can explain, and what to do when something goes wrong.
@@ -143,7 +130,7 @@ function Studio({ project, section }: { project: ProjectManifest; section: Studi
           id="studio-section-heading"
           ref={heading}
           tabIndex={-1}
-          className="heading mb-6 text-2xl text-ink outline-none"
+          className="type-h2 mb-6 text-ink outline-none"
         >
           {label}
         </h2>

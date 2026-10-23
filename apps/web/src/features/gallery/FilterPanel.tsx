@@ -60,7 +60,7 @@ interface FilterPanelProps {
 
 export function FilterPanel({ projects, filters, facets, onToggle, idPrefix }: FilterPanelProps) {
   return (
-    <div className="space-y-6">
+    <div className="divide-y divide-line">
       {facets.map((facet) => {
         // Hide project types nobody has published yet, to keep the list short.
         const options =
@@ -70,9 +70,9 @@ export function FilterPanel({ projects, filters, facets, onToggle, idPrefix }: F
               )
             : facet.options;
         return (
-          <fieldset key={facet.key}>
-            <legend className="mb-2 text-sm font-bold text-ink">{facet.label}</legend>
-            <ul className="space-y-1">
+          <fieldset key={facet.key} className="py-4 first:pt-0 last:pb-0">
+            <legend className="type-eyebrow mb-2 float-left w-full">{facet.label}</legend>
+            <ul className="clear-both space-y-0.5">
               {options.map((option) => {
                 const id = `${idPrefix}-${facet.key}-${option.value}`;
                 const checked = (filters[facet.key] as string[]).includes(option.value);
@@ -82,8 +82,12 @@ export function FilterPanel({ projects, filters, facets, onToggle, idPrefix }: F
                     <label
                       htmlFor={id}
                       className={cn(
-                        'flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm hover:bg-raised',
-                        checked ? 'text-ink' : 'text-ink-2',
+                        'flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-raised',
+                        checked
+                          ? 'font-medium text-ink'
+                          : count === 0
+                            ? 'text-ink-3'
+                            : 'text-ink-2',
                       )}
                     >
                       <input
@@ -91,7 +95,7 @@ export function FilterPanel({ projects, filters, facets, onToggle, idPrefix }: F
                         type="checkbox"
                         checked={checked}
                         onChange={() => onToggle(facet.key, option.value)}
-                        className="size-4 accent-violet"
+                        className="size-4"
                       />
                       <span className="flex-1">{option.label}</span>
                       <span className="font-mono text-xs text-ink-3" aria-hidden="true">

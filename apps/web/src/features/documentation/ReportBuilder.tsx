@@ -235,9 +235,9 @@ function ReportEditor({
 
       <section
         aria-labelledby="report-details"
-        className="rounded-[18px] border border-line bg-surface p-5 shadow-card sm:p-6"
+        className="rounded-2xl border border-line bg-surface p-5 shadow-card sm:p-6"
       >
-        <h3 id="report-details" className="heading text-xl text-ink">
+        <h3 id="report-details" className="type-h3 text-ink">
           Project details
         </h3>
         <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-3">

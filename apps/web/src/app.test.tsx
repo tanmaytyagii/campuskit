@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
 import { missingRepoDocs, REPO_DOCS } from './lib/repo-docs.ts';
+import { getTemplateStatus } from './lib/verification.ts';
 import { renderRoute } from './test/render.tsx';
 
 const NOT_FOUND = 'This page doesn’t exist';
@@ -37,8 +38,40 @@ describe('site shell and navigation', () => {
       '/projects?language=Python',
     );
 
-    const recent = screen.getByRole('table', { name: 'Projects by date added' });
-    expect(within(recent).getAllByRole('row')).toHaveLength(catalog.length + 1);
+    // The verification claim in the hero is counted from the real records, not written by hand.
+    const verified = catalog.filter(
+      (project) => getTemplateStatus(project).id === 'verified',
+    ).length;
+    expect(
+      screen.getByText(`${verified} of ${catalog.length} templates verified end to end`),
+    ).toBeInTheDocument();
+
+    // The product tour shows labelled screenshots of the real pages, one tab per feature.
+    const tour = screen.getByRole('tablist', { name: 'CampusKit features' });
+    expect(within(tour).getAllByRole('tab')).toHaveLength(5);
+    expect(within(tour).getByRole('tab', { name: 'Discover' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(screen.getByText(/Screenshots of the real pages/)).toBeInTheDocument();
+
+    const learning = screen.getByRole('region', {
+      name: 'Learn the project well enough to explain it',
+    });
+    for (const [name, href] of [
+      [/Learning studio/, '/learn'],
+      [/Viva practice/, '/viva'],
+      [/Submission workspace/, '/learn/report'],
+      [/Compare projects/, '/compare'],
+    ] as const) {
+      expect(within(learning).getByRole('link', { name })).toHaveAttribute('href', href);
+    }
+
+    const closing = screen.getByRole('region', { name: 'Ready when you are' });
+    expect(within(closing).getByRole('link', { name: 'Browse all projects' })).toHaveAttribute(
+      'href',
+      '/projects',
+    );
   });
 
   it('navigates between pages from the header', async () => {
@@ -61,6 +94,30 @@ describe('site shell and navigation', () => {
     ).toBeInTheDocument();
     // Focus moves to the new page content after navigating.
     expect(screen.getByRole('main')).toHaveFocus();
+  });
+
+  it('lists every main section in the header navigation', () => {
+    renderRoute('/');
+    const nav = screen.getAllByRole('navigation', { name: 'Main' })[0];
+    if (!nav) throw new Error('missing main navigation');
+    expect(
+      within(nav)
+        .getAllByRole('link')
+        .map((link) => link.textContent),
+    ).toEqual(['Projects', 'Generator', 'Learn', 'Viva practice', 'Compare', 'Docs']);
+    expect(within(nav).getByRole('link', { name: 'Compare' })).toHaveAttribute('href', '/compare');
+  });
+
+  it('searches the gallery from the header search field', async () => {
+    const user = userEvent.setup();
+    const { router } = renderRoute('/compare');
+    const [search] = screen.getAllByRole('searchbox', { name: 'Search projects' });
+    if (!search) throw new Error('missing header search');
+
+    await user.type(search, 'budget tracker{Enter}');
+    expect(router.state.location.pathname).toBe('/projects');
+    expect(new URLSearchParams(router.state.location.search).get('q')).toBe('budget tracker');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Projects' })).toBeInTheDocument();
   });
 
   it('shows a helpful 404 page for unknown addresses', () => {

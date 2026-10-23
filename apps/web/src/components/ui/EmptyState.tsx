@@ -14,7 +14,7 @@ export function EmptyState({ icon, title, children, actions, className }: EmptyS
   return (
     <div
       className={cn(
-        'rounded-[18px] border border-dashed border-line-strong bg-surface px-6 py-12 text-center',
+        'rounded-2xl border border-dashed border-line-strong bg-surface px-6 py-12 text-center',
         className,
       )}
     >
@@ -23,7 +23,7 @@ export function EmptyState({ icon, title, children, actions, className }: EmptyS
           {icon}
         </div>
       ) : null}
-      <h2 className="heading text-lg text-ink">{title}</h2>
+      <h2 className="type-h3 text-ink">{title}</h2>
       <div className="mx-auto mt-2 max-w-md text-sm text-ink-3">{children}</div>
       {actions ? <div className="mt-6 flex flex-wrap justify-center gap-3">{actions}</div> : null}
     </div>

@@ -3,12 +3,13 @@
  * dangerous URLs. Relative links are resolved by the caller so they become
  * in-app routes (or plain text when there is no page to link to).
  */
-import { ExternalLink } from 'lucide-react';
+import { Check, Copy, ExternalLink } from 'lucide-react';
 import { Children, isValidElement, type ReactNode } from 'react';
 import Markdown, { type Components } from 'react-markdown';
 import { Link } from 'react-router';
 import remarkGfm from 'remark-gfm';
 
+import { useCopyToClipboard } from '../hooks/useCopyToClipboard.ts';
 import { cn } from '../lib/cn.ts';
 
 export type LinkTarget =
@@ -48,6 +49,32 @@ function defaultResolve(href: string): LinkTarget {
 
 type HeadingTag = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 
+/** A code block with a copy button; the code stays selectable and focusable for scrolling. */
+function CodeBlock({ children }: { children?: ReactNode }) {
+  const { state, copy } = useCopyToClipboard();
+  const text = textOf(children).replace(/\n$/, '');
+  return (
+    <div className="code-block">
+      <pre tabIndex={0}>{children}</pre>
+      <button
+        type="button"
+        onClick={() => void copy(text)}
+        className="absolute top-2 right-2 inline-flex h-8 items-center gap-1.5 rounded-md bg-white/10 px-2.5 text-xs font-semibold text-code-ink transition-colors hover:bg-white/20"
+        aria-label="Copy code"
+      >
+        {state === 'copied' ? (
+          <Check aria-hidden="true" className="size-3.5 text-lime" />
+        ) : (
+          <Copy aria-hidden="true" className="size-3.5" />
+        )}
+        <span aria-live="polite">
+          {state === 'copied' ? 'Copied' : state === 'failed' ? 'Copy failed' : 'Copy'}
+        </span>
+      </button>
+    </div>
+  );
+}
+
 /**
  * Renders a Markdown heading `offset` levels lower, so a document shown inside
  * a page with its own <h1> keeps a correct outline. Section headings get ids
@@ -73,7 +100,7 @@ export function MarkdownView({
     h3: heading(3, headingOffset),
     h4: heading(4, headingOffset),
     // Code blocks scroll sideways on small screens, so they must be focusable.
-    pre: ({ children }) => <pre tabIndex={0}>{children}</pre>,
+    pre: ({ children }) => <CodeBlock>{children}</CodeBlock>,
     a: ({ href = '', children }) => {
       const target = href.startsWith('#')
         ? ({ kind: 'internal', to: href } as const)

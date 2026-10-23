@@ -7,17 +7,17 @@ export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'bg-violet text-on-violet hover:bg-violet-hover shadow-card',
-  secondary: 'bg-surface text-ink border border-line-strong hover:border-violet hover:text-violet',
-  ghost: 'text-ink-2 hover:text-ink hover:bg-raised',
+  primary: 'bg-violet text-on-violet shadow-card hover:bg-violet-hover',
+  secondary: 'border border-line-strong bg-surface text-ink hover:border-violet hover:text-violet',
+  ghost: 'text-ink-2 hover:bg-raised hover:text-ink',
   danger:
-    'bg-surface text-danger border border-line-strong hover:border-danger hover:bg-danger-soft',
+    'border border-line-strong bg-surface text-danger hover:border-danger hover:bg-danger-soft',
 };
 
 const SIZES: Record<ButtonSize, string> = {
-  sm: 'h-8 px-3 text-sm gap-1.5',
-  md: 'h-10 px-4 text-[0.95rem] gap-2',
-  lg: 'h-12 px-5 text-base gap-2',
+  sm: 'h-8 gap-1.5 px-3 text-sm',
+  md: 'h-10 gap-2 px-4 text-[0.9375rem]',
+  lg: 'h-12 gap-2 px-5 text-base',
 };
 
 export function buttonClasses(
@@ -27,7 +27,9 @@ export function buttonClasses(
 ): string {
   return cn(
     'inline-flex items-center justify-center rounded-lg font-semibold whitespace-nowrap select-none',
-    'transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50',
+    // A one-pixel press confirms the click; reduced motion keeps it still.
+    'transition-[color,background-color,border-color,box-shadow,translate] active:translate-y-px motion-reduce:active:translate-y-0',
+    'disabled:cursor-not-allowed disabled:opacity-50 disabled:active:translate-y-0',
     VARIANTS[variant],
     SIZES[size],
     className,

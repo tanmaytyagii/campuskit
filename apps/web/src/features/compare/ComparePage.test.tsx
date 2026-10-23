@@ -22,6 +22,19 @@ describe('compare page', () => {
     expect(screen.getByText('Both run offline once installed.')).toBeInTheDocument();
   });
 
+  it('groups the comparison by attribute for small screens', async () => {
+    renderRoute('/compare?ids=attendance-system,student-result-analyzer');
+    // jsdom applies no CSS, so both layouts are present. The phone layout lists
+    // each attribute with every chosen project's value under it.
+    const server = within(await screen.findByRole('region', { name: 'Server' }));
+    expect(server.getAllByRole('term').map((term) => term.textContent)).toEqual([
+      'Student Attendance System',
+      'Student Result Analyzer',
+    ]);
+    expect(server.getByText('No server: everything runs in the browser')).toBeInTheDocument();
+    expect(server.getByText('A small server that runs on your own computer')).toBeInTheDocument();
+  });
+
   it('allows at most three projects', async () => {
     renderRoute('/compare?ids=attendance-system,expense-tracker,student-result-analyzer');
     const boxes = await screen.findAllByRole('checkbox');

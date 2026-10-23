@@ -5,9 +5,10 @@ import {
   type DocReference,
   type ProjectManifest,
 } from '@campuskit/project-catalog';
-import { useEffect, useState } from 'react';
-import { Link, NavLink, useParams } from 'react-router';
+import { Fragment, useEffect, useState } from 'react';
+import { NavLink, useParams } from 'react-router';
 
+import { Breadcrumbs } from '../../components/layout/Breadcrumbs.tsx';
 import { MarkdownView, type LinkTarget } from '../../components/MarkdownView.tsx';
 import { Callout } from '../../components/ui/Callout.tsx';
 import { Skeleton } from '../../components/ui/Spinner.tsx';
@@ -74,71 +75,87 @@ function TemplateDoc({ project, doc }: { project: ProjectManifest; doc: DocRefer
     return target ? templateAssetUrl(project.template.directory, target) : undefined;
   };
 
+  const navClasses = ({ isActive }: { isActive: boolean }) =>
+    cn(
+      'block rounded-md px-3 py-1.5 text-sm transition-colors',
+      isActive
+        ? 'bg-violet-soft font-semibold text-violet'
+        : 'text-ink-2 hover:bg-raised hover:text-ink',
+    );
+
   return (
-    <div className="container-page grid gap-10 pt-8 md:pt-12 lg:grid-cols-[220px_minmax(0,1fr)]">
-      <aside
-        aria-label={`${project.name} documents`}
-        className="space-y-4 lg:sticky lg:top-24 lg:self-start"
-      >
-        <Link to={`/projects/${project.slug}`} className="link text-sm">
-          Back to {project.name}
-        </Link>
-        <nav aria-label="Project documents">
-          <ul className="space-y-1">
-            {project.docs.map((item) => (
-              <li key={item.kind}>
-                <NavLink
-                  to={`/projects/${project.slug}/docs/${item.kind}`}
-                  className={({ isActive }) =>
-                    cn(
-                      'block rounded-md px-3 py-2 text-sm font-medium',
-                      isActive ? 'bg-raised text-ink' : 'text-ink-2 hover:text-ink',
-                    )
-                  }
-                >
-                  {item.title}
+    <div className="container-page pt-6 md:pt-8">
+      <Breadcrumbs
+        items={[
+          { to: '/projects', label: 'Projects' },
+          { to: `/projects/${project.slug}`, label: project.name },
+        ]}
+        current={doc.title}
+      />
+      <div className="mt-6 grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-10">
+        <aside
+          aria-label={`${project.name} documents`}
+          className="space-y-4 lg:sticky lg:top-24 lg:self-start"
+        >
+          <nav aria-label="Project documents">
+            <p className="type-eyebrow px-3">Documents</p>
+            <ul className="mt-2 flex flex-wrap gap-1 lg:block lg:space-y-0.5">
+              {project.docs.map((item) => (
+                <li key={item.kind}>
+                  <NavLink
+                    to={`/projects/${project.slug}/docs/${item.kind}`}
+                    className={navClasses}
+                  >
+                    {item.title}
+                  </NavLink>
+                </li>
+              ))}
+              <li>
+                <NavLink to={`/projects/${project.slug}/source`} className={navClasses}>
+                  Source code
                 </NavLink>
               </li>
-            ))}
-            <li>
-              <Link
-                to={`/projects/${project.slug}/source`}
-                className="block rounded-md px-3 py-2 text-sm font-medium text-ink-2 hover:text-ink"
-              >
-                Source code
-              </Link>
-            </li>
-          </ul>
-        </nav>
-        <p className="text-xs text-ink-3">
-          From{' '}
-          <span className="font-mono">
-            {project.template.directory}/{doc.file}
-          </span>
-          , the same file you get in the ZIP.
-        </p>
-      </aside>
-      <div className="min-w-0 rounded-[18px] border border-line bg-surface p-6 shadow-card sm:p-10">
-        {state.status === 'loading' ? (
-          <div className="space-y-4" role="status" aria-label="Loading document">
-            <Skeleton className="h-10 w-2/3" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-5/6" />
-            <Skeleton className="h-64 w-full" />
-          </div>
-        ) : null}
-        {state.status === 'error' ? (
-          <Callout tone="danger" title="This document couldn’t be loaded" role="alert">
-            Reload the page, or open {doc.file} in the downloaded project.
-          </Callout>
-        ) : null}
-        {state.status === 'ready' ? (
-          <MarkdownView
-            markdown={state.markdown}
-            resolveLink={resolveLink}
-            resolveImage={resolveImage}
-          />
-        ) : null}
+            </ul>
+          </nav>
+          <p className="hidden px-3 text-xs text-ink-3 lg:block">
+            From{' '}
+            <span className="font-mono">
+              {`${project.template.directory}/${doc.file}`.split('/').map((part, index) => (
+                <Fragment key={`${index}-${part}`}>
+                  {index > 0 ? (
+                    <>
+                      /<wbr />
+                    </>
+                  ) : null}
+                  {part}
+                </Fragment>
+              ))}
+            </span>
+            , the same file you get in the ZIP.
+          </p>
+        </aside>
+        <div className="min-w-0 rounded-2xl border border-line bg-surface p-6 shadow-card sm:p-10">
+          {state.status === 'loading' ? (
+            <div className="space-y-4" role="status" aria-label="Loading document">
+              <Skeleton className="h-10 w-2/3" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
+              <Skeleton className="h-64 w-full" />
+            </div>
+          ) : null}
+          {state.status === 'error' ? (
+            <Callout tone="danger" title="This document couldn’t be loaded" role="alert">
+              Reload the page, or open {doc.file} in the downloaded project.
+            </Callout>
+          ) : null}
+          {state.status === 'ready' ? (
+            <MarkdownView
+              markdown={state.markdown}
+              resolveLink={resolveLink}
+              resolveImage={resolveImage}
+            />
+          ) : null}
+        </div>
       </div>
     </div>
   );

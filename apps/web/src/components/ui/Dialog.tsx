@@ -55,13 +55,13 @@ export function Dialog({
         variant === 'sheet'
           ? 'ml-auto mr-0 h-dvh max-h-dvh w-[min(26rem,100%)] max-w-none rounded-none'
           : variant === 'wide'
-            ? 'm-auto w-[min(72rem,calc(100%-2rem))] max-w-none rounded-[18px]'
-            : 'm-auto w-[min(34rem,calc(100%-2rem))] rounded-[18px]',
+            ? 'm-auto w-[min(72rem,calc(100%-2rem))] max-w-none rounded-2xl'
+            : 'm-auto w-[min(34rem,calc(100%-2rem))] rounded-2xl',
       )}
     >
       <div className="flex h-full max-h-[inherit] flex-col">
         <div className="flex items-center justify-between gap-4 border-b border-line px-5 py-4">
-          <h2 id={titleId} className="heading text-lg">
+          <h2 id={titleId} className="type-h3">
             {title}
           </h2>
           <button

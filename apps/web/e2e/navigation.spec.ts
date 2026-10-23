@@ -77,6 +77,7 @@ test.describe('site navigation', () => {
       ['Generator', 'Generate a project'],
       ['Learn', 'Learning center'],
       ['Viva practice', 'Viva practice'],
+      ['Compare', 'Compare projects'],
       ['Docs', 'Documentation'],
     ] as const) {
       if (isMobile(testInfo.project.name))
@@ -88,6 +89,31 @@ test.describe('site navigation', () => {
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(heading);
       await expect(page.getByRole('button', { name: 'Close menu' })).toHaveCount(0);
     }
+  });
+
+  test('the header search opens the gallery filtered by the text', async ({ page }, testInfo) => {
+    await page.goto('/docs');
+    if (isMobile(testInfo.project.name))
+      await page.getByRole('button', { name: 'Open menu' }).click();
+    const search = page
+      .getByRole('searchbox', { name: 'Search projects' })
+      .filter({ visible: true });
+    await search.fill('budget');
+    await search.press('Enter');
+    await expect(page).toHaveURL(/\/projects\?q=budget$/);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Projects');
+    await expect(page.getByRole('heading', { name: 'Personal Expense Tracker' })).toBeVisible();
+  });
+
+  test('the documents menu folds away on phones', async ({ page }, testInfo) => {
+    test.skip(!isMobile(testInfo.project.name), 'the sidebar is always visible on desktop');
+    await page.goto('/docs/run-a-react-project');
+    const documents = page.getByRole('navigation', { name: 'All documents' });
+    await expect(documents).toBeHidden();
+    await page.getByText('All documents', { exact: true }).click();
+    await documents.getByRole('link', { name: 'Run a Python project' }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Run a Python project');
+    await expect(page.getByRole('navigation', { name: 'All documents' })).toBeHidden();
   });
 
   test('the skip link moves focus to the page content', async ({ page }, testInfo) => {

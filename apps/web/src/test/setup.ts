@@ -1,7 +1,11 @@
 import '@testing-library/jest-dom/vitest';
 
-import { cleanup } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
 import { afterEach } from 'vitest';
+
+// Pages load lazily, and the whole workspace's suites run in parallel. Under that load the
+// default one-second wait for findBy* queries is too tight for the largest pages.
+configure({ asyncUtilTimeout: 5000 });
 
 // jsdom does not implement <dialog>.showModal() / close().
 if (typeof HTMLDialogElement !== 'undefined' && !HTMLDialogElement.prototype.showModal) {

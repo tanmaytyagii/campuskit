@@ -12,10 +12,11 @@ export function ErrorPage() {
       : 'Something unexpected happened.';
 
   return (
-    <div className="container-page py-20">
+    <div className="container-page py-16 md:py-24">
       <div className="max-w-xl space-y-4">
-        <h1 className="display text-[1.9rem] min-[400px]:text-4xl">This page hit a problem</h1>
-        <p className="text-lg text-ink-2">
+        <p className="type-eyebrow text-danger">Something went wrong</p>
+        <h1 className="type-title text-ink">This page hit a problem</h1>
+        <p className="type-lead">
           Reloading usually fixes it. If it keeps happening, please report it with the message
           below.
         </p>
@@ -25,7 +26,7 @@ export function ErrorPage() {
         >
           {message}
         </pre>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-3 pt-2">
           <Button onClick={() => window.location.reload()}>Reload the page</Button>
           <ButtonLink to="/" variant="secondary" reloadDocument>
             Go to the home page

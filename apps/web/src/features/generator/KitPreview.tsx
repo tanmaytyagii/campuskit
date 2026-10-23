@@ -25,7 +25,7 @@ export function KitPreview({ manifest, values, scope = 'all', className }: KitPr
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-[18px] border border-line bg-surface shadow-lift',
+        'overflow-hidden rounded-2xl border border-line bg-surface shadow-lift',
         className,
       )}
     >

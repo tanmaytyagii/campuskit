@@ -2,21 +2,30 @@ import {
   AUDIENCE_LABELS,
   catalog,
   CATEGORY_LABELS,
-  DIFFICULTY_LABELS,
   getProjectBySlug,
   PROJECT_TYPE_LABELS,
   setupSteps,
   type ProjectManifest,
 } from '@campuskit/project-catalog';
 import type { TemplateOption } from '@campuskit/template-engine';
-import { BookOpen, CodeXml, Download, FileText, GraduationCap, Wand } from 'lucide-react';
+import {
+  BookOpen,
+  Check,
+  CodeXml,
+  Download,
+  FileText,
+  GraduationCap,
+  Info,
+  Wand,
+} from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router';
 
-import { ProjectCard } from '../../components/ProjectCard.tsx';
+import { DifficultyMeter } from '../../components/DifficultyMeter.tsx';
+import { Breadcrumbs } from '../../components/layout/Breadcrumbs.tsx';
+import { cardTechnologies, ProjectCard } from '../../components/ProjectCard.tsx';
 import { SetupSteps } from '../../components/SetupSteps.tsx';
 import { StatusBadge } from '../../components/StatusBadge.tsx';
-import { Badge } from '../../components/ui/Badge.tsx';
 import { Button, ButtonLink } from '../../components/ui/Button.tsx';
 import { Callout } from '../../components/ui/Callout.tsx';
 import { CommandBlock } from '../../components/ui/CommandBlock.tsx';
@@ -49,7 +58,7 @@ function Section({ id, title, children }: { id: string; title: string; children:
       aria-labelledby={`${id}-heading`}
       className="scroll-mt-24 space-y-4 border-t border-line pt-10 first:border-t-0 first:pt-0"
     >
-      <h2 id={`${id}-heading`} className="heading text-2xl text-ink">
+      <h2 id={`${id}-heading`} className="type-h2 text-ink">
         {title}
       </h2>
       {children}
@@ -136,6 +145,14 @@ function VivaPreview({ project }: { project: ProjectManifest }) {
   );
 }
 
+/** "School and college", from the manifest's audience list. */
+function audienceText(project: ProjectManifest): string {
+  const text = project.audience
+    .map((audience) => AUDIENCE_LABELS[audience].toLowerCase())
+    .join(' and ');
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 export function ProjectPage() {
   const { slug = '' } = useParams();
   const project = getProjectBySlug(slug);
@@ -153,39 +170,45 @@ function ProjectDetails({ project }: { project: ProjectManifest }) {
   return (
     <article className="pb-8">
       <div className="container-page pt-8 md:pt-12">
-        <nav aria-label="Breadcrumb" className="mb-6 text-sm text-ink-3">
-          <ol className="flex flex-wrap items-center gap-2">
-            <li>
-              <Link to="/projects" className="hover:text-violet hover:underline">
-                Projects
-              </Link>
-            </li>
-            <li aria-hidden="true">/</li>
-            <li aria-current="page" className="text-ink-2">
-              {project.name}
-            </li>
-          </ol>
-        </nav>
+        <Breadcrumbs items={[{ label: 'Projects', to: '/projects' }]} current={project.name} />
 
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:items-start">
-          <div className="space-y-5">
-            <div className="flex flex-wrap gap-1.5">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-start lg:gap-14">
+          <div className="space-y-6">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
               <StatusBadge project={project} />
-              <Badge tone="violet">{DIFFICULTY_LABELS[project.difficulty]}</Badge>
-              <Badge>{CATEGORY_LABELS[project.category]}</Badge>
-              <Badge>{PROJECT_TYPE_LABELS[project.projectType]}</Badge>
-              <Badge tone="outline">
-                For{' '}
-                {project.audience
-                  .map((audience) => AUDIENCE_LABELS[audience].toLowerCase())
-                  .join(' and ')}
-              </Badge>
+              <span className="type-eyebrow">
+                {CATEGORY_LABELS[project.category]} · {PROJECT_TYPE_LABELS[project.projectType]}
+              </span>
             </div>
-            <h1 className="display text-[1.9rem] text-ink min-[400px]:text-4xl md:text-5xl">
-              {project.name}
-            </h1>
-            <p className="text-lg text-ink-2">{project.tagline}</p>
-            <div className="flex flex-wrap gap-3 pt-2">
+            <div className="space-y-4">
+              <h1 className="type-title text-ink">{project.name}</h1>
+              <p className="type-lead">{project.tagline}</p>
+            </div>
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-4 border-y border-line py-4 text-sm sm:grid-cols-4">
+              <div>
+                <dt className="type-meta">Difficulty</dt>
+                <dd className="mt-1 font-medium text-ink">
+                  <DifficultyMeter difficulty={project.difficulty} />
+                </dd>
+              </div>
+              <div>
+                <dt className="type-meta">For</dt>
+                <dd className="mt-1 font-medium text-ink">{audienceText(project)}</dd>
+              </div>
+              <div>
+                <dt className="type-meta">Built with</dt>
+                <dd className="mt-1 font-medium text-ink">
+                  {cardTechnologies(project).slice(0, 2).join(', ')}
+                </dd>
+              </div>
+              <div>
+                <dt className="type-meta">Works offline</dt>
+                <dd className="mt-1 font-medium text-ink">
+                  {project.network.runsOffline ? 'After installing' : 'No'}
+                </dd>
+              </div>
+            </dl>
+            <div className="flex flex-wrap items-center gap-3">
               <ButtonLink
                 to={`/generate?template=${project.id}`}
                 size="lg"
@@ -202,14 +225,13 @@ function ProjectDetails({ project }: { project: ProjectManifest }) {
               >
                 {quick.state.status === 'working' ? 'Preparing ZIP…' : 'Download with defaults'}
               </Button>
-              <ButtonLink
+              <Link
                 to={`/projects/${project.slug}/source`}
-                size="lg"
-                variant="ghost"
-                icon={<CodeXml aria-hidden="true" className="size-5" />}
+                className="link inline-flex items-center gap-1.5 px-1 text-[0.9375rem]"
               >
+                <CodeXml aria-hidden="true" className="size-4" />
                 Browse source
-              </ButtonLink>
+              </Link>
             </div>
             <div aria-live="polite">
               {quick.state.status === 'done' ? (
@@ -245,20 +267,26 @@ function ProjectDetails({ project }: { project: ProjectManifest }) {
 
           <Section id="overview" title="Overview">
             <p className="max-w-[70ch] text-ink-2">{project.description}</p>
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="rounded-xl border border-line bg-surface p-5">
-                <h3 className="text-sm font-bold text-ink">What it does</h3>
-                <ul className="mt-3 list-disc space-y-2 pl-5 text-[0.95rem] text-ink-2">
+            <div className="grid gap-8 md:grid-cols-2 md:gap-10">
+              <div>
+                <h3 className="type-h3 text-ink">What it does</h3>
+                <ul className="mt-4 space-y-3 text-[0.9375rem] text-ink-2">
                   {project.features.map((feature) => (
-                    <li key={feature}>{feature}</li>
+                    <li key={feature} className="flex gap-3">
+                      <Check aria-hidden="true" className="mt-1 size-4 shrink-0 text-violet" />
+                      <span>{feature}</span>
+                    </li>
                   ))}
                 </ul>
               </div>
-              <div className="rounded-xl border border-line bg-surface p-5">
-                <h3 className="text-sm font-bold text-ink">Known limitations</h3>
-                <ul className="mt-3 list-disc space-y-2 pl-5 text-[0.95rem] text-ink-2">
+              <div className="md:border-l md:border-line md:pl-10">
+                <h3 className="type-h3 text-ink">Known limitations</h3>
+                <ul className="mt-4 space-y-3 text-[0.9375rem] text-ink-2">
                   {project.limitations.map((limitation) => (
-                    <li key={limitation}>{limitation}</li>
+                    <li key={limitation} className="flex gap-3">
+                      <Info aria-hidden="true" className="mt-1 size-4 shrink-0 text-ink-3" />
+                      <span>{limitation}</span>
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -559,7 +587,7 @@ function ProjectDetails({ project }: { project: ProjectManifest }) {
 
       {related.length > 0 ? (
         <section aria-labelledby="related-heading" className="container-page mt-16 space-y-5">
-          <h2 id="related-heading" className="heading text-2xl text-ink">
+          <h2 id="related-heading" className="type-h2 text-ink">
             Related projects
           </h2>
           <ul className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

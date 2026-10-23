@@ -125,12 +125,13 @@ export function ComparePage() {
   return (
     <>
       <PageHeader
+        eyebrow="Choose"
         title="Compare projects"
         description="Choose a goal for suggestions, or pick two or three projects to compare side by side. Everything here comes from the projects’ own documentation and verification records."
       />
       <div className="container-page space-y-12">
         <section aria-labelledby="goal-heading" className="space-y-4">
-          <h2 id="goal-heading" className="heading text-xl text-ink">
+          <h2 id="goal-heading" className="type-h3 text-ink">
             What do you want from your project?
           </h2>
           <fieldset>
@@ -223,7 +224,7 @@ export function ComparePage() {
         </section>
 
         <section aria-labelledby="pick-heading" className="space-y-4">
-          <h2 id="pick-heading" className="heading text-xl text-ink">
+          <h2 id="pick-heading" className="type-h3 text-ink">
             Compare side by side
           </h2>
           <fieldset>
@@ -277,12 +278,28 @@ export function ComparePage() {
                   ))}
                 </ul>
               </div>
-              {/* The table scrolls sideways on small screens; the region makes it reachable by keyboard. */}
+              {/* Phones: one group per attribute, so the projects stay side by side in meaning. */}
+              <div className="space-y-5 md:hidden">
+                {ROWS.map((row) => (
+                  <section key={row.label} aria-label={row.label}>
+                    <h4 className="type-eyebrow">{row.label}</h4>
+                    <dl className="mt-2 divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
+                      {projects.map((project) => (
+                        <div key={project.id} className="grid gap-1 px-4 py-3 text-sm">
+                          <dt className="font-semibold text-ink">{project.name}</dt>
+                          <dd className="text-ink-2">{row.value(project)}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </section>
+                ))}
+              </div>
+              {/* Wider screens: a table. It can still scroll sideways; the region makes it reachable by keyboard. */}
               <div
                 role="region"
                 aria-label="Project comparison"
                 tabIndex={0}
-                className="overflow-x-auto rounded-xl border border-line"
+                className="hidden overflow-x-auto rounded-xl border border-line bg-surface md:block"
               >
                 <table className="w-full min-w-[40rem] text-left text-sm">
                   <caption className="sr-only">Project comparison</caption>

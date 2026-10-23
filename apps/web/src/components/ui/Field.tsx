@@ -14,8 +14,9 @@ import {
 import { cn } from '../../lib/cn.ts';
 
 export const controlClasses = cn(
-  'w-full rounded-lg border border-line-strong bg-surface px-3 text-[0.95rem] text-ink',
-  'placeholder:text-ink-3 hover:border-ink-3',
+  // The border colour keeps 3:1 contrast with every surface, so the control is easy to find.
+  'w-full rounded-lg border border-control bg-surface px-3 text-[0.9375rem] text-ink transition-colors',
+  'placeholder:text-ink-3 hover:border-ink-2',
   'aria-[invalid=true]:border-danger aria-[invalid=true]:bg-danger-soft/30',
   'disabled:cursor-not-allowed disabled:opacity-60',
 );
