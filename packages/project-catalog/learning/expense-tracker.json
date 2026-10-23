@@ -1,0 +1,1177 @@
+{
+  "schemaVersion": 1,
+  "templateId": "expense-tracker",
+  "audience": {
+    "summary": "School and college students who know the basics of React or want a second, richer project: money handling, filters, charts and a budget. The imagined user is a student tracking pocket money, a stipend or hostel expenses.",
+    "knowledge": [
+      "JavaScript fundamentals, including arrays and the map, filter and reduce methods.",
+      "React basics: components, props and the useState hook.",
+      "Reading TypeScript types such as interfaces and union types.",
+      "Using a terminal to run npm commands."
+    ]
+  },
+  "architecture": {
+    "summary": "A single-page React application with no backend. main.tsx reads src/app.config.json, the App component picks one of three screens from the URL hash, every change goes through one reducer, and the ExpenseProvider saves the data to localStorage. Amounts are stored as whole numbers of the currency's smallest unit, and every figure and chart is recalculated from the saved transactions by pure functions in src/lib/analytics.ts.",
+    "layers": [
+      {
+        "id": "configuration",
+        "label": "Configuration",
+        "description": "App name, author, currency, default budget, theme and demo data, checked at start-up."
+      },
+      {
+        "id": "interface",
+        "label": "Screens and components",
+        "description": "Overview, Transactions and Budget & data screens, the transaction form, list, charts and dialogs."
+      },
+      {
+        "id": "state",
+        "label": "State",
+        "description": "A reducer owns every change; the context shares data and the budget in use, and saves the data."
+      },
+      {
+        "id": "logic",
+        "label": "Logic",
+        "description": "Pure functions: money parsing and formatting, dates, categories, filters, totals and chart data."
+      },
+      {
+        "id": "storage",
+        "label": "Browser storage",
+        "description": "Loading, validating and saving data and backups in localStorage."
+      },
+      {
+        "id": "tests",
+        "label": "Tests",
+        "description": "Vitest unit tests with hand-checked values and Testing Library tests of user flows."
+      }
+    ],
+    "components": [
+      {
+        "id": "config",
+        "name": "App configuration",
+        "layer": "configuration",
+        "kind": "configuration",
+        "responsibility": "src/app.config.json holds the app name, author, currency, default monthly budget, theme and demo-data switch. parseConfig in src/config.ts checks each value; CURRENCIES lists the supported currencies with the locale used to format them.",
+        "files": ["src/app.config.json", "src/config.ts", "src/main.tsx"],
+        "symbols": [
+          { "file": "src/config.ts", "name": "parseConfig" },
+          { "file": "src/config.ts", "name": "CURRENCIES" },
+          { "file": "src/config.ts", "name": "applyTheme" }
+        ]
+      },
+      {
+        "id": "app-shell",
+        "name": "App shell and navigation",
+        "layer": "interface",
+        "kind": "interface",
+        "responsibility": "App.tsx draws the header, navigation and footer, shows a storage banner when needed and renders the current screen. useHashRoute keeps the screen in the URL hash.",
+        "files": ["src/App.tsx", "src/lib/useHashRoute.ts"],
+        "symbols": [
+          { "file": "src/App.tsx", "name": "App" },
+          { "file": "src/lib/useHashRoute.ts", "name": "useHashRoute" }
+        ]
+      },
+      {
+        "id": "views",
+        "name": "Screens",
+        "layer": "interface",
+        "kind": "interface",
+        "responsibility": "Overview shows this month's totals, the budget, both charts and recent transactions. Transactions has the filters, the list and CSV export. Budget & data changes the budget and handles backups and demo data.",
+        "files": [
+          "src/views/OverviewView.tsx",
+          "src/views/TransactionsView.tsx",
+          "src/views/SettingsView.tsx"
+        ],
+        "symbols": [
+          { "file": "src/views/OverviewView.tsx", "name": "OverviewView" },
+          { "file": "src/views/TransactionsView.tsx", "name": "exportCsv" },
+          { "file": "src/views/SettingsView.tsx", "name": "saveBudget" }
+        ]
+      },
+      {
+        "id": "ui-components",
+        "name": "Form, list and charts",
+        "layer": "interface",
+        "kind": "interface",
+        "responsibility": "The transaction form with inline validation, the responsive transaction list, the Recharts donut and bar charts with a “Show as table” view, the confirmation dialog and announcements. useTransactionEditor shares the add, edit and delete flow between screens.",
+        "files": [
+          "src/components/TransactionForm.tsx",
+          "src/components/TransactionList.tsx",
+          "src/components/Charts.tsx",
+          "src/components/useTransactionEditor.tsx",
+          "src/components/ConfirmDialog.tsx",
+          "src/components/Notices.tsx",
+          "src/components/EmptyState.tsx"
+        ],
+        "symbols": [
+          { "file": "src/components/TransactionForm.tsx", "name": "validateTransaction" },
+          { "file": "src/components/Charts.tsx", "name": "CategoryChart" },
+          { "file": "src/components/useTransactionEditor.tsx", "name": "useTransactionEditor" }
+        ]
+      },
+      {
+        "id": "state",
+        "name": "Reducer and context",
+        "layer": "state",
+        "kind": "state",
+        "responsibility": "expenseReducer handles adding, updating and deleting transactions, setting the budget and replacing all data. ExpenseProvider saves after every change and works out the budget in use: the saved override, or the default from app.config.json.",
+        "files": ["src/state/reducer.ts", "src/state/ExpenseContext.tsx"],
+        "symbols": [
+          { "file": "src/state/reducer.ts", "name": "expenseReducer" },
+          { "file": "src/state/ExpenseContext.tsx", "name": "ExpenseProvider" },
+          { "file": "src/state/ExpenseContext.tsx", "name": "useExpenses" }
+        ]
+      },
+      {
+        "id": "money",
+        "name": "Money",
+        "layer": "logic",
+        "kind": "logic",
+        "responsibility": "parseAmount turns typed text such as 1,250.50 into whole minor units with string arithmetic; formatMoney uses Intl.NumberFormat with the currency's locale, so INR uses Indian digit grouping and JPY has no decimals.",
+        "files": ["src/lib/money.ts"],
+        "symbols": [
+          { "file": "src/lib/money.ts", "name": "parseAmount" },
+          { "file": "src/lib/money.ts", "name": "formatMoney" },
+          { "file": "src/lib/money.ts", "name": "currencyDigits" }
+        ]
+      },
+      {
+        "id": "analytics",
+        "name": "Filters, totals and chart data",
+        "layer": "logic",
+        "kind": "logic",
+        "responsibility": "Turns a period into a date range, filters transactions, adds up income and spending, groups spending by category, builds a six-month series including empty months, and compares this month's spending with the budget.",
+        "files": ["src/lib/analytics.ts"],
+        "symbols": [
+          { "file": "src/lib/analytics.ts", "name": "periodRange" },
+          { "file": "src/lib/analytics.ts", "name": "filterTransactions" },
+          { "file": "src/lib/analytics.ts", "name": "budgetStatus" }
+        ]
+      },
+      {
+        "id": "categories-dates",
+        "name": "Categories and dates",
+        "layer": "logic",
+        "kind": "logic",
+        "responsibility": "Thirteen fixed categories (eight for spending, five for income), each with a chart colour, and helpers for month keys and local YYYY-MM-DD dates.",
+        "files": ["src/lib/categories.ts", "src/lib/dates.ts"],
+        "symbols": [
+          { "file": "src/lib/categories.ts", "name": "CATEGORIES" },
+          { "file": "src/lib/categories.ts", "name": "isCategoryFor" },
+          { "file": "src/lib/dates.ts", "name": "monthKeyOf" }
+        ]
+      },
+      {
+        "id": "export",
+        "name": "CSV export and demo data",
+        "layer": "logic",
+        "kind": "logic",
+        "responsibility": "csv.ts builds safe CSV files for the filtered transactions. demo-data.ts creates six months of fictional transactions, scaled so they look plausible in every currency.",
+        "files": ["src/lib/csv.ts", "src/lib/demo-data.ts"],
+        "symbols": [
+          { "file": "src/lib/csv.ts", "name": "escapeCsvCell" },
+          { "file": "src/lib/demo-data.ts", "name": "createDemoData" }
+        ]
+      },
+      {
+        "id": "storage",
+        "name": "localStorage and backups",
+        "layer": "storage",
+        "kind": "storage",
+        "responsibility": "Loads and saves the data under campuskit-expenses:v1. validateData checks every transaction (type, positive whole amount, a category of the right type, a real date) and the budget, so corrupted data and bad backups are refused with a reason.",
+        "files": ["src/lib/storage.ts"],
+        "symbols": [
+          { "file": "src/lib/storage.ts", "name": "validateData" },
+          { "file": "src/lib/storage.ts", "name": "loadData" },
+          { "file": "src/lib/storage.ts", "name": "parseBackup" }
+        ]
+      },
+      {
+        "id": "tests",
+        "name": "Automated tests",
+        "layer": "tests",
+        "kind": "tests",
+        "responsibility": "Unit tests check money, period ranges, filters, totals, category shares, monthly series, budget status, backups, demo data, configuration and CSV safety. App.test.tsx renders the app and adds, edits, filters and deletes transactions, and switches a chart to its table.",
+        "files": [
+          "src/App.test.tsx",
+          "src/lib/analytics.test.ts",
+          "src/lib/money.test.ts",
+          "src/lib/storage.test.ts"
+        ],
+        "symbols": []
+      }
+    ],
+    "connections": [
+      {
+        "from": "config",
+        "to": "app-shell",
+        "label": "passes the checked settings, including currency and default budget"
+      },
+      { "from": "app-shell", "to": "views", "label": "renders the screen named in the URL hash" },
+      { "from": "views", "to": "ui-components", "label": "use the form, list, charts and dialogs" },
+      { "from": "views", "to": "state", "label": "read data and the budget, dispatch actions" },
+      {
+        "from": "views",
+        "to": "analytics",
+        "label": "filter and total transactions, build chart data"
+      },
+      { "from": "ui-components", "to": "money", "label": "parse typed amounts and format money" },
+      {
+        "from": "analytics",
+        "to": "categories-dates",
+        "label": "month ranges and category labels and colours"
+      },
+      { "from": "views", "to": "export", "label": "export CSV, load demo data" },
+      {
+        "from": "state",
+        "to": "storage",
+        "label": "loads on start-up and saves after every change"
+      },
+      {
+        "from": "storage",
+        "to": "categories-dates",
+        "label": "checks categories and dates in saved data"
+      },
+      { "from": "tests", "to": "analytics", "label": "unit tests with hand-checked values" },
+      { "from": "tests", "to": "app-shell", "label": "component tests render the whole app" }
+    ],
+    "flows": [
+      {
+        "id": "add-transaction",
+        "title": "Adding an expense",
+        "steps": [
+          {
+            "component": "ui-components",
+            "text": "The form opens with a new key each time, so its fields always start fresh."
+          },
+          {
+            "component": "ui-components",
+            "text": "On submit, validateTransaction checks the amount with parseAmount, the category for the chosen type, the date (not in the future) and the note length."
+          },
+          {
+            "component": "money",
+            "text": "parseAmount converts text such as “1,250.50” into 125050 minor units without floating-point arithmetic."
+          },
+          {
+            "component": "state",
+            "text": "useTransactionEditor dispatches 'transaction/add' with a new id and creation time; expenseReducer returns a new list."
+          },
+          {
+            "component": "storage",
+            "text": "ExpenseProvider's effect saves the data to localStorage."
+          },
+          {
+            "component": "views",
+            "text": "The totals, budget bar and charts recalculate from the saved transactions on the next render."
+          }
+        ]
+      },
+      {
+        "id": "overview-numbers",
+        "title": "Producing the Overview numbers",
+        "steps": [
+          {
+            "component": "analytics",
+            "text": "filterTransactions with the 'this-month' period keeps transactions whose date is within this month's first and last day."
+          },
+          {
+            "component": "analytics",
+            "text": "totals adds income and spending separately; the balance is income minus spending."
+          },
+          {
+            "component": "analytics",
+            "text": "budgetStatus adds this month's expenses and divides by the budget; it returns nothing when the budget is 0 (turned off)."
+          },
+          {
+            "component": "ui-components",
+            "text": "The charts receive spendingByCategory and monthlyTotals; each also has a table with the same numbers."
+          }
+        ]
+      },
+      {
+        "id": "import-backup",
+        "title": "Importing a backup",
+        "steps": [
+          {
+            "component": "views",
+            "text": "handleImport rejects files over 5 MB and reads the chosen file's text."
+          },
+          {
+            "component": "storage",
+            "text": "parseBackup parses the JSON and runs validateData, the same checks used at start-up."
+          },
+          {
+            "component": "views",
+            "text": "A valid backup waits for confirmation; an invalid one shows “That file can’t be imported:” with the reason."
+          },
+          {
+            "component": "state",
+            "text": "On confirmation, 'data/replace' swaps in the imported data, which is then saved."
+          }
+        ]
+      }
+    ]
+  },
+  "walkthrough": [
+    {
+      "id": "types",
+      "title": "The data model",
+      "file": "src/types.ts",
+      "role": "Defines a transaction and the saved data.",
+      "explanation": "A Transaction has an id, a type (expense or income), an amount in minor units (paise or cents), a category id, a local date, a note and a creation time. ExpenseData holds the transactions and settings, where monthlyBudgetMinor is either a number or null for “use the default from app.config.json”.",
+      "symbols": [
+        {
+          "name": "TransactionType",
+          "explanation": "'expense' | 'income': every category belongs to one type."
+        },
+        { "name": "Transaction", "explanation": "amountMinor is always a positive whole number." },
+        {
+          "name": "ExpenseData",
+          "explanation": "version, transactions and settings: everything that is saved."
+        }
+      ],
+      "related": ["src/lib/storage.ts", "src/state/reducer.ts"],
+      "tests": []
+    },
+    {
+      "id": "config",
+      "title": "Configuration, currencies and themes",
+      "file": "src/config.ts",
+      "role": "Checks src/app.config.json and lists themes and currencies.",
+      "explanation": "The generator writes your currency, budget, theme and names into src/app.config.json. parseConfig validates them; a mistake produces a ConfigError that names the setting, which main.tsx shows instead of a blank page. CURRENCIES pairs each currency with a locale (en-IN for INR), which controls how amounts are formatted.",
+      "symbols": [
+        {
+          "name": "THEMES",
+          "explanation": "The emerald, ocean, plum and coral accent colour sets."
+        },
+        {
+          "name": "CURRENCIES",
+          "explanation": "INR, USD, EUR, GBP and JPY with their formatting locales."
+        },
+        {
+          "name": "parseConfig",
+          "explanation": "Turns unknown JSON into a typed AppConfig or throws a ConfigError."
+        },
+        {
+          "name": "applyTheme",
+          "explanation": "Writes the theme colours into CSS custom properties."
+        }
+      ],
+      "related": ["src/app.config.json", "src/main.tsx"],
+      "tests": ["src/lib/storage.test.ts"]
+    },
+    {
+      "id": "money",
+      "title": "Money as whole numbers",
+      "file": "src/lib/money.ts",
+      "role": "Parsing and formatting amounts without rounding errors.",
+      "explanation": "JavaScript numbers are binary floating point, so 0.1 + 0.2 is not exactly 0.3. The app stores every amount as an integer number of minor units and parses typed text with string arithmetic instead of parseFloat. The number of decimal places comes from Intl.NumberFormat itself: 2 for INR and USD, 0 for JPY.",
+      "symbols": [
+        {
+          "name": "parseAmount",
+          "explanation": "Accepts “1,250.50”, “800” or “.5”; rejects bad grouping, too many decimals, zero and amounts over the limit, with a message for each."
+        },
+        {
+          "name": "formatMoney",
+          "explanation": "Formats minor units with the currency's locale, e.g. ₹1,50,000.00."
+        },
+        { "name": "currencyDigits", "explanation": "How many decimal places the currency uses." },
+        {
+          "name": "toAmountInput",
+          "explanation": "The reverse: minor units back to the text shown when editing."
+        },
+        {
+          "name": "MAX_AMOUNT",
+          "explanation": "The largest amount accepted for one transaction, in whole units."
+        }
+      ],
+      "related": ["src/components/TransactionForm.tsx", "src/config.ts"],
+      "tests": ["src/lib/money.test.ts"]
+    },
+    {
+      "id": "analytics",
+      "title": "Filters, totals and chart data",
+      "file": "src/lib/analytics.ts",
+      "role": "Every figure and chart is computed here from the actual transactions.",
+      "explanation": "Each period becomes a from/to pair of YYYY-MM-DD strings, so filtering is a string comparison. totals, spendingByCategory and monthlyTotals loop over the filtered transactions and add up amountMinor; nothing is cached or estimated, and every render recalculates from the saved data.",
+      "symbols": [
+        {
+          "name": "periodRange",
+          "explanation": "This month, last month, last 30 days, this year, all time or a custom range → a date range."
+        },
+        {
+          "name": "filterTransactions",
+          "explanation": "Applies the period, type, category and note search, newest first."
+        },
+        {
+          "name": "totals",
+          "explanation": "Income, spending, balance (income − spending) and count."
+        },
+        {
+          "name": "spendingByCategory",
+          "explanation": "Spending per category with each share of the total, largest first."
+        },
+        {
+          "name": "monthlyTotals",
+          "explanation": "A fixed window of months, including months with no transactions, for the bar chart."
+        },
+        {
+          "name": "budgetStatus",
+          "explanation": "Spent, remaining and the spent/budget ratio for one month; null when the budget is 0."
+        }
+      ],
+      "related": [
+        "src/views/OverviewView.tsx",
+        "src/views/TransactionsView.tsx",
+        "src/lib/dates.ts"
+      ],
+      "tests": ["src/lib/analytics.test.ts"]
+    },
+    {
+      "id": "categories",
+      "title": "Categories",
+      "file": "src/lib/categories.ts",
+      "role": "The fixed list of spending and income categories.",
+      "explanation": "Each category has an id, a label, a type and a chart colour. isCategoryFor is used by the form and by validateData, so an expense can never be saved under an income category. Categories are fixed in the code; letting users create their own is listed as an extension.",
+      "symbols": [
+        { "name": "CATEGORIES", "explanation": "Eight spending and five income categories." },
+        {
+          "name": "isCategoryFor",
+          "explanation": "True only when the category exists and belongs to the given type."
+        },
+        {
+          "name": "categoriesFor",
+          "explanation": "The categories offered in the form for income or expense."
+        }
+      ],
+      "related": ["src/lib/storage.ts", "src/components/TransactionForm.tsx"],
+      "tests": ["src/lib/analytics.test.ts"]
+    },
+    {
+      "id": "storage",
+      "title": "Saving, loading and backups",
+      "file": "src/lib/storage.ts",
+      "role": "Reads and writes localStorage and validates backups.",
+      "explanation": "loadData parses the saved JSON and runs validateData. transactionProblem checks one transaction at a time and returns a readable reason such as “transaction 3 has an unknown category”. Unreadable data is kept under a backup key and the app starts fresh; imported files go through parseBackup and the same checks.",
+      "symbols": [
+        { "name": "STORAGE_KEY", "explanation": "campuskit-expenses:v1." },
+        {
+          "name": "transactionProblem",
+          "explanation": "Returns the first problem with one transaction, or null."
+        },
+        {
+          "name": "validateData",
+          "explanation": "Checks the version, every transaction, unique ids and the budget setting."
+        },
+        {
+          "name": "loadData",
+          "explanation": "empty, loaded, invalid (with a reason) or unavailable."
+        },
+        {
+          "name": "parseBackup",
+          "explanation": "JSON text from a backup file → valid data or a reason."
+        }
+      ],
+      "related": ["src/state/ExpenseContext.tsx", "src/views/SettingsView.tsx"],
+      "tests": ["src/lib/storage.test.ts"]
+    },
+    {
+      "id": "reducer",
+      "title": "The reducer",
+      "file": "src/state/reducer.ts",
+      "role": "Every data change goes through one pure function.",
+      "explanation": "expenseReducer returns new data for each action and never modifies the old object. The budget action stores a number (0 turns the budget off) or null (use the default from app.config.json).",
+      "symbols": [
+        {
+          "name": "ExpenseAction",
+          "explanation": "Add, update, delete, set budget and replace data."
+        },
+        {
+          "name": "expenseReducer",
+          "explanation": "A switch over action.type returning new ExpenseData."
+        }
+      ],
+      "related": ["src/state/ExpenseContext.tsx"],
+      "tests": ["src/App.test.tsx"]
+    },
+    {
+      "id": "context",
+      "title": "Sharing data and the budget",
+      "file": "src/state/ExpenseContext.tsx",
+      "role": "Holds the data, saves it and computes the budget in use.",
+      "explanation": "ExpenseProvider loads saved data once, falls back to demo or empty data, keeps it in useReducer and saves it in an effect after each change. budgetMinor is the saved override when there is one, otherwise the default from app.config.json converted to minor units.",
+      "symbols": [
+        {
+          "name": "ExpenseProvider",
+          "explanation": "The provider; accepts an injected storage object for tests."
+        },
+        {
+          "name": "useExpenses",
+          "explanation": "Returns data, dispatch, storageState and budgetMinor."
+        }
+      ],
+      "related": ["src/state/reducer.ts", "src/lib/storage.ts", "src/lib/demo-data.ts"],
+      "tests": ["src/App.test.tsx"]
+    },
+    {
+      "id": "form",
+      "title": "The transaction form",
+      "file": "src/components/TransactionForm.tsx",
+      "role": "Adding and editing transactions with inline validation.",
+      "explanation": "validateTransaction is a plain function that returns errors per field and, when everything is valid, a clean TransactionInput. The form component shows each error next to its field. The parent gives the form a new key every time it opens, so React creates a fresh form whose fields start from the transaction being edited.",
+      "symbols": [
+        {
+          "name": "validateTransaction",
+          "explanation": "Amount, category for the type, date not in the future and note length."
+        },
+        { "name": "NOTE_MAX_LENGTH", "explanation": "Notes are limited to 120 characters." },
+        {
+          "name": "TransactionForm",
+          "explanation": "The dialog with the fields, errors and Save button."
+        }
+      ],
+      "related": ["src/lib/money.ts", "src/components/useTransactionEditor.tsx"],
+      "tests": ["src/App.test.tsx"]
+    },
+    {
+      "id": "editor",
+      "title": "Sharing the add, edit and delete flow",
+      "file": "src/components/useTransactionEditor.tsx",
+      "role": "A custom hook that both screens use to add, edit and delete transactions.",
+      "explanation": "useTransactionEditor keeps track of whether the form is open, which transaction is being edited or deleted, and renders the form and the confirmation dialog. handleSave dispatches an update or an add with a new id, then announces what happened.",
+      "symbols": [
+        {
+          "name": "useTransactionEditor",
+          "explanation": "Returns open functions and the dialogs to render."
+        },
+        {
+          "name": "handleSave",
+          "explanation": "Dispatches 'transaction/update' or 'transaction/add' and notifies."
+        }
+      ],
+      "related": ["src/components/TransactionForm.tsx", "src/components/ConfirmDialog.tsx"],
+      "tests": ["src/App.test.tsx"]
+    },
+    {
+      "id": "charts",
+      "title": "Accessible charts",
+      "file": "src/components/Charts.tsx",
+      "role": "The category donut and the monthly bar chart, each with a table view.",
+      "explanation": "Charts are drawn with Recharts, which renders SVG. Each chart has a text summary for screen readers and a “Show as table” button (with aria-pressed) that shows the same numbers as a table, so no information depends on seeing colours.",
+      "symbols": [
+        {
+          "name": "CategoryChart",
+          "explanation": "Spending by category as a donut, with a summary of the top three."
+        },
+        { "name": "MonthlyChart", "explanation": "Income and spending per month as bars." },
+        {
+          "name": "TableToggle",
+          "explanation": "The button that switches between the chart and its table."
+        }
+      ],
+      "related": ["src/lib/analytics.ts", "src/views/OverviewView.tsx"],
+      "tests": ["src/App.test.tsx"]
+    },
+    {
+      "id": "transactions-view",
+      "title": "Filtering and exporting",
+      "file": "src/views/TransactionsView.tsx",
+      "role": "The Transactions screen: filters, the list and CSV export.",
+      "explanation": "The screen keeps the filters in state, passes them to filterTransactions and shows the result. exportCsv writes the visible (filtered) transactions to transactions.csv with the amount converted back to major units.",
+      "symbols": [
+        { "name": "TransactionsView", "explanation": "Holds the filters and renders the list." },
+        { "name": "exportCsv", "explanation": "Exports exactly the transactions currently shown." }
+      ],
+      "related": ["src/lib/analytics.ts", "src/lib/csv.ts"],
+      "tests": ["src/App.test.tsx"]
+    },
+    {
+      "id": "settings-view",
+      "title": "Budget and data",
+      "file": "src/views/SettingsView.tsx",
+      "role": "Change the budget, export or import backups, load demo data or delete everything.",
+      "explanation": "saveBudget accepts 0 to turn the budget off and otherwise parses the amount with parseAmount. resetToDefaultBudget stores null so the default from app.config.json is used. handleImport validates the file before anything is replaced.",
+      "symbols": [
+        {
+          "name": "saveBudget",
+          "explanation": "Validates and saves a budget override, or turns the budget off with 0."
+        },
+        {
+          "name": "resetToDefaultBudget",
+          "explanation": "Goes back to the default budget from app.config.json."
+        },
+        { "name": "exportBackup", "explanation": "Downloads all data as JSON." },
+        {
+          "name": "handleImport",
+          "explanation": "Reads, size-checks and validates a backup before confirming."
+        }
+      ],
+      "related": ["src/lib/storage.ts", "src/lib/money.ts"],
+      "tests": []
+    },
+    {
+      "id": "demo-data",
+      "title": "Demo transactions",
+      "file": "src/lib/demo-data.ts",
+      "role": "Six months of fictional transactions for the first run.",
+      "explanation": "Amounts are written in rupees and scaled for other currencies with approximate rates in DEMO_SCALE, then rounded to tidy prices. The rates exist only to make the demo look plausible; the app never converts real amounts between currencies.",
+      "symbols": [
+        {
+          "name": "DEMO_SCALE",
+          "explanation": "Approximate value of ₹1 in each currency, used only for demo amounts."
+        },
+        {
+          "name": "scaledMinor",
+          "explanation": "Scales and rounds a rupee amount for the chosen currency."
+        },
+        {
+          "name": "createDemoData",
+          "explanation": "Builds the sample transactions up to today, never in the future."
+        }
+      ],
+      "related": ["src/state/ExpenseContext.tsx"],
+      "tests": ["src/lib/storage.test.ts"]
+    }
+  ],
+  "checklist": [
+    {
+      "id": "setup-run",
+      "area": "setup",
+      "text": "Install the dependencies and start the app with npm install and npm run dev.",
+      "how": "Open the address Vite prints and visit Overview, Transactions and Budget & data."
+    },
+    {
+      "id": "setup-tests",
+      "area": "setup",
+      "text": "Run npm test and find the tests for money parsing in the output."
+    },
+    {
+      "id": "architecture-layers",
+      "area": "architecture",
+      "text": "Draw the layers from memory and explain why analytics.ts has no React code.",
+      "file": "src/lib/analytics.ts"
+    },
+    {
+      "id": "architecture-budget",
+      "area": "architecture",
+      "text": "Explain where the budget in use comes from: the saved override or app.config.json.",
+      "file": "src/state/ExpenseContext.tsx"
+    },
+    {
+      "id": "functionality-add",
+      "area": "functionality",
+      "text": "Add an expense and an income, and explain how the Overview totals and the budget bar change.",
+      "how": "Name the functions that produce each number."
+    },
+    {
+      "id": "functionality-filter",
+      "area": "functionality",
+      "text": "Filter by last month and one category, export to CSV and check that the file contains only those transactions.",
+      "file": "src/views/TransactionsView.tsx"
+    },
+    {
+      "id": "data-minor-units",
+      "area": "data",
+      "text": "Explain why amounts are stored in minor units and what parseAmount does with “1,250.50”.",
+      "file": "src/lib/money.ts"
+    },
+    {
+      "id": "data-model",
+      "area": "data",
+      "text": "Describe the Transaction type and the meaning of monthlyBudgetMinor being null, 0 or a number.",
+      "file": "src/types.ts"
+    },
+    {
+      "id": "validation-form",
+      "area": "validation",
+      "text": "Trigger at least two form errors (for example an amount with three decimals and a future date) and find the code that produces them.",
+      "file": "src/components/TransactionForm.tsx"
+    },
+    {
+      "id": "validation-backup",
+      "area": "validation",
+      "text": "Explain how a damaged backup file is refused, naming parseBackup and validateData.",
+      "file": "src/lib/storage.ts"
+    },
+    {
+      "id": "testing-analytics",
+      "area": "testing",
+      "text": "Read the test for budgetStatus and explain why over-budget gives a ratio above 1.",
+      "file": "src/lib/analytics.test.ts"
+    },
+    {
+      "id": "testing-table",
+      "area": "testing",
+      "text": "Explain what the “shows chart data as an accessible table” test checks.",
+      "file": "src/App.test.tsx"
+    },
+    {
+      "id": "limitations-list",
+      "area": "limitations",
+      "text": "List the limitations: one browser, no bank integration, fixed categories, and changing currency doesn't convert old amounts."
+    },
+    {
+      "id": "limitations-bundle",
+      "area": "limitations",
+      "text": "Explain why the production bundle is larger than the attendance app's (Recharts) and whether that matters for this project."
+    },
+    {
+      "id": "improvements-categories",
+      "area": "improvements",
+      "text": "Describe how you would let users create their own categories, including what must change in validateData.",
+      "file": "src/lib/categories.ts"
+    },
+    {
+      "id": "improvements-recurring",
+      "area": "improvements",
+      "text": "Sketch how recurring transactions such as rent could be stored and generated each month."
+    }
+  ],
+  "viva": [
+    {
+      "id": "problem",
+      "category": "basics",
+      "difficulty": "easy",
+      "question": "What problem does the expense tracker solve?",
+      "answer": "Students often lose track of small daily spending. The app records income and expenses, groups them by category, compares spending with a monthly budget and shows trends over six months, so it is easy to see where the money goes.",
+      "keyConcepts": [
+        { "label": "Income and expenses", "terms": ["income", "expense", "spending"] },
+        { "label": "Categories", "terms": ["categor"] },
+        { "label": "Monthly budget", "terms": ["budget"] },
+        { "label": "Trends and charts", "terms": ["trend", "chart", "month"] }
+      ],
+      "files": ["README.md"],
+      "symbols": []
+    },
+    {
+      "id": "minor-units",
+      "category": "data-structures",
+      "difficulty": "medium",
+      "question": "Why are amounts stored as integers instead of decimals?",
+      "answer": "JavaScript numbers are binary floating point, so 0.1 + 0.2 is not exactly 0.3. Storing the smallest unit (paise or cents) as a whole number makes every sum exact. parseAmount converts “1,250.50” to 125050 using string arithmetic rather than parseFloat.",
+      "keyConcepts": [
+        { "label": "Floating-point rounding errors", "terms": ["floating", "0.1", "rounding"] },
+        {
+          "label": "Smallest unit as an integer",
+          "terms": ["paise", "cents", "minor", "integer", "whole number"]
+        },
+        {
+          "label": "String arithmetic when parsing",
+          "terms": ["parseamount", "string", "parsefloat"]
+        }
+      ],
+      "files": ["src/lib/money.ts"],
+      "symbols": [{ "file": "src/lib/money.ts", "name": "parseAmount" }]
+    },
+    {
+      "id": "formatting",
+      "category": "technology",
+      "difficulty": "medium",
+      "question": "How do you format money for different currencies?",
+      "answer": "With the built-in Intl.NumberFormat API and a locale per currency, for example en-IN for INR, which gives Indian grouping such as ₹1,50,000.00. The number of decimal places comes from the formatter, which is why JPY has none.",
+      "keyConcepts": [
+        { "label": "Intl.NumberFormat", "terms": ["intl", "numberformat"] },
+        { "label": "Locale per currency", "terms": ["locale", "en-in"] },
+        { "label": "Decimal places from the currency", "terms": ["decimal", "jpy", "digits"] }
+      ],
+      "files": ["src/lib/money.ts", "src/config.ts"],
+      "symbols": [
+        { "file": "src/lib/money.ts", "name": "formatMoney" },
+        { "file": "src/config.ts", "name": "CURRENCIES" }
+      ]
+    },
+    {
+      "id": "totals",
+      "category": "implementation",
+      "difficulty": "medium",
+      "question": "How are the totals and charts calculated?",
+      "answer": "analytics.ts filters the transactions for the selected period and filters, then totals, spendingByCategory and monthlyTotals loop over them adding up amountMinor. Nothing is cached or estimated: every render recalculates from the saved data.",
+      "keyConcepts": [
+        { "label": "Filter first", "terms": ["filter"] },
+        {
+          "label": "Loop and add amountMinor",
+          "terms": ["loop", "add", "sum", "amountminor", "reduce"]
+        },
+        {
+          "label": "Recalculated from saved data",
+          "terms": ["recalculat", "every render", "not cached", "saved data"]
+        }
+      ],
+      "files": ["src/lib/analytics.ts"],
+      "symbols": [
+        { "file": "src/lib/analytics.ts", "name": "totals" },
+        { "file": "src/lib/analytics.ts", "name": "spendingByCategory" }
+      ]
+    },
+    {
+      "id": "date-filter",
+      "category": "data-structures",
+      "difficulty": "medium",
+      "question": "How is the date filter implemented?",
+      "answer": "periodRange turns each period into a from/to pair of YYYY-MM-DD strings. Because that format sorts like the dates it represents, filtering is a simple string comparison: date >= from && date <= to.",
+      "keyConcepts": [
+        { "label": "Period to a date range", "terms": ["periodrange", "range", "from", "to"] },
+        { "label": "YYYY-MM-DD strings", "terms": ["yyyy-mm-dd", "string"] },
+        { "label": "String comparison", "terms": ["compar", ">="] }
+      ],
+      "files": ["src/lib/analytics.ts"],
+      "symbols": [{ "file": "src/lib/analytics.ts", "name": "periodRange" }]
+    },
+    {
+      "id": "empty-months",
+      "category": "data-structures",
+      "difficulty": "hard",
+      "question": "Why does monthlyTotals build the list of months first instead of grouping the transactions?",
+      "answer": "It first creates an entry for each of the last six months, including months with no transactions, and then adds each transaction to its month's entry through a Map. Grouping the transactions alone would skip empty months and the bar chart would hide gaps.",
+      "keyConcepts": [
+        {
+          "label": "Fixed window of months",
+          "terms": ["six months", "window", "each month", "fixed"]
+        },
+        { "label": "Empty months included", "terms": ["empty", "no transactions", "gap"] },
+        { "label": "Lookup by month key", "terms": ["map", "month key", "lookup"] }
+      ],
+      "files": ["src/lib/analytics.ts"],
+      "symbols": [{ "file": "src/lib/analytics.ts", "name": "monthlyTotals" }]
+    },
+    {
+      "id": "storage",
+      "category": "security",
+      "difficulty": "medium",
+      "question": "Where is the data stored, and how is it protected from corruption?",
+      "answer": "In localStorage under campuskit-expenses:v1. On load, validateData checks every transaction — type, positive whole amount, a known category for that type and a valid date. If anything is wrong the app starts fresh and keeps the unreadable value under a backup key. Imported backups go through the same checks.",
+      "keyConcepts": [
+        { "label": "localStorage", "terms": ["localstorage", "local storage"] },
+        { "label": "Validation of every field", "terms": ["validatedata", "valid", "check"] },
+        { "label": "Backup key", "terms": ["backup"] },
+        { "label": "Imports checked too", "terms": ["import"] }
+      ],
+      "files": ["src/lib/storage.ts"],
+      "symbols": [{ "file": "src/lib/storage.ts", "name": "validateData" }]
+    },
+    {
+      "id": "reducer-context",
+      "category": "architecture",
+      "difficulty": "medium",
+      "question": "Why use a reducer and context?",
+      "answer": "All changes — add, update, delete, set budget, replace data — are handled by one pure function, expenseReducer. Context (ExpenseProvider and useExpenses) gives every screen the data and dispatch without passing props through each level, and an effect saves the data whenever it changes.",
+      "keyConcepts": [
+        { "label": "Pure reducer", "terms": ["reducer", "pure"] },
+        { "label": "Context and a hook", "terms": ["context", "provider", "useexpenses"] },
+        { "label": "Saved in an effect", "terms": ["effect", "save"] }
+      ],
+      "files": ["src/state/reducer.ts", "src/state/ExpenseContext.tsx"],
+      "symbols": [{ "file": "src/state/reducer.ts", "name": "expenseReducer" }]
+    },
+    {
+      "id": "recharts",
+      "category": "technology",
+      "difficulty": "easy",
+      "question": "Which charting library did you use, and how are the charts kept accessible?",
+      "answer": "Recharts, an MIT-licensed React charting library that draws SVG. Each chart has a text summary for screen readers and a “Show as table” button that shows the same numbers as a table, so nothing depends on seeing colours.",
+      "keyConcepts": [
+        { "label": "Recharts and SVG", "terms": ["recharts", "svg"] },
+        { "label": "Text summary", "terms": ["summary", "aria-label", "screen reader"] },
+        { "label": "Table view", "terms": ["table"] }
+      ],
+      "files": ["src/components/Charts.tsx"],
+      "symbols": [{ "file": "src/components/Charts.tsx", "name": "TableToggle" }]
+    },
+    {
+      "id": "budget",
+      "category": "implementation",
+      "difficulty": "medium",
+      "question": "How does the budget feature work?",
+      "answer": "The default budget comes from monthlyBudget in app.config.json. On Budget & data the user can override it; the override is saved in settings.monthlyBudgetMinor, 0 turns the budget off and null means “use the default”. budgetStatus adds this month's expenses and divides by the budget to get the share used.",
+      "keyConcepts": [
+        { "label": "Default from the configuration", "terms": ["config", "default"] },
+        { "label": "Saved override", "terms": ["override", "monthlybudgetminor", "settings"] },
+        { "label": "0 and null have meanings", "terms": ["null", "turn", "off", "zero"] },
+        {
+          "label": "Spending divided by budget",
+          "terms": ["divide", "ratio", "percent", "budgetstatus"]
+        }
+      ],
+      "files": ["src/lib/analytics.ts", "src/views/SettingsView.tsx"],
+      "symbols": [
+        { "file": "src/lib/analytics.ts", "name": "budgetStatus" },
+        { "file": "src/views/SettingsView.tsx", "name": "saveBudget" }
+      ]
+    },
+    {
+      "id": "category-type",
+      "category": "implementation",
+      "difficulty": "medium",
+      "question": "How does the app stop an expense from being saved under an income category?",
+      "answer": "Every category has a type. isCategoryFor returns true only when the category exists and its type matches the transaction's type. The form uses it in validateTransaction, and validateData uses it for saved data and backups, so the rule holds everywhere.",
+      "keyConcepts": [
+        { "label": "Categories have a type", "terms": ["type"] },
+        { "label": "isCategoryFor", "terms": ["iscategoryfor"] },
+        {
+          "label": "Checked in the form and in storage",
+          "terms": ["form", "validatetransaction", "validatedata", "storage"]
+        }
+      ],
+      "files": ["src/lib/categories.ts", "src/components/TransactionForm.tsx"],
+      "symbols": [{ "file": "src/lib/categories.ts", "name": "isCategoryFor" }]
+    },
+    {
+      "id": "fresh-form",
+      "category": "implementation",
+      "difficulty": "hard",
+      "question": "Why does the transaction form get a new key every time it opens?",
+      "answer": "Changing a component's key makes React throw away the old instance and create a new one. The form's fields are initialised from the transaction being edited, so a new key guarantees the fields start fresh instead of keeping values from the previous edit.",
+      "keyConcepts": [
+        { "label": "The key prop", "terms": ["key"] },
+        {
+          "label": "React creates a new instance",
+          "terms": ["new instance", "remount", "recreate", "throw away", "new one"]
+        },
+        { "label": "Fields start fresh", "terms": ["fresh", "initial", "previous"] }
+      ],
+      "files": ["src/components/useTransactionEditor.tsx", "src/components/TransactionForm.tsx"],
+      "symbols": [{ "file": "src/components/TransactionForm.tsx", "name": "TransactionForm" }]
+    },
+    {
+      "id": "csv",
+      "category": "security",
+      "difficulty": "medium",
+      "question": "What does the CSV export protect against?",
+      "answer": "Values with commas, quotes or line breaks are quoted (RFC 4180). Cells beginning with =, +, - or @ get an apostrophe in front, so spreadsheet programs don't run them as formulas — this is called CSV injection.",
+      "keyConcepts": [
+        { "label": "Quoting", "terms": ["quote", "rfc", "comma"] },
+        { "label": "Formula injection", "terms": ["formula", "injection"] },
+        { "label": "Apostrophe prefix", "terms": ["apostrophe", "prefix"] }
+      ],
+      "files": ["src/lib/csv.ts"],
+      "symbols": [{ "file": "src/lib/csv.ts", "name": "escapeCsvCell" }]
+    },
+    {
+      "id": "privacy",
+      "category": "security",
+      "difficulty": "easy",
+      "question": "Is the user's financial data private?",
+      "answer": "The data never leaves the computer: it is stored in the browser's localStorage and the app makes no network requests for it. But there are no accounts, so anyone using the same browser profile can see it, and it isn't encrypted.",
+      "keyConcepts": [
+        {
+          "label": "Stays in the browser",
+          "terms": ["never leaves", "browser", "localstorage", "local"]
+        },
+        { "label": "No accounts", "terms": ["account", "login", "password"] },
+        {
+          "label": "Same profile can read it",
+          "terms": ["same browser", "anyone", "profile", "encrypt"]
+        }
+      ],
+      "files": ["src/lib/storage.ts"],
+      "symbols": []
+    },
+    {
+      "id": "testing",
+      "category": "testing",
+      "difficulty": "easy",
+      "question": "How did you test the project?",
+      "answer": "npm test runs Vitest. Unit tests check money parsing and formatting, period ranges, filters, totals, category shares, monthly series, budget status, backup validation and demo data. Component tests render the app in jsdom and add transactions, trigger validation errors, switch a chart to its table, filter and delete.",
+      "keyConcepts": [
+        { "label": "Vitest", "terms": ["vitest", "npm test"] },
+        { "label": "Unit tests of the logic", "terms": ["unit", "money", "analytics"] },
+        {
+          "label": "Component tests of user flows",
+          "terms": ["component", "jsdom", "testing library", "user"]
+        }
+      ],
+      "files": ["src/lib/analytics.test.ts", "src/App.test.tsx"],
+      "symbols": []
+    },
+    {
+      "id": "test-values",
+      "category": "testing",
+      "difficulty": "medium",
+      "question": "How do you know the totals in the tests are right?",
+      "answer": "The analytics tests use a small fixed set of transactions whose totals can be worked out by hand, and compare the functions' results with those hand-calculated values. Because the functions are pure, the same input always gives the same output.",
+      "keyConcepts": [
+        { "label": "Small fixed data", "terms": ["fixed", "small", "sample"] },
+        { "label": "Hand-calculated expected values", "terms": ["hand", "expected", "calculated"] },
+        { "label": "Pure functions", "terms": ["pure", "same input"] }
+      ],
+      "files": ["src/lib/analytics.test.ts"],
+      "symbols": []
+    },
+    {
+      "id": "limitations",
+      "category": "limitations",
+      "difficulty": "easy",
+      "question": "What are the limitations of the expense tracker?",
+      "answer": "Data stays in one browser with no sync, there is no bank integration, categories are fixed in the code, and changing the currency doesn't convert amounts already saved.",
+      "keyConcepts": [
+        { "label": "One browser", "terms": ["browser", "sync", "device"] },
+        { "label": "No bank integration", "terms": ["bank"] },
+        { "label": "Fixed categories", "terms": ["categor"] },
+        { "label": "No currency conversion", "terms": ["currency", "convert"] }
+      ],
+      "files": ["README.md"],
+      "symbols": []
+    },
+    {
+      "id": "improvements",
+      "category": "improvements",
+      "difficulty": "medium",
+      "question": "What would you improve next, and what would it involve?",
+      "answer": "Custom categories stored with the data (validateData would check them instead of the fixed list), recurring transactions such as rent, per-category budgets with alerts, and a backend with accounts so data syncs between devices.",
+      "keyConcepts": [
+        { "label": "Custom categories", "terms": ["custom categor", "own categor"] },
+        { "label": "Recurring transactions", "terms": ["recurring", "rent", "subscription"] },
+        { "label": "Per-category budgets", "terms": ["per-category", "category budget", "alert"] },
+        { "label": "Backend and sync", "terms": ["backend", "server", "sync", "account"] }
+      ],
+      "files": ["docs/ARCHITECTURE.md"],
+      "symbols": []
+    }
+  ],
+  "demo": [
+    "Start the app with npm run dev and open the address Vite prints.",
+    "On Overview, explain this month's income, spending, balance and the budget bar using the demo transactions.",
+    "Add an expense with an invalid amount such as 12.345 to show the validation message, then correct it and save.",
+    "Show how the totals and charts update, and switch the category chart to its table view.",
+    "On Transactions, filter by last month and one category, then export the filtered list to CSV.",
+    "On Budget & data, change the monthly budget and show the Overview budget bar change.",
+    "Run npm test and explain one analytics test.",
+    "Open src/lib/money.ts and explain why amounts are stored in minor units."
+  ],
+  "preview": {
+    "layout": "top-navigation",
+    "navigation": ["Overview", "Transactions", "Budget & data"]
+  },
+  "troubleshooting": {
+    "include": ["npm-vite"],
+    "entries": [
+      {
+        "id": "config-problem",
+        "stage": "run",
+        "title": "A “Configuration problem.” message instead of the app",
+        "symptom": "The page shows “Configuration problem. src/app.config.json: …” followed by a reason.",
+        "causes": [
+          "A value in src/app.config.json is not accepted, for example a currency that isn't one of INR, USD, EUR, GBP or JPY, or a theme name that doesn't exist."
+        ],
+        "diagnose": [
+          {
+            "text": "Read the message after “src/app.config.json:”. It names the setting that is wrong.",
+            "commands": []
+          },
+          {
+            "text": "Compare the file with the rules in parseConfig in src/config.ts.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "Correct the setting the message names and save the file; the dev server reloads the page.",
+            "commands": []
+          }
+        ],
+        "confirm": "The app loads with your app name in the header.",
+        "platforms": []
+      },
+      {
+        "id": "data-disappeared",
+        "stage": "data",
+        "title": "My transactions disappeared",
+        "symptom": "The app shows the demo transactions or “No transactions yet”, although you added transactions earlier.",
+        "causes": [
+          "You opened the app in a different browser, profile or private window. Data is saved per browser profile.",
+          "The address changed, for example to http://localhost:5174/ because port 5173 was busy. localStorage is separate for every address, including the port.",
+          "The browser's data for the site was cleared."
+        ],
+        "diagnose": [
+          {
+            "text": "Check that the browser, profile and address (including the port number) are the ones you used before.",
+            "commands": []
+          },
+          {
+            "text": "Open the browser's developer tools → Application (or Storage) → Local Storage and look for campuskit-expenses:v1 under this address.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          { "text": "Open the app at the address you used before.", "commands": [] },
+          {
+            "text": "To move data between browsers or addresses, use Budget & data → Export backup (JSON), then Import backup in the other one.",
+            "commands": []
+          }
+        ],
+        "confirm": "Your transactions appear on the Transactions screen.",
+        "platforms": []
+      },
+      {
+        "id": "import-refused",
+        "stage": "data",
+        "title": "“That file can’t be imported: …”",
+        "symptom": "Importing a backup on Budget & data shows “That file can’t be imported:” followed by a reason such as “transaction 3 has an unknown category”.",
+        "causes": [
+          "The file was edited by hand or wasn't exported by this app, so one transaction or the budget fails validateData.",
+          "The file isn't JSON at all, for example a CSV export; the reason then says “the file is not valid JSON”. Files over 5 MB are refused with a separate message."
+        ],
+        "diagnose": [
+          {
+            "text": "The reason names the first problem and its position, for example transaction 3. Open the file in a text editor and find that entry.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "Correct the named entry (for example use one of the category ids in src/lib/categories.ts for the right type), save the file and import it again. Or use a backup exported by the app without changes.",
+            "commands": []
+          }
+        ],
+        "confirm": "The import asks for confirmation, and after confirming the transactions appear.",
+        "platforms": []
+      },
+      {
+        "id": "currency-changed",
+        "stage": "data",
+        "title": "After changing the currency, the amounts look wrong",
+        "symptom": "You changed currency in src/app.config.json and existing amounts now look far too large or small.",
+        "causes": [
+          "Saved amounts are numbers in the old currency's smallest unit. The app formats them with the new currency but never converts them; this is a documented limitation."
+        ],
+        "diagnose": [
+          {
+            "text": "Check whether the transactions were added before you changed the currency.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "Change the currency back, or start fresh for the new currency with Budget & data → Delete all data (export a backup first) or Load demo data, which is scaled to the current currency.",
+            "commands": []
+          }
+        ],
+        "confirm": "New and demo transactions show sensible amounts in the new currency.",
+        "platforms": []
+      },
+      {
+        "id": "saved-data-unreadable",
+        "stage": "data",
+        "title": "“Saved data couldn’t be read … so the app started fresh”",
+        "symptom": "A banner says the saved data couldn't be read, with a reason in brackets, and the app shows fresh data.",
+        "causes": [
+          "The value under campuskit-expenses:v1 was edited by hand or damaged, so validateData rejected it."
+        ],
+        "diagnose": [
+          { "text": "The reason in brackets names the first problem.", "commands": [] },
+          {
+            "text": "In the developer tools, the old value is kept under campuskit-expenses:v1:unreadable-backup.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "If you need the old data, copy the backup value into a .json file, fix the problem the banner named and use Budget & data → Import backup.",
+            "commands": []
+          }
+        ],
+        "confirm": "After reloading, the banner is gone and your transactions are shown.",
+        "platforms": []
+      }
+    ]
+  }
+}

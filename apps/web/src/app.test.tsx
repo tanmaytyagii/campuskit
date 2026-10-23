@@ -144,8 +144,11 @@ describe('links', () => {
       '/',
       '/projects',
       '/learn',
+      '/viva',
+      '/compare',
       '/docs',
       ...catalog.map((project) => `/projects/${project.slug}`),
+      ...catalog.map((project) => `/projects/${project.slug}/learn`),
     ];
     const targets = new Set<string>();
     for (const page of pages) {

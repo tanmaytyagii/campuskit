@@ -184,4 +184,42 @@ describe('project generator', () => {
     expect(await screen.findByText(/will be packed into/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Generate ZIP' })).toBeEnabled();
   });
+
+  it('previews the app with the chosen name and the template’s real theme colour', async () => {
+    const user = userEvent.setup();
+    renderRoute('/generate?template=attendance-system');
+    const name = await screen.findByRole('textbox', { name: 'Project name' });
+    await user.clear(name);
+    await user.type(name, 'Hostel Register');
+    const preview = within(screen.getByRole('complementary', { name: 'Live preview' }));
+    expect(preview.getByText(/An illustration drawn from your settings/)).toBeInTheDocument();
+    expect(preview.getByText(/The app's title is “Hostel Register”/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Written to/).length).toBeGreaterThan(0);
+  });
+
+  it('keeps choices when the student leaves the generator and comes back', async () => {
+    const user = userEvent.setup();
+    const first = renderRoute('/generate?template=expense-tracker');
+    const name = await screen.findByRole('textbox', { name: 'Project name' });
+    await user.clear(name);
+    await user.type(name, 'Pocket Money');
+    first.unmount();
+
+    renderRoute('/generate?template=expense-tracker');
+    expect(await screen.findByRole('textbox', { name: 'Project name' })).toHaveValue(
+      'Pocket Money',
+    );
+  });
+
+  it('shows which common settings the chosen template does not offer', async () => {
+    renderRoute('/generate?template=expense-tracker');
+    expect(
+      await screen.findByText('Not available in Personal Expense Tracker'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Institution name (offered by Student Attendance System and Student Result Analyzer)',
+      ),
+    ).toBeInTheDocument();
+  });
 });

@@ -1,0 +1,574 @@
+{
+  "schemaVersion": 1,
+  "sets": {
+    "npm-vite": [
+      {
+        "id": "node-missing",
+        "stage": "install",
+        "title": "“node” or “npm” is not recognized",
+        "symptom": "The terminal says 'node' is not recognized as an internal or external command (Windows), or command not found: npm (macOS and Linux).",
+        "causes": [
+          "Node.js is not installed.",
+          "Node.js was installed after the terminal was opened, so the terminal doesn't know where to find it yet."
+        ],
+        "diagnose": [
+          {
+            "text": "Ask for the installed versions. Each command should print a version number.",
+            "commands": [
+              { "command": "node --version", "platform": "all" },
+              { "command": "npm --version", "platform": "all" }
+            ]
+          }
+        ],
+        "fix": [
+          {
+            "text": "Install Node.js 22.12 or newer from https://nodejs.org/ (24 LTS is recommended; npm is included), then close the terminal and open a new one.",
+            "commands": []
+          }
+        ],
+        "confirm": "node --version prints v22.12 or newer, and npm --version prints a version.",
+        "platforms": []
+      },
+      {
+        "id": "node-too-old",
+        "stage": "install",
+        "title": "npm warns about an unsupported engine, or Vite asks for a newer Node.js",
+        "symptom": "npm install prints “npm warn EBADENGINE Unsupported engine”, or npm run dev prints “Vite requires Node.js version 20.19+ or 22.12+”.",
+        "causes": [
+          "Your Node.js is older than 22.12, the version the project's package.json asks for."
+        ],
+        "diagnose": [
+          {
+            "text": "Check the version.",
+            "commands": [{ "command": "node --version", "platform": "all" }]
+          }
+        ],
+        "fix": [
+          {
+            "text": "Install the current LTS version from https://nodejs.org/, open a new terminal, then install the dependencies again.",
+            "commands": [{ "command": "npm install", "platform": "all" }]
+          }
+        ],
+        "confirm": "node --version prints v22.12 or newer and npm install finishes without the engine warning.",
+        "platforms": []
+      },
+      {
+        "id": "wrong-folder",
+        "stage": "install",
+        "title": "npm can't find package.json",
+        "symptom": "npm prints “npm error code ENOENT” and “Could not read package.json”.",
+        "causes": [
+          "The terminal is open in a different folder from the project.",
+          "The ZIP was extracted into a folder of the same name, so the project is one level deeper."
+        ],
+        "diagnose": [
+          {
+            "text": "List the files in the current folder. You should see package.json and src.",
+            "commands": [
+              { "command": "ls", "platform": "macos-linux" },
+              { "command": "dir", "platform": "windows" }
+            ]
+          }
+        ],
+        "fix": [
+          {
+            "text": "Move into the folder that contains package.json with cd, for example cd my-project, and run the command again.",
+            "commands": []
+          }
+        ],
+        "confirm": "npm install starts downloading packages.",
+        "platforms": []
+      },
+      {
+        "id": "network",
+        "stage": "install",
+        "title": "npm install fails with ETIMEDOUT, ECONNRESET or ENOTFOUND",
+        "symptom": "npm install stops with a network error code such as ETIMEDOUT, ECONNRESET or ENOTFOUND.",
+        "causes": [
+          "There is no internet connection, or it dropped during the download.",
+          "The network (for example a college network) only allows access through a proxy."
+        ],
+        "diagnose": [
+          {
+            "text": "Check that npm can reach its registry. A working connection prints PONG.",
+            "commands": [{ "command": "npm ping", "platform": "all" }]
+          }
+        ],
+        "fix": [
+          {
+            "text": "Reconnect and run npm install again; packages it already downloaded are reused from npm's cache. On a network that needs a proxy, ask the network administrator how to configure it.",
+            "commands": [{ "command": "npm install", "platform": "all" }]
+          }
+        ],
+        "confirm": "npm install finishes and prints how many packages were added.",
+        "platforms": []
+      },
+      {
+        "id": "powershell-npm",
+        "stage": "install",
+        "title": "“npm.ps1 cannot be loaded because running scripts is disabled”",
+        "symptom": "In Windows PowerShell, every npm command fails with a message about npm.ps1 and running scripts being disabled.",
+        "causes": [
+          "PowerShell's execution policy blocks .ps1 scripts, and PowerShell tried npm.ps1."
+        ],
+        "diagnose": [
+          {
+            "text": "The message names npm.ps1, which confirms it is the execution policy and not a missing installation.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "Call npm.cmd instead, which the execution policy doesn't block, or open Command Prompt instead of PowerShell and use npm as usual.",
+            "commands": [
+              { "command": "npm.cmd install", "platform": "windows" },
+              { "command": "npm.cmd run dev", "platform": "windows" }
+            ]
+          },
+          {
+            "text": "The project's README also mentions Set-ExecutionPolicy. That changes a PowerShell setting for your user account; the steps above work without changing any setting.",
+            "commands": []
+          }
+        ],
+        "confirm": "npm.cmd --version prints a version number.",
+        "platforms": ["windows"]
+      },
+      {
+        "id": "port-in-use",
+        "stage": "run",
+        "title": "The app opens on port 5174 (or another number) instead of 5173",
+        "symptom": "npm run dev prints “Port 5173 is in use, trying another one...” and then a different address.",
+        "causes": [
+          "Another Vite dev server, often an earlier copy of this project, is still running and using port 5173."
+        ],
+        "diagnose": [
+          {
+            "text": "Look for other terminal windows or tabs that are still running npm run dev.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "Use the address Vite prints; the app works the same on any port. Or stop the other server with Ctrl+C in its terminal and start this one again.",
+            "commands": [{ "command": "npm run dev", "platform": "all" }]
+          },
+          {
+            "text": "Saved data belongs to one address. If the app looks empty on the new port, your data is still saved under the old address.",
+            "commands": []
+          }
+        ],
+        "confirm": "The app opens at the address Vite printed.",
+        "platforms": []
+      },
+      {
+        "id": "blank-page",
+        "stage": "run",
+        "title": "The browser shows a blank page or an error overlay",
+        "symptom": "npm run dev is running, but the page is empty or covered by an error message.",
+        "causes": [
+          "A change in the code has a syntax error or throws an error while the page loads."
+        ],
+        "diagnose": [
+          {
+            "text": "Read the terminal running npm run dev and the browser's console (press F12, then open Console). The first red error names a file and a line.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "Open that file at that line and fix the error, or undo your last change. Vite reloads the page when you save.",
+            "commands": []
+          }
+        ],
+        "confirm": "The page loads and the console shows no red errors.",
+        "platforms": []
+      },
+      {
+        "id": "build-type-errors",
+        "stage": "build",
+        "title": "npm run dev works, but npm run build fails with TypeScript errors",
+        "symptom": "npm run build stops with errors such as “error TS2322: Type … is not assignable to type …”.",
+        "causes": [
+          "The build script runs tsc --noEmit before vite build. The dev server doesn't type-check, so type errors only appear when you build."
+        ],
+        "diagnose": [
+          {
+            "text": "List every type error with its file and line, without building.",
+            "commands": [{ "command": "npx tsc --noEmit", "platform": "all" }]
+          }
+        ],
+        "fix": [
+          {
+            "text": "Fix each error at the line it names, starting with the first one; later errors are often caused by earlier ones.",
+            "commands": [{ "command": "npm run build", "platform": "all" }]
+          }
+        ],
+        "confirm": "npm run build finishes and lists the files it wrote to dist.",
+        "platforms": []
+      },
+      {
+        "id": "lockfile-out-of-sync",
+        "stage": "install",
+        "title": "npm ci says package.json and package-lock.json are not in sync",
+        "symptom": "npm ci stops with “npm ci can only install packages when your package.json and package-lock.json … are in sync”.",
+        "causes": [
+          "package.json was edited (for example a dependency was added by hand) without updating package-lock.json."
+        ],
+        "diagnose": [
+          {
+            "text": "Compare the dependencies in package.json with what you changed recently.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "Run npm install, which updates package-lock.json to match package.json. Keep both files together in version control.",
+            "commands": [{ "command": "npm install", "platform": "all" }]
+          }
+        ],
+        "confirm": "npm ci finishes without the error.",
+        "platforms": []
+      },
+      {
+        "id": "clean-reinstall",
+        "stage": "install",
+        "title": "Strange errors after switching Node.js versions or adding packages",
+        "symptom": "Commands that used to work now fail with errors inside node_modules, for example about a missing module or a native binary.",
+        "causes": [
+          "node_modules was installed with a different Node.js version or is out of date with package-lock.json."
+        ],
+        "diagnose": [
+          {
+            "text": "Check which Node.js version you are using now.",
+            "commands": [{ "command": "node --version", "platform": "all" }]
+          }
+        ],
+        "fix": [
+          {
+            "text": "Reinstall exactly what package-lock.json lists. npm ci removes the old node_modules folder itself before installing.",
+            "commands": [{ "command": "npm ci", "platform": "all" }]
+          }
+        ],
+        "confirm": "npm run dev and npm test work again.",
+        "platforms": []
+      },
+      {
+        "id": "tests-fail",
+        "stage": "test",
+        "title": "npm test shows FAIL after I changed something",
+        "symptom": "npm test prints FAIL next to a test file and an AssertionError with “expected” and “received” values.",
+        "causes": ["You changed text, behaviour or a calculation that a test checks."],
+        "diagnose": [
+          {
+            "text": "Read the failing test's name and compare the expected and received values. Open the test file at the line shown.",
+            "commands": [{ "command": "npm test", "platform": "all" }]
+          }
+        ],
+        "fix": [
+          {
+            "text": "If the change was a mistake, fix the code. If the new behaviour is what you want, update the test's expected value and explain the change in your report.",
+            "commands": []
+          }
+        ],
+        "confirm": "npm test reports that every test passed.",
+        "platforms": []
+      }
+    ],
+    "python-streamlit": [
+      {
+        "id": "python-missing",
+        "stage": "install",
+        "title": "“python” is not recognized, or it opens the Microsoft Store",
+        "symptom": "The terminal says 'python' is not recognized (Windows) or command not found: python3 (macOS and Linux), or typing python opens the Microsoft Store.",
+        "causes": [
+          "Python is not installed, or it was installed without being added to PATH.",
+          "On Windows, the Microsoft Store shortcut named python.exe runs instead of a real installation."
+        ],
+        "diagnose": [
+          {
+            "text": "Ask for the version. It must print Python 3.11 or newer.",
+            "commands": [
+              { "command": "python --version", "platform": "windows" },
+              { "command": "py --version", "platform": "windows" },
+              { "command": "python3 --version", "platform": "macos-linux" }
+            ]
+          }
+        ],
+        "fix": [
+          {
+            "text": "Install Python 3.11 or newer from https://www.python.org/downloads/. On Windows, tick “Add python.exe to PATH” in the installer. Then open a new terminal.",
+            "commands": []
+          },
+          {
+            "text": "On Windows you can also use the Python launcher, which the python.org installer adds.",
+            "commands": [{ "command": "py -m venv .venv", "platform": "windows" }]
+          }
+        ],
+        "confirm": "python --version (Windows) or python3 --version (macOS, Linux) prints Python 3.11 or newer.",
+        "platforms": []
+      },
+      {
+        "id": "python-too-old",
+        "stage": "install",
+        "title": "My Python is older than 3.11",
+        "symptom": "python3 --version prints a version below 3.11 (for example Python 3.9), or pip reports that a package requires a different Python.",
+        "causes": [
+          "The python3 command runs an older Python, for example one that came with the operating system or developer tools."
+        ],
+        "diagnose": [
+          {
+            "text": "Check which Python the command runs and its version.",
+            "commands": [
+              {
+                "command": "python3 -c \"import sys; print(sys.executable, sys.version)\"",
+                "platform": "macos-linux"
+              },
+              {
+                "command": "python -c \"import sys; print(sys.executable, sys.version)\"",
+                "platform": "windows"
+              }
+            ]
+          }
+        ],
+        "fix": [
+          {
+            "text": "Install Python 3.11 or newer from https://www.python.org/downloads/ and create the virtual environment with it, naming the version explicitly.",
+            "commands": [
+              { "command": "python3.11 -m venv .venv", "platform": "macos-linux" },
+              { "command": "py -3.11 -m venv .venv", "platform": "windows" }
+            ]
+          }
+        ],
+        "confirm": "After activating .venv, python --version prints Python 3.11 or newer.",
+        "platforms": []
+      },
+      {
+        "id": "venv-ensurepip",
+        "stage": "install",
+        "title": "Creating .venv fails with an ensurepip error",
+        "symptom": "python -m venv .venv stops with “Error: Command '['…/.venv/bin/python3.11', '-m', 'ensurepip', '--upgrade', '--default-pip']' returned non-zero exit status 1.”",
+        "causes": [
+          "The Python installation's built-in pip installer (ensurepip) fails inside new virtual environments. This is a problem with that Python installation, not with the project."
+        ],
+        "diagnose": [
+          {
+            "text": "Find out which Python installation the command used.",
+            "commands": [
+              {
+                "command": "python3 -c \"import sys; print(sys.executable, sys.version)\"",
+                "platform": "macos-linux"
+              }
+            ]
+          }
+        ],
+        "fix": [
+          {
+            "text": "Create the environment with another Python 3.11+ installation, for example from the python.org installer, which on macOS adds /usr/local/bin/python3.11. --clear replaces the half-created .venv folder.",
+            "commands": [
+              {
+                "command": "/usr/local/bin/python3.11 -m venv --clear .venv",
+                "platform": "macos-linux"
+              }
+            ]
+          }
+        ],
+        "confirm": "The command finishes silently, and after activating .venv, pip install -r requirements.txt starts downloading.",
+        "platforms": ["macos"],
+        "observed": {
+          "on": "2026-10-22",
+          "platform": "macos",
+          "environment": "macOS 26.2 (arm64) with Homebrew Python 3.11.15; the python.org Python 3.11.7 on the same computer worked",
+          "during": "pnpm verify:generated, while creating the virtual environment"
+        }
+      },
+      {
+        "id": "activate-blocked",
+        "stage": "install",
+        "title": "“Activate.ps1 cannot be loaded because running scripts is disabled”",
+        "symptom": "On Windows PowerShell, .venv\\Scripts\\Activate.ps1 fails with a message about running scripts being disabled.",
+        "causes": [
+          "PowerShell's execution policy blocks .ps1 scripts, including the activation script."
+        ],
+        "diagnose": [
+          {
+            "text": "The message names Activate.ps1, which confirms the virtual environment exists and only activation is blocked.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "Skip activation and run the environment's own Python directly. It uses the packages in .venv exactly as activation would.",
+            "commands": [
+              {
+                "command": ".venv\\Scripts\\python -m pip install -r requirements.txt",
+                "platform": "windows"
+              },
+              { "command": ".venv\\Scripts\\python -m streamlit run app.py", "platform": "windows" }
+            ]
+          },
+          {
+            "text": "The project's setup steps also mention Set-ExecutionPolicy. That changes a PowerShell setting for your user account; the commands above work without changing any setting.",
+            "commands": []
+          }
+        ],
+        "confirm": "The app starts and the browser opens it.",
+        "platforms": ["windows"]
+      },
+      {
+        "id": "externally-managed",
+        "stage": "install",
+        "title": "pip says “externally-managed-environment”",
+        "symptom": "pip install stops with “error: externally-managed-environment”.",
+        "causes": [
+          "pip ran with the system's Python instead of the project's virtual environment."
+        ],
+        "diagnose": [
+          {
+            "text": "Check where Python is running from. Inside the virtual environment the path ends with .venv.",
+            "commands": [
+              { "command": "python -c \"import sys; print(sys.prefix)\"", "platform": "all" }
+            ]
+          }
+        ],
+        "fix": [
+          {
+            "text": "Activate the virtual environment first, or call its Python directly.",
+            "commands": [
+              { "command": "source .venv/bin/activate", "platform": "macos-linux" },
+              {
+                "command": ".venv/bin/python -m pip install -r requirements.txt",
+                "platform": "macos-linux"
+              }
+            ]
+          }
+        ],
+        "confirm": "pip install -r requirements.txt runs and installs into .venv.",
+        "platforms": ["macos", "linux"]
+      },
+      {
+        "id": "module-not-found",
+        "stage": "run",
+        "title": "ModuleNotFoundError: No module named 'streamlit' (or 'pandas')",
+        "symptom": "Starting the app or the tests fails with ModuleNotFoundError naming streamlit, pandas, altair or pytest.",
+        "causes": [
+          "The virtual environment is not active in this terminal, for example because it is a new terminal window.",
+          "Installing the requirements failed or was skipped."
+        ],
+        "diagnose": [
+          {
+            "text": "Check whether the package is installed for the Python you are using.",
+            "commands": [{ "command": "python -m pip show streamlit", "platform": "all" }]
+          }
+        ],
+        "fix": [
+          {
+            "text": "Activate .venv again in this terminal, then install the requirements. For the tests, also install requirements-dev.txt.",
+            "commands": [
+              { "command": "source .venv/bin/activate", "platform": "macos-linux" },
+              { "command": ".venv\\Scripts\\Activate.ps1", "platform": "windows" },
+              { "command": "pip install -r requirements.txt", "platform": "all" }
+            ]
+          }
+        ],
+        "confirm": "python -m pip show streamlit prints the installed version, and the app starts.",
+        "platforms": []
+      },
+      {
+        "id": "streamlit-not-recognized",
+        "stage": "run",
+        "title": "“streamlit” is not recognized",
+        "symptom": "streamlit run app.py fails with 'streamlit' is not recognized (Windows) or command not found: streamlit.",
+        "causes": [
+          "The virtual environment is not active, so the terminal can't find the streamlit command installed inside it."
+        ],
+        "diagnose": [
+          {
+            "text": "Check that you are in the project folder and that .venv exists there.",
+            "commands": [
+              { "command": "ls", "platform": "macos-linux" },
+              { "command": "dir", "platform": "windows" }
+            ]
+          }
+        ],
+        "fix": [
+          {
+            "text": "Activate .venv, or start Streamlit through Python, which finds it inside the environment.",
+            "commands": [{ "command": "python -m streamlit run app.py", "platform": "all" }]
+          }
+        ],
+        "confirm": "Streamlit prints the local address and the browser opens the app.",
+        "platforms": []
+      },
+      {
+        "id": "streamlit-port",
+        "stage": "run",
+        "title": "The app opens on port 8502 (or Streamlit says the port is not available)",
+        "symptom": "Streamlit prints http://localhost:8502 or a higher port instead of 8501, or stops with “Port 8501 is not available” when you chose the port yourself.",
+        "causes": [
+          "Another Streamlit app is already using port 8501. When you don't choose a port, Streamlit 1.66 moves to the next free one; when you set one with --server.port, it stops instead."
+        ],
+        "diagnose": [
+          {
+            "text": "Look for other terminals that are still running streamlit run.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "Use the address Streamlit prints, or stop the other app with Ctrl+C in its terminal. If you set a port yourself, choose a free one.",
+            "commands": [
+              { "command": "streamlit run app.py --server.port 8502", "platform": "all" }
+            ]
+          }
+        ],
+        "confirm": "The app opens at the address Streamlit printed.",
+        "platforms": []
+      },
+      {
+        "id": "pip-network",
+        "stage": "install",
+        "title": "pip install fails with connection errors or times out",
+        "symptom": "pip prints “Could not fetch URL”, “Max retries exceeded” or a timeout while downloading packages.",
+        "causes": [
+          "There is no internet connection, or it dropped during the download (the packages are several hundred MB).",
+          "The network only allows access through a proxy."
+        ],
+        "diagnose": [
+          {
+            "text": "Open https://pypi.org in a browser on the same computer to check that the package index is reachable.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "Reconnect and run the same command again; packages that finished downloading are reused. On a network that needs a proxy, ask the network administrator how to configure it.",
+            "commands": [{ "command": "pip install -r requirements.txt", "platform": "all" }]
+          }
+        ],
+        "confirm": "pip ends with “Successfully installed …”.",
+        "platforms": []
+      },
+      {
+        "id": "pytest-fails",
+        "stage": "test",
+        "title": "python -m pytest shows failures after I changed something",
+        "symptom": "pytest prints F for failed tests and an assert line comparing two values.",
+        "causes": ["You changed a calculation, a message or a rule that a test checks."],
+        "diagnose": [
+          {
+            "text": "Stop at the first failure to read it calmly: the test name, the file and line, and the two values that differ.",
+            "commands": [{ "command": "python -m pytest -x -q", "platform": "all" }]
+          }
+        ],
+        "fix": [
+          {
+            "text": "If the change was a mistake, fix the code. If the new behaviour is what you want, update the expected value in the test and explain the change in your report.",
+            "commands": []
+          }
+        ],
+        "confirm": "python -m pytest reports that every test passed.",
+        "platforms": []
+      }
+    ]
+  }
+}

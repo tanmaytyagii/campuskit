@@ -1,6 +1,6 @@
 {
   "name": "@campuskit/project-catalog",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": true,
   "description": "Typed, validated project manifests: the single source of truth for the CampusKit gallery and generator.",
   "license": "MIT",

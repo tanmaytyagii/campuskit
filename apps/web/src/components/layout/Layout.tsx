@@ -6,7 +6,9 @@ import { SiteHeader } from './SiteHeader.tsx';
 
 /**
  * The page shell. After client-side navigation, focus moves to the main
- * region so keyboard and screen-reader users start at the new content.
+ * region so keyboard and screen-reader users start at the new content,
+ * unless the page has already put focus somewhere inside it (for example a
+ * learning studio section moving focus to its own heading).
  */
 export function Layout() {
   const location = useLocation();
@@ -16,7 +18,9 @@ export function Layout() {
   useEffect(() => {
     if (previousPath.current === location.pathname) return;
     previousPath.current = location.pathname;
-    if (!location.hash) main.current?.focus({ preventScroll: true });
+    // Pages' own effects run before this one, so focus they placed is respected.
+    if (location.hash || main.current?.contains(document.activeElement)) return;
+    main.current?.focus({ preventScroll: true });
   }, [location.pathname, location.hash]);
 
   return (

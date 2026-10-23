@@ -1,0 +1,1000 @@
+{
+  "schemaVersion": 1,
+  "templateId": "student-result-analyzer",
+  "audience": {
+    "summary": "School and college students who want a data project in Python: reading a real-looking CSV file, checking it carefully, computing statistics with pandas and explaining them. The imagined user is a teacher or class representative analysing exam marks.",
+    "knowledge": [
+      "Python basics: variables, functions, lists, dictionaries and loops.",
+      "Running Python scripts and installing packages with pip in a terminal.",
+      "Basic statistics: mean, median and percentages (standard deviation and quartiles are explained in the app).",
+      "pandas DataFrames are helpful but not required; the code is commented."
+    ]
+  },
+  "architecture": {
+    "summary": "Two parts: the analyzer package, plain Python that validates data and computes every number with pandas, and app.py, a Streamlit script that builds the web page and calls the analyzer. Streamlit runs app.py as a small web server on your own computer and reruns it from top to bottom whenever a widget changes. Nothing is saved: the CSV is analysed in memory and results are downloaded as files.",
+    "layers": [
+      {
+        "id": "configuration",
+        "label": "Configuration",
+        "description": "app_config.json for names and marks, .streamlit/config.toml for the theme and server settings."
+      },
+      {
+        "id": "interface",
+        "label": "Streamlit interface",
+        "description": "app.py: the sidebar, tabs, charts, tables and download buttons."
+      },
+      {
+        "id": "logic",
+        "label": "Analyzer package",
+        "description": "Plain Python with no Streamlit code: validation, statistics, grading, explanations and reports."
+      },
+      {
+        "id": "data",
+        "label": "Data files",
+        "description": "The fictional sample CSV files shipped with the project, or a file the user uploads."
+      },
+      {
+        "id": "tests",
+        "label": "Tests",
+        "description": "pytest tests with hand-calculated values, plus a headless run of the whole Streamlit app."
+      }
+    ],
+    "components": [
+      {
+        "id": "config",
+        "name": "App configuration",
+        "layer": "configuration",
+        "kind": "configuration",
+        "responsibility": "app_config.json holds the app name, institution, author, pass mark (30 to 60) and maximum marks. parse_config checks each value and raises a ConfigError that app.py shows on the page. .streamlit/config.toml sets the accent colour, keeps the server on localhost, limits uploads to 5 MB and turns off usage statistics.",
+        "files": ["app_config.json", "analyzer/config.py", ".streamlit/config.toml"],
+        "symbols": [
+          { "file": "analyzer/config.py", "name": "parse_config" },
+          { "file": "analyzer/config.py", "name": "AppConfig" },
+          { "file": ".streamlit/config.toml", "name": "primaryColor" }
+        ]
+      },
+      {
+        "id": "streamlit-app",
+        "name": "Streamlit app",
+        "layer": "interface",
+        "kind": "server",
+        "responsibility": "app.py builds the page: data source and settings in the sidebar, then six tabs (Overview, Subjects, Grades, Missing data, Students, Download). It caches validation with @st.cache_data and stops with st.stop() when the file has errors.",
+        "files": ["app.py"],
+        "symbols": [
+          { "file": "app.py", "name": "run_validation" },
+          { "file": "app.py", "name": "ACCENT" }
+        ]
+      },
+      {
+        "id": "validation",
+        "name": "Validation",
+        "layer": "logic",
+        "kind": "logic",
+        "responsibility": "Reads the CSV bytes as text, checks size and encoding, matches column names with aliases, and reports empty or duplicate IDs, empty names, non-numeric and out-of-range scores with line numbers. Absent markers and empty cells become missing values.",
+        "files": ["analyzer/validation.py"],
+        "symbols": [
+          { "file": "analyzer/validation.py", "name": "validate_results" },
+          { "file": "analyzer/validation.py", "name": "decode_csv" },
+          { "file": "analyzer/validation.py", "name": "ValidationResult" }
+        ]
+      },
+      {
+        "id": "analysis",
+        "name": "Statistics and results",
+        "layer": "logic",
+        "kind": "logic",
+        "responsibility": "Subject statistics (count, missing, mean, median, standard deviation, quartiles, pass rate), each student's total, percentage, grade, result and rank, the grade distribution, missing-data summaries and per-class summaries.",
+        "files": ["analyzer/analysis.py"],
+        "symbols": [
+          { "file": "analyzer/analysis.py", "name": "subject_statistics" },
+          { "file": "analyzer/analysis.py", "name": "student_results" },
+          { "file": "analyzer/analysis.py", "name": "grade_distribution" }
+        ]
+      },
+      {
+        "id": "grading",
+        "name": "Grading scale",
+        "layer": "logic",
+        "kind": "logic",
+        "responsibility": "Fixed percentage bands: A+ 90 and above, A 80+, B 70+, C 60+, D from the pass mark, F below it.",
+        "files": ["analyzer/grading.py"],
+        "symbols": [
+          { "file": "analyzer/grading.py", "name": "grade_for" },
+          { "file": "analyzer/grading.py", "name": "describe_scale" }
+        ]
+      },
+      {
+        "id": "explain",
+        "name": "Plain-language explanations",
+        "layer": "logic",
+        "kind": "logic",
+        "responsibility": "Builds sentences from the computed numbers, for example which subject has the highest average or whether a few high scorers lift the mean above the median, plus a glossary of the statistics.",
+        "files": ["analyzer/explain.py"],
+        "symbols": [
+          { "file": "analyzer/explain.py", "name": "explain_overview" },
+          { "file": "analyzer/explain.py", "name": "GLOSSARY" }
+        ]
+      },
+      {
+        "id": "report",
+        "name": "Downloads",
+        "layer": "logic",
+        "kind": "logic",
+        "responsibility": "Writes CSV files as UTF-8 with a byte-order mark, prefixes text cells that a spreadsheet would run as formulas, and builds the Markdown report from the computed values.",
+        "files": ["analyzer/report.py"],
+        "symbols": [
+          { "file": "analyzer/report.py", "name": "to_csv_bytes" },
+          { "file": "analyzer/report.py", "name": "build_report" }
+        ]
+      },
+      {
+        "id": "sample-data",
+        "name": "Sample CSV files",
+        "layer": "data",
+        "kind": "data",
+        "responsibility": "sample_results.csv is a fictional class of 40 students and 5 subjects; sample_with_errors.csv contains deliberate mistakes so you can see every kind of validation message.",
+        "files": ["data/sample_results.csv", "data/sample_with_errors.csv"],
+        "symbols": []
+      },
+      {
+        "id": "tests",
+        "name": "Automated tests",
+        "layer": "tests",
+        "kind": "tests",
+        "responsibility": "Tests compare statistics with hand-calculated values, check every grade boundary and validation rule (with line numbers, Windows-1252 files and Unicode names), the downloads and the configuration, and run the whole app headlessly with streamlit.testing.",
+        "files": [
+          "tests/test_validation.py",
+          "tests/test_analysis.py",
+          "tests/test_report.py",
+          "tests/test_app.py",
+          "tests/test_config.py"
+        ],
+        "symbols": []
+      }
+    ],
+    "connections": [
+      {
+        "from": "config",
+        "to": "streamlit-app",
+        "label": "names, pass mark, maximum marks and theme"
+      },
+      {
+        "from": "sample-data",
+        "to": "streamlit-app",
+        "label": "the default dataset and the downloadable samples"
+      },
+      {
+        "from": "streamlit-app",
+        "to": "validation",
+        "label": "passes the CSV bytes and maximum marks (cached)"
+      },
+      {
+        "from": "validation",
+        "to": "analysis",
+        "label": "a clean DataFrame and the list of subjects"
+      },
+      { "from": "analysis", "to": "grading", "label": "grades for percentages" },
+      { "from": "analysis", "to": "explain", "label": "computed tables and the overview" },
+      {
+        "from": "analysis",
+        "to": "report",
+        "label": "tables for the CSV files and the Markdown report"
+      },
+      { "from": "explain", "to": "streamlit-app", "label": "sentences shown in the tabs" },
+      { "from": "report", "to": "streamlit-app", "label": "bytes for the download buttons" },
+      { "from": "tests", "to": "analysis", "label": "hand-calculated expected values" },
+      { "from": "tests", "to": "streamlit-app", "label": "headless run of app.py" }
+    ],
+    "flows": [
+      {
+        "id": "analyse-upload",
+        "title": "Analysing an uploaded file",
+        "steps": [
+          {
+            "component": "streamlit-app",
+            "text": "The user picks “Upload a CSV file” and chooses a file; Streamlit reruns app.py with the file's bytes."
+          },
+          {
+            "component": "streamlit-app",
+            "text": "run_validation is cached with @st.cache_data, so the same bytes and maximum marks aren't validated twice."
+          },
+          {
+            "component": "validation",
+            "text": "validate_results decodes the bytes, reads every cell as text and collects errors and warnings with line numbers."
+          },
+          {
+            "component": "streamlit-app",
+            "text": "If there are errors, the app lists them and calls st.stop(); nothing is analysed."
+          },
+          {
+            "component": "analysis",
+            "text": "Otherwise subject_statistics, student_results and the other functions compute every table from the clean DataFrame."
+          },
+          {
+            "component": "explain",
+            "text": "explain_* functions turn the numbers into sentences, and the tabs show tables, charts and explanations."
+          }
+        ]
+      },
+      {
+        "id": "student-percentage",
+        "title": "Computing a student's result",
+        "steps": [
+          {
+            "component": "analysis",
+            "text": "Percentage = total of the subjects the student has scores for ÷ (number of those subjects × maximum marks) × 100."
+          },
+          {
+            "component": "grading",
+            "text": "grade_for maps the percentage to A+, A, B, C, D or F using the pass mark for the D/F boundary."
+          },
+          {
+            "component": "analysis",
+            "text": "The result is Fail if any scored subject is below the pass mark, otherwise Incomplete if a score is missing, otherwise Pass."
+          },
+          {
+            "component": "analysis",
+            "text": "Rank uses the percentage with method=\"min\", so tied students share a rank and the next rank is skipped."
+          }
+        ]
+      },
+      {
+        "id": "download",
+        "title": "Downloading results",
+        "steps": [
+          {
+            "component": "report",
+            "text": "to_csv_bytes prefixes risky text cells with an apostrophe and encodes the CSV as UTF-8 with a byte-order mark."
+          },
+          {
+            "component": "report",
+            "text": "build_report writes a Markdown summary using only computed values and explanations."
+          },
+          {
+            "component": "streamlit-app",
+            "text": "st.download_button offers the files; they are created in memory and never saved on the server."
+          }
+        ]
+      }
+    ]
+  },
+  "walkthrough": [
+    {
+      "id": "app",
+      "title": "The Streamlit app",
+      "file": "app.py",
+      "role": "Builds the interface; every calculation is delegated to the analyzer package.",
+      "explanation": "Streamlit runs this script from top to bottom every time the user changes a widget. Widgets like st.radio and st.file_uploader return their current value, and output functions like st.dataframe and st.altair_chart draw on the page. The script loads the configuration (showing a message if it is invalid), validates the chosen data, stops early when there are errors, and otherwise fills six tabs.",
+      "symbols": [
+        {
+          "name": "run_validation",
+          "explanation": "Wraps validate_results in @st.cache_data so reruns reuse the result for the same file."
+        },
+        {
+          "name": "ACCENT",
+          "explanation": "The theme colour from .streamlit/config.toml, used in the charts."
+        },
+        { "name": "bullet_list", "explanation": "Shows a list of sentences as Markdown bullets." },
+        {
+          "name": "SAMPLE_FILE",
+          "explanation": "data/sample_results.csv, analysed when no file is uploaded."
+        }
+      ],
+      "related": ["analyzer/validation.py", "analyzer/analysis.py", ".streamlit/config.toml"],
+      "tests": ["tests/test_app.py"]
+    },
+    {
+      "id": "config",
+      "title": "Configuration",
+      "file": "analyzer/config.py",
+      "role": "Reads and checks app_config.json.",
+      "explanation": "parse_config turns the JSON into a frozen AppConfig dataclass. _whole_number rejects booleans explicitly, because in Python bool is a subclass of int, and enforces the pass-mark range 30 to 60 and maximum marks 10 to 1000. load_config reports a missing file or invalid JSON with the line number.",
+      "symbols": [
+        {
+          "name": "AppConfig",
+          "explanation": "app_name, institution_name, author_name, pass_mark and max_marks."
+        },
+        { "name": "parse_config", "explanation": "Validates every value or raises a ConfigError." },
+        {
+          "name": "load_config",
+          "explanation": "Reads the file next to app.py and explains JSON errors."
+        },
+        {
+          "name": "ConfigError",
+          "explanation": "A ValueError whose message app.py shows on the page."
+        }
+      ],
+      "related": ["app_config.json", "app.py"],
+      "tests": ["tests/test_config.py"]
+    },
+    {
+      "id": "validation",
+      "title": "Validating the CSV",
+      "file": "analyzer/validation.py",
+      "role": "Checks a results file before any analysis runs.",
+      "explanation": "The file is read with header=None and dtype=str, so every cell stays text and messages can quote the original value (“seventy” on line 5). Column names are normalised (“Roll No” → roll_no) and matched against aliases. Errors stop the analysis; warnings, such as missing scores or a Windows-1252 file, are shown alongside it.",
+      "symbols": [
+        {
+          "name": "decode_csv",
+          "explanation": "UTF-8 with or without a byte-order mark, falling back to Windows-1252 with a warning."
+        },
+        {
+          "name": "normalize_header",
+          "explanation": "'Student ID ' → 'student_id', so headers match case-insensitively."
+        },
+        {
+          "name": "validate_results",
+          "explanation": "The whole pipeline: size, encoding, parsing, headers, rows and scores."
+        },
+        {
+          "name": "ValidationResult",
+          "explanation": "Clean data, subject names, errors and warnings."
+        },
+        {
+          "name": "ABSENT_MARKERS",
+          "explanation": "ab, abs, absent, -, na and n/a count as missing scores."
+        },
+        { "name": "MAX_FILE_BYTES", "explanation": "Files larger than 5 MB are rejected." }
+      ],
+      "related": ["data/sample_with_errors.csv", "app.py"],
+      "tests": ["tests/test_validation.py"]
+    },
+    {
+      "id": "analysis",
+      "title": "Statistics and results",
+      "file": "analyzer/analysis.py",
+      "role": "Every number in the app is computed here with pandas.",
+      "explanation": "pandas skips NaN in mean(), median() and std(), so missing scores never count as zero; the Count column shows how many students each statistic is based on. student_results computes each student's percentage from the subjects they have scores for, then the grade, the result and a competition rank.",
+      "symbols": [
+        {
+          "name": "subject_statistics",
+          "explanation": "One row per subject; the standard deviation is the sample one (ddof=1)."
+        },
+        {
+          "name": "student_results",
+          "explanation": "Total, percentage, grade, Pass/Fail/Incomplete, rank and failed subjects."
+        },
+        {
+          "name": "grade_distribution",
+          "explanation": "Students per grade in A+ … F order, including grades with nobody."
+        },
+        {
+          "name": "class_summary",
+          "explanation": "Average percentage and pass rate per class, when there is a Class column."
+        },
+        {
+          "name": "pass_score",
+          "explanation": "Converts the pass percentage into marks, e.g. 40 % of 100 → 40."
+        }
+      ],
+      "related": ["analyzer/grading.py", "analyzer/explain.py"],
+      "tests": ["tests/test_analysis.py"]
+    },
+    {
+      "id": "grading",
+      "title": "The grading scale",
+      "file": "analyzer/grading.py",
+      "role": "Maps percentages to grades.",
+      "explanation": "The bands above 60 % are fixed; D runs from the pass mark to below 60 % and F is below the pass mark. Because the pass mark is limited to 60 % at most, the bands never overlap. To use another scale, change FIXED_BANDS and the tests together.",
+      "symbols": [
+        {
+          "name": "GRADE_ORDER",
+          "explanation": "A+, A, B, C, D, F: the order used in tables and charts."
+        },
+        { "name": "FIXED_BANDS", "explanation": "The minimum percentage for A+, A, B and C." },
+        {
+          "name": "grade_for",
+          "explanation": "Returns the grade, or None when there is no score."
+        },
+        { "name": "describe_scale", "explanation": "Human-readable bands for the sidebar." }
+      ],
+      "related": ["analyzer/analysis.py"],
+      "tests": ["tests/test_analysis.py"]
+    },
+    {
+      "id": "explain",
+      "title": "Explanations from the numbers",
+      "file": "analyzer/explain.py",
+      "role": "Plain-language sentences built from the computed results.",
+      "explanation": "Every sentence is built from the actual numbers, so explanations change when the data changes. explain_overview compares the mean and median and only mentions skew when they differ by more than 3 percentage points. Nothing here is a fixed claim about a class.",
+      "symbols": [
+        {
+          "name": "GLOSSARY",
+          "explanation": "Definitions of Count, Mean, Median, Std dev, quartiles and pass rate."
+        },
+        {
+          "name": "explain_overview",
+          "explanation": "Headline sentences, including skew and how many students passed."
+        },
+        {
+          "name": "explain_subjects",
+          "explanation": "Highest and lowest averages and the spread of scores."
+        },
+        {
+          "name": "explain_missing",
+          "explanation": "How many scores are missing and how that affects the averages."
+        }
+      ],
+      "related": ["analyzer/analysis.py", "app.py"],
+      "tests": ["tests/test_analysis.py"]
+    },
+    {
+      "id": "report",
+      "title": "Downloads",
+      "file": "analyzer/report.py",
+      "role": "CSV files and the Markdown report.",
+      "explanation": "_safe_cell prefixes text that starts with =, +, - or @ with an apostrophe so spreadsheet programs don't run it as a formula. to_csv_bytes encodes as UTF-8 with a byte-order mark so Excel shows Unicode names correctly. build_report writes the summary only from computed values.",
+      "symbols": [
+        { "name": "_safe_cell", "explanation": "Formula-injection protection for one value." },
+        { "name": "to_csv_bytes", "explanation": "A safe CSV as bytes for st.download_button." },
+        {
+          "name": "build_report",
+          "explanation": "The Markdown report with the overview, tables and explanations."
+        }
+      ],
+      "related": ["app.py"],
+      "tests": ["tests/test_report.py"]
+    },
+    {
+      "id": "app-test",
+      "title": "Testing the whole app",
+      "file": "tests/test_app.py",
+      "role": "Runs app.py headlessly and checks what it shows.",
+      "explanation": "Streamlit's testing API runs the script without a browser, so the tests can check that the sample dataset produces the expected tabs, that upload mode asks for a file and that the student search filters the table. Combined with the unit tests, this shows both the calculations and the interface work.",
+      "symbols": [
+        {
+          "name": "test_app_runs_with_the_sample_dataset",
+          "explanation": "The default view analyses the sample without errors."
+        },
+        {
+          "name": "test_student_search_filters_results",
+          "explanation": "Typing in the search box filters the results table."
+        }
+      ],
+      "related": ["app.py", "tests/conftest.py"],
+      "tests": []
+    },
+    {
+      "id": "streamlit-config",
+      "title": "Streamlit settings",
+      "file": ".streamlit/config.toml",
+      "role": "Theme colour and server settings for Streamlit.",
+      "explanation": "The generator writes your accent colour into primaryColor. The server listens only on localhost, so other computers on the network can't open the app, uploads above 5 MB are refused, and anonymous usage statistics are turned off.",
+      "symbols": [
+        {
+          "name": "primaryColor",
+          "explanation": "The accent colour; app.py reads it for the charts."
+        },
+        { "name": "address", "explanation": "localhost: only this computer can open the app." },
+        { "name": "maxUploadSize", "explanation": "Uploads above 5 MB are refused." },
+        {
+          "name": "gatherUsageStats",
+          "explanation": "false: no usage statistics are sent to Streamlit."
+        }
+      ],
+      "related": ["app.py"],
+      "tests": []
+    }
+  ],
+  "checklist": [
+    {
+      "id": "setup-venv",
+      "area": "setup",
+      "text": "Create and activate the virtual environment, install requirements.txt and start the app with streamlit run app.py.",
+      "how": "Explain what the virtual environment is for."
+    },
+    {
+      "id": "setup-tests",
+      "area": "setup",
+      "text": "Install requirements-dev.txt and run python -m pytest, then read the summary line."
+    },
+    {
+      "id": "architecture-split",
+      "area": "architecture",
+      "text": "Explain why the analyzer package contains no Streamlit code.",
+      "file": "analyzer/analysis.py"
+    },
+    {
+      "id": "architecture-rerun",
+      "area": "architecture",
+      "text": "Explain how Streamlit reruns app.py and what @st.cache_data saves.",
+      "file": "app.py"
+    },
+    {
+      "id": "functionality-upload",
+      "area": "functionality",
+      "text": "Download the sample CSV, change a few marks, upload it and find the changes in the Students tab.",
+      "how": "Then explain which functions recomputed each number."
+    },
+    {
+      "id": "functionality-rank",
+      "area": "functionality",
+      "text": "Explain how ranks are assigned when two students have the same percentage.",
+      "file": "analyzer/analysis.py"
+    },
+    {
+      "id": "data-missing",
+      "area": "data",
+      "text": "Explain why a missing score is not treated as zero, and what Incomplete means.",
+      "file": "analyzer/analysis.py"
+    },
+    {
+      "id": "data-text-first",
+      "area": "data",
+      "text": "Explain why every cell is read as text before being converted to numbers.",
+      "file": "analyzer/validation.py"
+    },
+    {
+      "id": "validation-errors",
+      "area": "validation",
+      "text": "Upload data/sample_with_errors.csv and match each message to the check that produced it.",
+      "file": "data/sample_with_errors.csv"
+    },
+    {
+      "id": "validation-config",
+      "area": "validation",
+      "text": "Set pass_mark to 70 in app_config.json, restart the app, read the message, then undo the change.",
+      "file": "app_config.json"
+    },
+    {
+      "id": "testing-hand",
+      "area": "testing",
+      "text": "Pick one statistic in tests/test_analysis.py and recalculate it by hand.",
+      "file": "tests/test_analysis.py"
+    },
+    {
+      "id": "testing-headless",
+      "area": "testing",
+      "text": "Explain how tests/test_app.py tests the interface without opening a browser.",
+      "file": "tests/test_app.py"
+    },
+    {
+      "id": "limitations-list",
+      "area": "limitations",
+      "text": "List the limitations: one maximum mark for every subject, fixed percentage bands, one file at a time."
+    },
+    {
+      "id": "limitations-privacy",
+      "area": "limitations",
+      "text": "Explain what happens to an uploaded file and why the app is only reachable from your own computer.",
+      "file": ".streamlit/config.toml"
+    },
+    {
+      "id": "improvements-max",
+      "area": "improvements",
+      "text": "Describe how you would support a different maximum mark per subject.",
+      "file": "app_config.json"
+    },
+    {
+      "id": "improvements-compare",
+      "area": "improvements",
+      "text": "Sketch how you would compare two exams and show each student's improvement."
+    }
+  ],
+  "viva": [
+    {
+      "id": "what",
+      "category": "basics",
+      "difficulty": "easy",
+      "question": "What does the project do?",
+      "answer": "It reads a CSV file of marks, checks it for mistakes, then calculates statistics for each subject and each student's percentage, grade, result and rank, the grade distribution and missing scores. It explains the results in plain language and lets you download CSV files and a Markdown report.",
+      "keyConcepts": [
+        { "label": "Reads and checks a CSV", "terms": ["csv", "check", "validat"] },
+        { "label": "Statistics per subject", "terms": ["statistic", "mean", "average", "subject"] },
+        {
+          "label": "Grades, results and ranks",
+          "terms": ["grade", "rank", "result", "percentage"]
+        },
+        { "label": "Explanations and downloads", "terms": ["explain", "download", "report"] }
+      ],
+      "files": ["README.md"],
+      "symbols": []
+    },
+    {
+      "id": "why-stack",
+      "category": "technology",
+      "difficulty": "easy",
+      "question": "Why Python, pandas and Streamlit?",
+      "answer": "pandas is the standard Python library for tabular data: it reads CSV files and computes statistics in a few lines. Streamlit turns a Python script into a web app without writing HTML or JavaScript, which keeps the project focused on the analysis.",
+      "keyConcepts": [
+        { "label": "pandas for tables", "terms": ["pandas", "dataframe", "table"] },
+        { "label": "Streamlit builds the web page", "terms": ["streamlit", "web app", "web page"] },
+        { "label": "No HTML or JavaScript needed", "terms": ["html", "javascript", "no frontend"] }
+      ],
+      "files": ["requirements.txt"],
+      "symbols": []
+    },
+    {
+      "id": "streamlit-model",
+      "category": "architecture",
+      "difficulty": "medium",
+      "question": "How does Streamlit run the app?",
+      "answer": "Streamlit runs app.py from top to bottom whenever the user changes a widget. Widgets such as st.selectbox return their current value, and output functions such as st.dataframe draw on the page. @st.cache_data stores the validation result, so the same file isn't re-checked on every interaction.",
+      "keyConcepts": [
+        { "label": "Reruns from top to bottom", "terms": ["top to bottom", "rerun", "runs again"] },
+        { "label": "Widgets return values", "terms": ["widget", "selectbox", "return"] },
+        { "label": "Caching", "terms": ["cache"] }
+      ],
+      "files": ["app.py"],
+      "symbols": [{ "file": "app.py", "name": "run_validation" }]
+    },
+    {
+      "id": "server",
+      "category": "architecture",
+      "difficulty": "medium",
+      "question": "Does this project have a backend?",
+      "answer": "Streamlit runs app.py as a small web server on your own computer, and the browser shows the page it produces. There is no online server or database: .streamlit/config.toml makes the server listen on localhost only, and the uploaded file is processed in memory.",
+      "keyConcepts": [
+        { "label": "A local server", "terms": ["local", "server", "own computer"] },
+        { "label": "localhost only", "terms": ["localhost"] },
+        {
+          "label": "No database or online server",
+          "terms": ["no database", "database", "online", "in memory"]
+        }
+      ],
+      "files": [".streamlit/config.toml", "app.py"],
+      "symbols": [{ "file": ".streamlit/config.toml", "name": "address" }]
+    },
+    {
+      "id": "validation",
+      "category": "implementation",
+      "difficulty": "medium",
+      "question": "How do you validate the uploaded file?",
+      "answer": "validation.py reads every cell as text, then checks the file size and encoding, the required columns (Student ID and Name, matched case-insensitively with aliases), empty or duplicate IDs, empty names, non-numeric scores and scores outside 0 to the maximum. Each problem is reported with its line number, and analysis stops until errors are fixed.",
+      "keyConcepts": [
+        { "label": "Cells read as text", "terms": ["text", "dtype", "str"] },
+        { "label": "Required columns with aliases", "terms": ["column", "alias", "student id"] },
+        { "label": "Line numbers in messages", "terms": ["line number", "line"] },
+        { "label": "Errors stop the analysis", "terms": ["stop", "error"] }
+      ],
+      "files": ["analyzer/validation.py"],
+      "symbols": [{ "file": "analyzer/validation.py", "name": "validate_results" }]
+    },
+    {
+      "id": "text-first",
+      "category": "data-structures",
+      "difficulty": "hard",
+      "question": "Why does the validator read every cell as a string instead of letting pandas convert numbers?",
+      "answer": "With dtype=str and header=None, the original text of every cell is kept, so a message can quote exactly what was wrong (“seventy” on line 5) and the header row is checked like data. Converting first would silently turn bad values into NaN and lose the evidence.",
+      "keyConcepts": [
+        { "label": "dtype=str", "terms": ["dtype", "string", "str", "text"] },
+        { "label": "Quote the original value", "terms": ["original", "quote", "seventy", "exact"] },
+        { "label": "No silent conversion", "terms": ["silent", "nan", "convert"] }
+      ],
+      "files": ["analyzer/validation.py"],
+      "symbols": [{ "file": "analyzer/validation.py", "name": "validate_results" }]
+    },
+    {
+      "id": "missing",
+      "category": "data-structures",
+      "difficulty": "medium",
+      "question": "How are missing values handled?",
+      "answer": "Empty cells and markers such as AB or Absent become NaN. pandas skips NaN in the mean, median and standard deviation, so missing scores are not treated as zero. The Count column shows how many students each statistic uses, and students with missing scores get the result Incomplete unless they failed another subject.",
+      "keyConcepts": [
+        { "label": "Missing becomes NaN", "terms": ["nan", "missing"] },
+        { "label": "Absent markers", "terms": ["ab", "absent"] },
+        { "label": "Not counted as zero", "terms": ["zero", "skip"] },
+        { "label": "Incomplete result", "terms": ["incomplete"] }
+      ],
+      "files": ["analyzer/validation.py", "analyzer/analysis.py"],
+      "symbols": [{ "file": "analyzer/validation.py", "name": "ABSENT_MARKERS" }]
+    },
+    {
+      "id": "mean-median",
+      "category": "basics",
+      "difficulty": "medium",
+      "question": "What is the difference between the mean and the median, and why show both?",
+      "answer": "The mean is the sum divided by the count; the median is the middle value. A few very high or very low scores move the mean but not the median, so when they differ by more than 3 percentage points the app points it out.",
+      "keyConcepts": [
+        { "label": "Mean is the average", "terms": ["sum", "average", "divided"] },
+        { "label": "Median is the middle value", "terms": ["middle"] },
+        {
+          "label": "Outliers move the mean",
+          "terms": ["outlier", "extreme", "high", "low", "skew"]
+        }
+      ],
+      "files": ["analyzer/explain.py"],
+      "symbols": [{ "file": "analyzer/explain.py", "name": "explain_overview" }]
+    },
+    {
+      "id": "std",
+      "category": "basics",
+      "difficulty": "medium",
+      "question": "What does the standard deviation tell you?",
+      "answer": "How spread out the scores are around the mean. The app uses the sample standard deviation (ddof=1). A subject with a high standard deviation has a wide range of performance.",
+      "keyConcepts": [
+        {
+          "label": "Spread around the mean",
+          "terms": ["spread", "vary", "variation", "dispersion"]
+        },
+        { "label": "Sample standard deviation", "terms": ["sample", "ddof"] }
+      ],
+      "files": ["analyzer/analysis.py"],
+      "symbols": [{ "file": "analyzer/analysis.py", "name": "subject_statistics" }]
+    },
+    {
+      "id": "percentage-grade",
+      "category": "implementation",
+      "difficulty": "medium",
+      "question": "How are a student's percentage and grade calculated?",
+      "answer": "Percentage = total marks in the subjects the student has scores for ÷ (number of those subjects × maximum marks) × 100. grade_for gives A+ for 90 and above, A 80+, B 70+, C 60+, D from the pass mark and F below it.",
+      "keyConcepts": [
+        {
+          "label": "Only scored subjects count",
+          "terms": ["scored", "subjects they have", "attempted"]
+        },
+        { "label": "Maximum marks", "terms": ["maximum", "max marks"] },
+        { "label": "Grade bands", "terms": ["band", "a+", "grade_for", "90"] }
+      ],
+      "files": ["analyzer/analysis.py", "analyzer/grading.py"],
+      "symbols": [
+        { "file": "analyzer/analysis.py", "name": "student_results" },
+        { "file": "analyzer/grading.py", "name": "grade_for" }
+      ]
+    },
+    {
+      "id": "rank",
+      "category": "data-structures",
+      "difficulty": "hard",
+      "question": "How is the rank calculated when students tie?",
+      "answer": "Series.rank(method=\"min\", ascending=False) on the percentage. Tied students get the same rank and the next rank is skipped (1, 1, 3), which is the usual competition ranking.",
+      "keyConcepts": [
+        { "label": "rank with method min", "terms": ["min", "rank("] },
+        { "label": "Ties share a rank", "terms": ["tie", "same rank"] },
+        { "label": "Next rank skipped", "terms": ["skip", "1, 1, 3", "competition"] }
+      ],
+      "files": ["analyzer/analysis.py"],
+      "symbols": [{ "file": "analyzer/analysis.py", "name": "student_results" }]
+    },
+    {
+      "id": "result-rule",
+      "category": "implementation",
+      "difficulty": "hard",
+      "question": "When is a student's result Pass, Fail or Incomplete?",
+      "answer": "Fail if any subject they have a score for is below the pass mark; otherwise Incomplete if any score is missing; otherwise Pass. So a failed subject outranks a missing one, which the tests check explicitly.",
+      "keyConcepts": [
+        {
+          "label": "Fail takes priority",
+          "terms": ["fail", "below the pass mark", "priority", "outranks"]
+        },
+        { "label": "Incomplete for missing scores", "terms": ["incomplete", "missing"] },
+        { "label": "Pass otherwise", "terms": ["pass"] }
+      ],
+      "files": ["analyzer/analysis.py", "tests/test_analysis.py"],
+      "symbols": [
+        { "file": "tests/test_analysis.py", "name": "test_a_failed_subject_outranks_a_missing_one" }
+      ]
+    },
+    {
+      "id": "encoding",
+      "category": "implementation",
+      "difficulty": "medium",
+      "question": "What happens if the CSV was saved by Excel in an older encoding?",
+      "answer": "decode_csv first tries UTF-8 (with or without a byte-order mark). If that fails it reads the file as Windows-1252 and adds a warning suggesting “CSV UTF-8”, so the analysis still runs but the user knows names might look wrong.",
+      "keyConcepts": [
+        { "label": "UTF-8 first", "terms": ["utf-8", "utf8"] },
+        { "label": "Windows-1252 fallback", "terms": ["1252", "cp1252", "fallback"] },
+        { "label": "A warning, not an error", "terms": ["warning"] }
+      ],
+      "files": ["analyzer/validation.py"],
+      "symbols": [{ "file": "analyzer/validation.py", "name": "decode_csv" }]
+    },
+    {
+      "id": "testing",
+      "category": "testing",
+      "difficulty": "easy",
+      "question": "How did you test the project?",
+      "answer": "With pytest (python -m pytest). Tests compare statistics with hand-calculated values, check every grade boundary and validation rule — including line numbers, Windows-1252 files and Unicode names — and the downloads, and run the whole Streamlit app headlessly with streamlit.testing.",
+      "keyConcepts": [
+        { "label": "pytest", "terms": ["pytest"] },
+        { "label": "Hand-calculated values", "terms": ["hand"] },
+        { "label": "Validation and grade boundaries", "terms": ["boundar", "validation"] },
+        { "label": "Headless app test", "terms": ["headless", "apptest", "streamlit.testing"] }
+      ],
+      "files": ["tests/test_analysis.py", "tests/test_app.py"],
+      "symbols": []
+    },
+    {
+      "id": "csv-safety",
+      "category": "security",
+      "difficulty": "medium",
+      "question": "How do you keep downloaded CSV files safe?",
+      "answer": "Text cells starting with =, +, - or @ are prefixed with an apostrophe so spreadsheet programs don't execute them as formulas (CSV injection), and files are encoded as UTF-8 with a byte-order mark so Excel displays names correctly.",
+      "keyConcepts": [
+        { "label": "Formula injection", "terms": ["formula", "injection"] },
+        { "label": "Apostrophe prefix", "terms": ["apostrophe", "prefix"] },
+        { "label": "UTF-8 with a byte-order mark", "terms": ["utf-8", "bom", "byte-order"] }
+      ],
+      "files": ["analyzer/report.py"],
+      "symbols": [{ "file": "analyzer/report.py", "name": "_safe_cell" }]
+    },
+    {
+      "id": "privacy",
+      "category": "security",
+      "difficulty": "easy",
+      "question": "What happens to the marks a user uploads?",
+      "answer": "They are processed in memory on the user's own computer and are not saved or sent anywhere. The server listens on localhost only, and Streamlit's anonymous usage statistics are turned off in .streamlit/config.toml.",
+      "keyConcepts": [
+        { "label": "Processed in memory", "terms": ["memory", "not saved"] },
+        { "label": "Not sent anywhere", "terms": ["not sent", "own computer", "local"] },
+        {
+          "label": "Usage statistics off",
+          "terms": ["statistics", "gatherusagestats", "telemetry"]
+        }
+      ],
+      "files": [".streamlit/config.toml"],
+      "symbols": [{ "file": ".streamlit/config.toml", "name": "gatherUsageStats" }]
+    },
+    {
+      "id": "limitations",
+      "category": "limitations",
+      "difficulty": "easy",
+      "question": "What are the limitations, and how could the project be improved?",
+      "answer": "All subjects share one maximum mark, grading uses fixed percentage bands rather than credits or GPA, and only one file is analysed at a time. Improvements: per-subject maximum marks, comparing two exams, PDF export and correlation between subjects.",
+      "keyConcepts": [
+        { "label": "One maximum mark", "terms": ["maximum", "max mark"] },
+        { "label": "Fixed bands, no GPA", "terms": ["band", "gpa", "credit"] },
+        { "label": "One file at a time", "terms": ["one file", "single file"] },
+        { "label": "Improvements", "terms": ["compare", "pdf", "correlation", "per-subject"] }
+      ],
+      "files": ["docs/ARCHITECTURE.md"],
+      "symbols": []
+    },
+    {
+      "id": "separation",
+      "category": "architecture",
+      "difficulty": "medium",
+      "question": "Why is the analysis code kept separate from app.py?",
+      "answer": "The analyzer package has no Streamlit code, so every calculation can be tested on its own with pytest and reused in a script or notebook. app.py stays a readable description of the page that calls those functions.",
+      "keyConcepts": [
+        {
+          "label": "No Streamlit in the analyzer",
+          "terms": ["no streamlit", "separate", "package"]
+        },
+        { "label": "Testable on its own", "terms": ["test"] },
+        { "label": "Reusable", "terms": ["reuse", "script", "notebook"] }
+      ],
+      "files": ["analyzer/analysis.py", "app.py"],
+      "symbols": []
+    }
+  ],
+  "demo": [
+    "Activate the virtual environment and start the app with streamlit run app.py.",
+    "On the Overview tab, explain the headline numbers and the plain-language sentences for the sample class.",
+    "Open Subjects and explain the mean, median and standard deviation of one subject, using the pass-mark line on the chart.",
+    "Open Grades and choose a subject to show its grade distribution.",
+    "Switch to “Upload a CSV file”, upload data/sample_with_errors.csv and explain two of the validation messages.",
+    "Upload a corrected file and use the Students tab search to find one student's rank.",
+    "Download the Markdown report and show that it contains only computed values.",
+    "Run python -m pytest and explain one test from tests/test_analysis.py."
+  ],
+  "preview": {
+    "layout": "sidebar",
+    "navigation": ["Overview", "Subjects", "Grades", "Missing data", "Students", "Download"]
+  },
+  "troubleshooting": {
+    "include": ["python-streamlit"],
+    "entries": [
+      {
+        "id": "cant-be-analysed",
+        "stage": "data",
+        "title": "“… can’t be analysed yet. Fix the problems below”",
+        "symptom": "After uploading a file, a red message says it can't be analysed yet and lists problems such as “Required column(s) missing” or “scores must be numbers”.",
+        "causes": [
+          "The first row doesn't name a Student ID and a Name column (aliases such as Roll No and Student Name are accepted).",
+          "A score cell contains text such as “seventy” or a number above the maximum marks.",
+          "A Student ID is empty or appears twice, or a column has no name."
+        ],
+        "diagnose": [
+          {
+            "text": "Each message names the column and the line numbers; line 1 is the header, as in a spreadsheet or text editor.",
+            "commands": []
+          },
+          {
+            "text": "Compare your header row with data/sample_results.csv, or upload data/sample_with_errors.csv to see each kind of message.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "Correct the listed cells, save the file as CSV (“CSV UTF-8” in Excel) and upload it again. Marks such as AB or Absent are fine: they count as missing.",
+            "commands": []
+          }
+        ],
+        "confirm": "A green message says the file passed validation and the tabs appear.",
+        "platforms": []
+      },
+      {
+        "id": "windows-1252",
+        "stage": "data",
+        "title": "A warning that the file was read as Windows-1252",
+        "symptom": "The analysis runs, with a warning: “The file is not UTF-8, so it was read as Windows-1252.”",
+        "causes": [
+          "The file was saved in an older encoding, for example with Excel's “CSV (Comma delimited)” option instead of “CSV UTF-8 (Comma delimited)”."
+        ],
+        "diagnose": [
+          {
+            "text": "Look at names with accents or non-English letters in the Students tab: do any look garbled?",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "Open the file in Excel or another spreadsheet program and use Save As → “CSV UTF-8 (Comma delimited)”, then upload it again.",
+            "commands": []
+          }
+        ],
+        "confirm": "The warning is gone and names display correctly.",
+        "platforms": []
+      },
+      {
+        "id": "missing-scores-warning",
+        "stage": "data",
+        "title": "A warning that some scores are missing",
+        "symptom": "A yellow warning says some scores are missing or marked absent, and some students have the result Incomplete.",
+        "causes": [
+          "Cells are empty or contain AB, Absent, -, NA or N/A. This is expected: missing scores are left out of averages instead of counting as zero."
+        ],
+        "diagnose": [
+          {
+            "text": "Open the Missing data tab to see which students and subjects are affected.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "If a score really exists, add it to the file and upload it again. Otherwise no fix is needed; explain in your report why missing isn't zero.",
+            "commands": []
+          }
+        ],
+        "confirm": "The Missing data tab matches the scores you expect to be missing.",
+        "platforms": []
+      },
+      {
+        "id": "config-problem",
+        "stage": "run",
+        "title": "“app_config.json has a problem: …”",
+        "symptom": "The page shows only a red message such as “app_config.json has a problem: \"pass_mark\" must be a whole number from 30 to 60”.",
+        "causes": [
+          "A value in app_config.json is outside its allowed range or of the wrong type, or the file isn't valid JSON (the message then gives the line)."
+        ],
+        "diagnose": [
+          {
+            "text": "Read the message: it names the setting and the allowed values.",
+            "commands": []
+          },
+          {
+            "text": "Compare app_config.json with the rules in parse_config in analyzer/config.py.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "Correct the value and save the file, then restart the app: press Ctrl+C in the terminal and start it again.",
+            "commands": [{ "command": "streamlit run app.py", "platform": "all" }]
+          }
+        ],
+        "confirm": "The app opens with your app name as the title.",
+        "platforms": []
+      },
+      {
+        "id": "upload-too-large",
+        "stage": "data",
+        "title": "The upload is refused because the file is too large",
+        "symptom": "The file uploader refuses the file, or the app says “The file is larger than 5 MB.”",
+        "causes": [
+          "The file is larger than 5 MB. .streamlit/config.toml limits uploads to 5 MB and the validator checks the size again."
+        ],
+        "diagnose": [{ "text": "Check the file's size in your file manager.", "commands": [] }],
+        "fix": [
+          {
+            "text": "Split the file into smaller files (for example one per class) and analyse them one at a time. Removing unused columns also reduces the size.",
+            "commands": []
+          }
+        ],
+        "confirm": "The file uploads and the analysis appears.",
+        "platforms": []
+      }
+    ]
+  }
+}

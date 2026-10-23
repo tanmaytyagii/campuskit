@@ -8,6 +8,17 @@ const PAGES = [
   { path: '/projects/student-result-analyzer/source?file=app.py', heading: 'Source code' },
   { path: '/generate', heading: 'Generate a project' },
   { path: '/learn', heading: 'Learning center' },
+  { path: '/learn/report?project=attendance-system', heading: 'Submission workspace' },
+  { path: '/viva', heading: 'Viva practice' },
+  { path: '/projects/attendance-system/learn', heading: 'Learning studio' },
+  { path: '/projects/expense-tracker/learn/architecture', heading: 'Learning studio' },
+  { path: '/projects/student-result-analyzer/learn/code', heading: 'Learning studio' },
+  { path: '/projects/student-result-analyzer/learn/troubleshooting', heading: 'Learning studio' },
+  { path: '/projects/attendance-system/viva', heading: 'Viva practice' },
+  {
+    path: '/compare?ids=attendance-system,expense-tracker,student-result-analyzer',
+    heading: 'Compare projects',
+  },
   { path: '/docs', heading: 'Documentation' },
   { path: '/docs/run-a-python-project', heading: 'Run a Python project' },
 ];
@@ -65,6 +76,7 @@ test.describe('site navigation', () => {
       ['Projects', 'Projects'],
       ['Generator', 'Generate a project'],
       ['Learn', 'Learning center'],
+      ['Viva practice', 'Viva practice'],
       ['Docs', 'Documentation'],
     ] as const) {
       if (isMobile(testInfo.project.name))

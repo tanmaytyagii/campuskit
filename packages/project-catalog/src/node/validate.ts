@@ -11,7 +11,10 @@
  *  - every customization edit applies cleanly, with the defaults and with
  *    a stress-test name full of special characters and Unicode;
  *  - the template folder contains no credential files (.env, keys, ...);
- *  - verification records are well formed and belong to a template.
+ *  - verification records are well formed and belong to a template;
+ *  - learning guides only mention files and functions the template contains,
+ *    and recommend no destructive commands;
+ *  - colour swatches are colours the template really uses.
  *
  * It also works out each template's status (verified, awaiting verification,
  * ...). An out-of-date or failed verification is a warning, not an error:
@@ -35,6 +38,7 @@ import type { ProjectManifest } from '../schema.ts';
 import { generationOptions } from '../generation.ts';
 import { PLATFORM_LABELS, templateStatus, type TemplateStatus } from '../verification.ts';
 import { templateFingerprint } from './fingerprint.ts';
+import { checkLearningGuide, checkSwatches, readLearningGuides } from './learning-check.ts';
 import { readVerificationRecords } from './records.ts';
 
 export interface CatalogIssue {
@@ -53,6 +57,8 @@ export interface CatalogReport {
   /** Fingerprint of each template's files and generation settings. */
   fingerprints: Record<string, string>;
   statuses: Record<string, TemplateStatus>;
+  /** Whether each template has a learning guide. */
+  learningGuides: Record<string, boolean>;
 }
 
 /** A project name that exercises every escaping rule. */
@@ -188,6 +194,8 @@ export async function validateCatalog(options: {
   registeredFiles: readonly string[];
   /** Folder with verification records; defaults to ../verification next to the manifests. */
   verificationDir?: string;
+  /** Folder with learning guides; defaults to ../learning next to the manifests. */
+  learningDir?: string;
 }): Promise<CatalogReport> {
   const { raw, issues } = await readManifestFiles(options.manifestsDir);
   const warnings: CatalogIssue[] = [];
@@ -204,6 +212,16 @@ export async function validateCatalog(options: {
       message: problem.message,
     });
   }
+  const learningDir = options.learningDir ?? join(options.manifestsDir, '..', 'learning');
+  const learning = await readLearningGuides(learningDir);
+  for (const problem of learning.problems) {
+    issues.push({
+      manifest: `learning/${problem.file}`,
+      path: problem.path,
+      message: problem.message,
+    });
+  }
+  const learningGuides: Record<string, boolean> = {};
 
   const registered = new Set(options.registeredFiles);
   for (const entry of raw) {
@@ -264,6 +282,25 @@ export async function validateCatalog(options: {
     const files = new Map(bundle.files.map((file) => [file.path, file]));
     checkTemplateFiles(manifest, files, issue);
     checkGeneration(manifest, bundle, issue);
+    for (const problem of checkSwatches(manifest, files)) issue(problem.path, problem.message);
+
+    const guide = learning.guides.get(manifest.id);
+    learningGuides[manifest.id] = Boolean(guide);
+    if (guide) {
+      for (const problem of checkLearningGuide(guide, manifest, files)) {
+        issues.push({
+          manifest: `learning/${problem.file}`,
+          path: problem.path,
+          message: problem.message,
+        });
+      }
+    } else if (!manifest.draft) {
+      warnings.push({
+        manifest: name,
+        path: 'learning',
+        message: `No learning guide (learning/${manifest.id}.json): the Learning Studio and viva practice won't be available for this template`,
+      });
+    }
 
     const fingerprint = templateFingerprint(manifest, bundle.files);
     fingerprints[manifest.id] = fingerprint;
@@ -286,6 +323,23 @@ export async function validateCatalog(options: {
     }
   }
 
+  for (const templateId of learning.guides.keys()) {
+    if (!manifests.some((manifest) => manifest.id === templateId)) {
+      issues.push({
+        manifest: `learning/${templateId}.json`,
+        path: 'templateId',
+        message: `No manifest has the id "${templateId}"`,
+      });
+    }
+  }
+  if (learning.guides.size > 0 && !learning.shared) {
+    issues.push({
+      manifest: 'learning/shared-troubleshooting.json',
+      path: '(file)',
+      message: 'The shared troubleshooting file is missing',
+    });
+  }
+
   for (const templateId of records.keys()) {
     if (!manifests.some((manifest) => manifest.id === templateId)) {
       issues.push({
@@ -296,5 +350,5 @@ export async function validateCatalog(options: {
     }
   }
 
-  return { issues, warnings, manifests, fileCounts, fingerprints, statuses };
+  return { issues, warnings, manifests, fileCounts, fingerprints, statuses, learningGuides };
 }

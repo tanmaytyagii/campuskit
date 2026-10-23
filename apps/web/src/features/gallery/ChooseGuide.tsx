@@ -57,6 +57,11 @@ export function ChooseGuide({ projects }: { projects: readonly ProjectManifest[]
             </li>
           ))}
         </ul>
+        <p className="text-sm">
+          <Link to="/compare" className="link font-semibold">
+            Compare projects side by side, or get suggestions for a goal
+          </Link>
+        </p>
         {/* The table scrolls sideways on small screens; the region makes it reachable by keyboard. */}
         <div
           role="region"

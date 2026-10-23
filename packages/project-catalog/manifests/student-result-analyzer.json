@@ -148,6 +148,11 @@
   "environment": {
     "variables": []
   },
+  "stack": {
+    "backend": "local-server",
+    "persistence": "none",
+    "summary": "Streamlit runs app.py as a small web server on your own computer and your browser shows the page. The CSV you choose is analysed in memory and nothing is saved; results are downloaded as files."
+  },
   "network": {
     "installNeedsInternet": true,
     "runsOffline": true,

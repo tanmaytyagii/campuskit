@@ -65,25 +65,42 @@ The bundler reuses the engine's exclusion policy: `node_modules`, build output, 
 
 The main entry of `packages/template-engine` uses no browser-only or Node.js-only APIs, so the same code runs in the browser, in tests and in the verification scripts. Its Node.js helpers (building bundles from disk, safe extraction) live in a separate `node` entry. It validates the student's values, applies only the edits the manifest declares, escapes every value for the file type it is written into, refuses unsafe paths and packages the result. It never executes template code or shell commands. See [Template engine](template-engine.md) for the details.
 
+### Learning content
+
+Each template can have a learning guide in `packages/project-catalog/learning/<id>.json`: its architecture (layers, components, connections and data flows), a walkthrough of the important files, a checklist, viva questions with model answers and key ideas, demonstration steps, the navigation labels the customization preview shows, and troubleshooting. `learning/shared-troubleshooting.json` holds the advice shared by every npm/Vite or Python/Streamlit template.
+
+The guides are written by people, so `packages/project-catalog/src/node/learning-check.ts` checks them against the template's real files during `pnpm validate:catalog`: every file must exist, every named function, class, constant or setting must be defined in that file (`findSymbolLine` in `src/learning.ts`), preview labels must appear in the source, and troubleshooting commands may not delete files, change system settings or run downloaded scripts. The website imports the guides lazily with `import.meta.glob`, validates them again with the same schema, and only loads a guide when a page needs it.
+
+```text
+learning/<id>.json ──validate:catalog──▶ checked against templates/<id>/
+        │ loaded on demand
+        ▼
+learning studio (/projects/<slug>/learn/<section>) · viva practice (/projects/<slug>/viva)
+report workspace demonstration checklist · generator app preview (navigation labels)
+```
+
+The manifest's `stack` field (backend and persistence) and its existing metadata drive the comparison page (`/compare`). Goal suggestions there are fixed rules in `apps/web/src/features/compare/logic.ts`, each shown to students next to its results.
+
 ### The website
 
-- **Routing:** React Router in library mode. Heavy pages (generator, Markdown documents, source viewer) load on demand.
-- **State:** gallery filters live in the URL, so a filtered view can be shared. Report drafts are saved in the browser's `localStorage` only.
+- **Routing:** React Router in library mode. Heavy pages (generator, Markdown documents, source viewer, learning studio, viva practice, comparison) load on demand.
+- **State:** gallery filters, the comparison and the walkthrough step live in the URL, so a view can be shared. The generator keeps its choices in `sessionStorage` until the tab is closed.
+- **Saved progress:** checklist ticks, demonstration steps, viva self-ratings and report drafts are saved in the browser's `localStorage` only (`apps/web/src/lib/progress.ts`), validated whenever they are read, and can be reset per project. The answers students type in viva practice are never saved.
 - **Documents:** project documents are imported from the template folders and repository documents from `docs/`, at build time, so the site shows the same files the repository and the ZIPs contain. Markdown is rendered without raw HTML.
 - **Security:** a Content Security Policy is added to the built `index.html` (see `apps/web/vite-plugins/content-security-policy.ts`). External links open in a new tab with `rel="noopener noreferrer"`.
-- **Accessibility:** native form controls and `<dialog>`, visible focus, a skip link, focus moved to new content after navigation, `prefers-reduced-motion` respected, and both colour themes checked with axe in a real browser.
+- **Accessibility:** native form controls and `<dialog>`, visible focus, a skip link, focus moved to new content after navigation (to the main region, or to a heading the page chose, such as a learning studio section), `prefers-reduced-motion` respected, and both colour themes checked with axe in a real browser.
 
 ## Testing layers
 
-| Layer                          | Where                                    | What it proves                                                                                                                              |
-| ------------------------------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Engine unit tests              | `packages/template-engine/src/*.test.ts` | Escaping, edits, path safety, exclusions, ZIP structure, Unicode                                                                            |
-| Catalog tests and validator    | `packages/project-catalog`               | Every manifest is valid and every edit applies to the real template, with defaults and with a stress-test name                              |
-| Web component tests            | `apps/web/src/**/*.test.tsx`             | Pages, filters, the generator flow and its ZIP, report drafts, links, accessibility (jsdom + axe)                                           |
-| End-to-end tests               | `apps/web/e2e`                           | The production build in Chromium, desktop and phone sizes: downloads, keyboard use, axe in both themes, no console errors or CSP violations |
-| Template tests                 | each `templates/<id>`                    | Each starter project's own behaviour                                                                                                        |
-| Generated-project verification | `scripts/verify-generated-projects.ts`   | Generated ZIPs extract safely, install, pass their tests and build                                                                          |
-| Repository checks              | `scripts/check-repo.ts`                  | No secrets or build output committed, documentation links resolve, documented commands exist                                                |
+| Layer                          | Where                                    | What it proves                                                                                                                                |
+| ------------------------------ | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Engine unit tests              | `packages/template-engine/src/*.test.ts` | Escaping, edits, path safety, exclusions, ZIP structure, Unicode                                                                              |
+| Catalog tests and validator    | `packages/project-catalog`               | Every manifest is valid, every edit applies to the real template, and every learning guide names only files and functions that exist          |
+| Web component tests            | `apps/web/src/**/*.test.tsx`             | Pages, filters, the generator flow and its ZIP, learning studio, viva practice, comparison, report drafts, links, accessibility (jsdom + axe) |
+| End-to-end tests               | `apps/web/e2e`                           | The production build in Chromium, desktop and phone sizes: downloads, keyboard use, axe in both themes, no console errors or CSP violations   |
+| Template tests                 | each `templates/<id>`                    | Each starter project's own behaviour                                                                                                          |
+| Generated-project verification | `scripts/verify-generated-projects.ts`   | Generated ZIPs extract safely, install, pass their tests and build                                                                            |
+| Repository checks              | `scripts/check-repo.ts`                  | No secrets or build output committed, documentation links resolve, documented commands exist                                                  |
 
 ## Design decisions
 

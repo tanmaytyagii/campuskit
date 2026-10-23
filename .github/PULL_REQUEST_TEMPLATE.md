@@ -25,6 +25,7 @@
 - [ ] New and changed behaviour is covered by tests.
 - [ ] The change works with the keyboard and with a screen reader's labels (every control has a visible label).
 - [ ] Documentation is updated (README, docs/, or the template's README, architecture notes and viva questions).
+- [ ] If a template changed, its learning guide (`packages/project-catalog/learning/<id>.json`) still describes the code accurately.
 - [ ] Nothing in this change invents numbers, screenshots, testimonials or results.
 - [ ] No verification record was written or edited by hand.
 - [ ] For a new template: I completed the [new project checklist](../docs/new-project-checklist.md).

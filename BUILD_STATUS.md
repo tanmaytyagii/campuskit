@@ -1,80 +1,78 @@
 # Build status
 
-This file records what was checked for CampusKit 2.0.0, what the checks showed, and what was **not** verified. Every result below was produced on 22 October 2026 (India Standard Time) in this working copy. The 1.0.0 report, which covered a Linux run, is in the git history.
+This file records what was checked for CampusKit 3.0.0, what the checks showed, and what was **not** verified. Every result below was produced on 23 October 2026 (India Standard Time) in this working copy, unless it says otherwise. Earlier reports are in the git history.
 
 ## Summary
 
-| Area                                                                                    | Status                                                                             |
-| --------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Website: gallery, project pages, generator, learning center, documentation              | Implemented and tested                                                             |
-| Template verification statuses and records                                              | Implemented and tested; all three templates have a passing macOS record            |
-| Template engine: options, declared edits, generated documents, escaping, path safety    | Implemented and tested                                                             |
-| Project catalog: schema, validator, fingerprints, JSON Schema for editors               | Implemented and tested                                                             |
-| Templates: Student Attendance System, Personal Expense Tracker, Student Result Analyzer | Unchanged since 1.0.0; verified as generated projects on macOS                     |
-| CI and deployment workflows                                                             | Updated; the GitHub Actions workflows were not run (see "Not run or not verified") |
+| Area                                                                                    | Status                                                                                      |
+| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Learning studio: overview, architecture, code walkthrough, checklist, troubleshooting   | Implemented and tested                                                                      |
+| Viva practice: quick, topic, mixed and review modes; self-assessment; saved ratings     | Implemented and tested                                                                      |
+| Submission workspace: new sections, facts appendix, demonstration checklist, slide list | Implemented and tested                                                                      |
+| Comparison page and goal suggestions                                                    | Implemented and tested                                                                      |
+| Customization studio: app preview, files per setting, unavailable settings, saved draft | Implemented and tested                                                                      |
+| Learning guides for all three templates                                                 | Written; every file, function and label they name is checked against the templates          |
+| Templates (unchanged, version 1.0.0)                                                    | Verified on macOS on 23 October 2026; Linux and macOS also pass in GitHub Actions (2.0 run) |
+| GitHub Actions on Windows and the Pages deployment                                      | Failing on GitHub for 2.0; see “Not run or not verified”                                    |
 
 ## Environment
 
 - macOS 26.2 on Apple silicon (arm64)
 - Node.js 24.12.0, pnpm 10.34.7 (run through `npx pnpm@10.34.7`), npm 11.6.2
-- Python 3.11.7 from python.org, passed with `CAMPUSKIT_PYTHON`. The Homebrew Python 3.11.15 on this computer could not create virtual environments (its `ensurepip` fails), which is a problem with that installation, not with the template.
-- Playwright's Chromium headless shell 156.0.8078.4, installed with `pnpm playwright:install`
+- Python 3.11.7 from python.org, passed with `CAMPUSKIT_PYTHON` (Homebrew's Python 3.11.15 on this computer can't create virtual environments; that problem is now an “observed” troubleshooting entry)
+- Playwright's Chromium headless shell 156.0.8078.4
 
 ## Commands run
 
-| Command                                | Result                                                                                                                                          |
-| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm install --frozen-lockfile`       | Passed; the lockfile is in sync                                                                                                                 |
-| `pnpm check`                           | Passed. It runs the six commands below in order                                                                                                 |
-| `pnpm validate`                        | Catalog OK: 3 projects (44, 45 and 30 template files; 13, 12 and 8 edits), each **Verified**, no warnings. Repository check OK                  |
-| `pnpm format:check`                    | Every file matches the Prettier style                                                                                                           |
-| `pnpm lint`                            | No problems with `--max-warnings=0`                                                                                                             |
-| `pnpm typecheck`                       | No errors                                                                                                                                       |
-| `pnpm test`                            | 238 tests passed in 28 files (202 in 23 files before this release; no test was removed)                                                         |
-| `pnpm build`                           | Passed                                                                                                                                          |
-| `pnpm test:e2e`                        | 84 passed and 2 skipped by design (the skip-link test runs only at desktop size and the mobile-menu test only at phone size)                    |
-| `pnpm verify:generated --record`       | 6 of 6 generated projects verified, and a macOS entry recorded for each template in `packages/project-catalog/verification/`                    |
-| `pnpm verify:generated` (final, again) | 6 of 6 verified after the last code change                                                                                                      |
-| `pnpm screenshots web`                 | Recaptured the eight website screenshots in `docs/screenshots/`. Template screenshots were not recaptured, because the templates did not change |
-| `pnpm changed-templates origin/main`   | Ran; printed "(no templates changed)", as expected with no new commits on the branch                                                            |
+| Command                          | Result                                                                                                                            |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm install --frozen-lockfile` | Passed; the lockfile is in sync                                                                                                   |
+| `pnpm check`                     | Passed: validate, format check, lint, type check, unit tests and build                                                            |
+| `pnpm validate`                  | Catalog OK: 3 projects, each with a learning guide and each **Verified**, no warnings. Repository check OK                        |
+| `pnpm test`                      | 312 tests passed in 38 files (238 in 28 files before this release; no test was removed)                                           |
+| `pnpm test:e2e`                  | 146 passed and 2 skipped by design (84 passed before this release)                                                                |
+| `pnpm verify:generated --record` | 6 of 6 generated projects installed, tested and built; the macOS entries in `packages/project-catalog/verification/` were updated |
+| `pnpm screenshots web`           | Recaptured the website screenshots, including three new ones: learning studio, viva practice and comparison                       |
 
-For each template, `pnpm verify:generated` generated two projects (default settings, and every setting changed with a name full of special characters and Unicode), extracted each ZIP with the safe extractor, compared every file byte for byte with the engine's output, checked every declared customization, the exclusions, the hidden files, `GETTING_STARTED.md` and `docs/PROJECT_REPORT_DRAFT.md`, then ran:
+For each template, `pnpm verify:generated` generated two projects (default settings, and every setting changed with a name full of special characters and Unicode), extracted the ZIPs, checked every file, customization, exclusion, `GETTING_STARTED.md` and `docs/PROJECT_REPORT_DRAFT.md`, then ran:
 
-| Template                  | Install                                                       | Tests                                           | Build or start                                   |
-| ------------------------- | ------------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------ |
-| Student Attendance System | `npm ci`                                                      | `npm test`: 34 passed, in both projects         | `npm run build` passed                           |
-| Personal Expense Tracker  | `npm ci`                                                      | `npm test`: 39 passed, in both projects         | `npm run build` passed                           |
-| Student Result Analyzer   | `python -m venv .venv`, `pip install -r requirements-dev.txt` | `python -m pytest`: 49 passed, in both projects | `streamlit run app.py` answered its health check |
+| Template                  | Tests                                           | Build or start                                   |
+| ------------------------- | ----------------------------------------------- | ------------------------------------------------ |
+| Student Attendance System | `npm test`: 34 passed, in both projects         | `npm run build` passed                           |
+| Personal Expense Tracker  | `npm test`: 39 passed, in both projects         | `npm run build` passed                           |
+| Student Result Analyzer   | `python -m pytest`: 49 passed, in both projects | `streamlit run app.py` answered its health check |
 
 ## What the new tests cover
 
-- Template statuses: verified only with a matching, passing entry; out-of-date entries, failed entries, drafts and missing fingerprints.
-- Fingerprints: stable across file order; changed by a file, a setup command or the version; unchanged by rewording prose. A website test checks that the site computes exactly the fingerprint the validator computes from the files it serves.
-- Verification records: writing per platform, rejecting malformed, misnamed and orphaned records.
-- The validator: credential files in a template folder, orphaned and out-of-date records (warnings do not fail validation).
-- The engine: generated documents, and refusing documents that would replace a template file or escape the project folder; `isSecretPath`.
-- The report draft and `GETTING_STARTED.md`: the student's values are escaped, only manifest facts are used, and environment variables, limitations and document links are present.
-- Related projects, setup facts, changed-template selection.
-- The website: the review step's file preview shows the real generated files; the done step shows environment variables and limitations; the ZIP contains the report draft; project pages show verification and related projects.
-- End to end: axe with every rule in both themes on the open project guide and on the generator's review and done steps, and the report draft in a downloaded ZIP.
+- **Learning guides:** the schema (unknown components, duplicate ids, unsafe paths), `findSymbolLine` for TypeScript, Python, JSON and TOML, the unsafe-command filter, and the validator's checks against the real attendance template: missing files, undefined functions, invented navigation labels, advice for the wrong stack and destructive commands. Colour swatches must be colours the template uses.
+- **Viva practice:** question selection for every mode with a repeatable random source, review ordering, word-boundary matching for key ideas, the outcome rule, saved and reset ratings, malformed saved values ignored, and typed answers never stored. Component tests run a topic session, a skipped question, the review list and the reset dialog.
+- **Learning studio:** section navigation and focus, architecture links to the real files and definitions, the walkthrough's links, checklist ticks saved and reset after confirmation, troubleshooting search and the “Seen during verification” marking.
+- **Comparison:** every goal rule, labelled fallbacks, verified-only suggestions, address parsing and the plain-language trade-off sentences.
+- **Customization studio:** files per setting, unavailable settings, the preview model (name, institution and the real theme colour), draft restoring and its use across a remount.
+- **Submission workspace:** the new sections, the facts appendix with and without verification results, the demonstration appendix, the slide list, “CampusKit draft” versus “Edited by you”, and restoring a draft saved before the new sections existed.
+- **End to end:** every new page loads directly with no console errors, failed requests or sideways scrolling at 1280, 360 and 320 pixels; axe with every rule in both themes on the new pages, an open troubleshooting entry and a revealed viva answer; a walkthrough link landing on the highlighted definition; viva ratings surviving a reload; the workspace download containing the appendices.
+
+## GitHub Actions for 2.0 (read from the public API on 23 October 2026)
+
+- CI for the 2.0 commit: validation, lint, type check, unit tests, build, end-to-end tests, and generated-project verification on **Linux and macOS passed**. Generated-project verification on **Windows failed**, as it did for 1.0. The job log needs a signed-in GitHub account, so the cause is not known.
+- 3.0 hardens two Windows-specific weak points in `scripts/verify-generated-projects.ts`: it now waits for the Streamlit process to exit and retries deleting temporary folders (Windows keeps files locked briefly). Whether this was the cause can only be confirmed by the next Windows run.
+- **Deploy to GitHub Pages failed** for both commits at `actions/configure-pages` with “Get Pages site failed … verify that the repository has Pages enabled and configured to build using GitHub Actions”. This is a repository setting (Settings → Pages → Source: GitHub Actions), not a code problem.
 
 ## Not run or not verified
 
-- **GitHub Actions:** `ci.yml` (including the new changed-templates job) and `deploy-pages.yml` were not run. Their steps are the commands above; the YAML parses.
-- **Linux and Windows:** nothing ran on them in this release, so the templates have macOS records only, and the website says so. The CI workflow verifies all three operating systems on every push to `main`.
+- **Windows and Linux** were not run locally. The templates' records are macOS only; GitHub's Linux run passed for 2.0 and Windows failed (see above).
 - **Firefox and Safari:** browser tests used Chromium only.
-- **Real deployments:** nothing was deployed. The Netlify build command change (`pnpm validate && pnpm build`) and the sub-path build for GitHub Pages were not tried on those services in this release.
-- **Assistive technology:** no testing with real screen readers. Accessibility was checked with axe-core, role-based test queries and keyboard tests.
-- **Dependency audits:** `pnpm audit`, `npm audit` and `pip-audit` were not run for this release. No dependency was added or upgraded.
+- **Real deployments:** nothing was deployed.
+- **Assistive technology:** no testing with real screen readers. Accessibility was checked with axe-core, role-based queries and keyboard tests.
+- **Learning guide prose:** the validator proves every file, function, label and command reference is real and safe; whether each explanation is pedagogically ideal was checked by reading the code while writing it, not by an independent reviewer.
+- **Dependency audits** were not run. No dependency was added.
 
 ## Known issues and limitations
 
-- There are three templates. The AI and machine learning category is empty, and the website says so.
-- The generator only changes what each manifest declares: names, branding, theme colours, sample data and a few settings.
-- Verification records are written on a maintainer's computer. CI repeats the verification but does not write records.
-- A record covers a template's files and manifest settings, not the template engine. Engine changes are covered by CI, which verifies every template when the engine or catalog code changes.
-- The React templates keep their data in `localStorage` and have no accounts. The Python template runs on `localhost` with no login. They are learning projects, not systems for real records.
-- Report drafts on the Learn page are saved in one browser's `localStorage` only.
+- There are three templates. The AI and machine learning category is empty, and the comparison page says so.
+- The key-idea check in viva practice only looks for words; students judge their own answers.
+- Learning progress and report drafts live in one browser's localStorage, with no sync. The workspace downloads Markdown and copies a plain slide list; there is no PDF or PowerPoint export.
+- The generator only changes what each manifest declares, and the app preview is an illustration (clearly labelled), not a screenshot of the generated app.
 
 ## How to run it
 
@@ -86,7 +84,6 @@ pnpm check                          # validate, format:check, lint, typecheck, t
 pnpm playwright:install             # once, then:
 pnpm test:e2e
 pnpm verify:generated               # needs Python 3.11+ for the Python template
-pnpm verify:generated <id> --record # verify one template and save its record
 ```
 
 See [README.md](README.md) for every command and [CONTRIBUTING.md](CONTRIBUTING.md) for the pull request checklist.

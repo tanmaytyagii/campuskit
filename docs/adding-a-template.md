@@ -44,16 +44,17 @@ Then the manifest can change values with `json-set` edits instead of searching f
 
 Copy an existing manifest and change it. Keep `"$schema": "../manifest.schema.json"` at the top so your editor can autocomplete fields and highlight mistakes.
 
-| Section                                                                                | What to write                                                                                                                                      |
-| -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`, `slug`, `name`, `tagline`, `description`                                         | The id matches the folder name. Describe what the project does in plain words.                                                                     |
-| `category`, `projectType`, `audience`, `difficulty`, `languages`, `frameworks`, `tags` | Used by the gallery's filters and search.                                                                                                          |
-| `features`, `limitations`, `learningObjectives`, `ideasForExtension`                   | Shown on the project page and used by the report builder. Be specific and honest, especially about limitations.                                    |
-| `prerequisites`, `setup`, `testing`                                                    | The exact commands, per platform where they differ. These become the project page's instructions and `GETTING_STARTED.md`.                         |
-| `environment`, `network`                                                               | Environment variables (most templates need none), whether installing needs the internet, whether the app works offline, and any external services. |
-| `media`, `docs`                                                                        | Screenshots with descriptive alt text, and the documents the project page links to.                                                                |
-| `customization`                                                                        | The options and the edits that apply them.                                                                                                         |
-| `license`                                                                              | SPDX id, the licence file, attribution text and third-party components.                                                                            |
+| Section                                                                                | What to write                                                                                                                                                                                                                                  |
+| -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`, `slug`, `name`, `tagline`, `description`                                         | The id matches the folder name. Describe what the project does in plain words.                                                                                                                                                                 |
+| `category`, `projectType`, `audience`, `difficulty`, `languages`, `frameworks`, `tags` | Used by the gallery's filters and search.                                                                                                                                                                                                      |
+| `features`, `limitations`, `learningObjectives`, `ideasForExtension`                   | Shown on the project page and used by the report builder. Be specific and honest, especially about limitations.                                                                                                                                |
+| `prerequisites`, `setup`, `testing`                                                    | The exact commands, per platform where they differ. These become the project page's instructions and `GETTING_STARTED.md`.                                                                                                                     |
+| `environment`, `network`                                                               | Environment variables (most templates need none), whether installing needs the internet, whether the app works offline, and any external services.                                                                                             |
+| `stack`                                                                                | Where the code runs (`backend`: `none`, `local-server` or `remote-server`), where data lives (`persistence`: `browser-storage`, `files`, `database` or `none`) and a one-sentence summary. The comparison page and the learning studio use it. |
+| `media`, `docs`                                                                        | Screenshots with descriptive alt text, and the documents the project page links to.                                                                                                                                                            |
+| `customization`                                                                        | The options and the edits that apply them.                                                                                                                                                                                                     |
+| `license`                                                                              | SPDX id, the licence file, attribution text and third-party components.                                                                                                                                                                        |
 
 Dates use `YYYY-MM-DD`. `addedOn` is when the template is first published and `updatedOn` when it last changed.
 
@@ -72,7 +73,32 @@ export const REGISTERED_MANIFESTS: readonly RawManifest[] = [
 ];
 ```
 
-## 5. Validate
+## 5. Write a learning guide
+
+The learning studio, viva practice and the report workspace's demonstration checklist come from `packages/project-catalog/learning/<id>.json`. Copy an existing guide and rewrite every part from your own code. The format is defined by the Zod schema in `packages/project-catalog/src/learning.ts`.
+
+| Part              | What to write                                                                                                                                                                              |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `audience`        | Who the project is for and what a student should already know.                                                                                                                             |
+| `architecture`    | Layers, components (each with its files and key functions), connections between components and two or three step-by-step data flows.                                                       |
+| `walkthrough`     | The important files in reading order: what each is for, an explanation, its key functions, related files and the tests that cover it.                                                      |
+| `checklist`       | At least eight “can I explain this?” items across setup, architecture, functionality, data, validation, testing, limitations and improvements.                                             |
+| `viva`            | At least eight questions with a short model answer, an optional longer explanation, two to six key ideas (each with the words that count as mentioning it), and where to look in the code. |
+| `demo`            | The steps of a live demonstration, in order.                                                                                                                                               |
+| `preview`         | `top-navigation` or `sidebar`, and the navigation labels exactly as the app shows them.                                                                                                    |
+| `troubleshooting` | `include` the shared advice for your stack (`npm-vite` or `python-streamlit`) and add problems specific to your project.                                                                   |
+
+`pnpm validate:catalog` checks the guide against your template, so it can only describe code that exists:
+
+- every file it names must be in the template, and every function, class, constant or setting it names must be defined in that file (the source browser opens links at that line);
+- component, question, checklist and troubleshooting ids must be unique, and connections and flows may only name declared components;
+- every navigation label in `preview` must appear in the template's source;
+- troubleshooting commands may not delete files, need administrator rights, change system settings, run downloaded scripts or stop processes by force; recommend the safe alternative instead (for example `npm ci`, which rebuilds `node_modules` itself);
+- a troubleshooting entry may carry `observed` only for a problem that actually happened while verifying the template, with the date, platform and environment.
+
+Prose can't be checked automatically. Write answers from how your code really works, never claim results you haven't measured, and expect reviewers to read the guide as carefully as the code.
+
+## 6. Validate
 
 ```bash
 pnpm validate:catalog
@@ -80,7 +106,7 @@ pnpm validate:catalog
 
 The validator checks the manifest schema, unique ids and slugs, that the folder exists, that the licence, documents, screenshots and lockfile are present, that relative links in the template's Markdown files resolve, that JSON files edited with `json-set` are formatted the way the engine writes them, and that generation succeeds with the default values and with a stress-test name full of special characters and Unicode. Fix every problem it reports.
 
-## 6. Verify a generated copy
+## 7. Verify a generated copy
 
 ```bash
 pnpm verify:generated library-manager
@@ -109,11 +135,11 @@ The website shows one status for every template, computed from the manifest, the
 
 Nobody can mark a template as verified by hand: the fingerprint has to match files that passed the script. `pnpm validate:catalog` prints each template's status and warns when a record is out of date or failed. Those warnings don't fail CI, so you can open a pull request before every platform is verified.
 
-## 7. Screenshots
+## 8. Screenshots
 
 Screenshots must come from the real app with its demo data. For React templates you can add the template to `scripts/capture-screenshots.ts` and run `pnpm screenshots library-manager`, which builds the app, freezes the browser clock and captures each screen at 1280 × 800. Otherwise, capture them yourself at a similar size.
 
-## 8. Run every check and open a pull request
+## 9. Run every check and open a pull request
 
 ```bash
 pnpm validate

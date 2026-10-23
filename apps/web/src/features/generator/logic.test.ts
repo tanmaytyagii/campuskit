@@ -1,17 +1,21 @@
-import { getProjectById } from '@campuskit/project-catalog';
+import { catalog, getProjectById } from '@campuskit/project-catalog';
 import { readZipArchive, utf8Decode } from '@campuskit/template-engine';
 import { describe, expect, it } from 'vitest';
 
 import { diskBundleLoader } from '../../test/render.tsx';
 import {
+  appPreviewModel,
   buildZip,
   initialFormValues,
+  optionFiles,
   optionsForStep,
   planProject,
   previewEdits,
   previewValues,
+  restoreDraft,
   setupFacts,
   toEngineInput,
+  unavailableOptions,
   validateOptions,
 } from './logic.ts';
 
@@ -172,5 +176,67 @@ describe('setupFacts', () => {
     expect(facts).toContain('Needs 1 environment variable: API_KEY');
     expect(facts).toContain('Needs an internet connection to run');
     expect(facts).toContain('Uses: A weather API.');
+  });
+});
+
+describe('customization studio helpers', () => {
+  it('lists the files each option writes, including the folder name for the project name', () => {
+    const attendance = project('attendance-system');
+    expect(optionFiles(attendance, 'projectName')).toEqual(
+      expect.arrayContaining(['package.json', 'index.html', 'src/app.config.json', 'README.md']),
+    );
+    expect(optionFiles(attendance, 'theme')).toEqual(['src/app.config.json']);
+  });
+
+  it('names settings other templates offer that this one lacks', () => {
+    const missing = unavailableOptions(project('expense-tracker'), catalog);
+    expect(missing).toContainEqual({
+      label: 'Institution name',
+      group: 'identity',
+      offeredBy: ['Student Attendance System', 'Student Result Analyzer'],
+    });
+    expect(missing.some((item) => item.group === 'behaviour')).toBe(false);
+  });
+
+  it('builds the preview from the values the generator writes and the real theme colour', () => {
+    const attendance = project('attendance-system');
+    const values = previewValues(attendance, {
+      ...initialFormValues(attendance),
+      projectName: 'Hostel Register',
+      institutionName: 'Govt. School',
+      theme: 'teal',
+      seedDemoData: false,
+    });
+    expect(appPreviewModel(attendance, values)).toEqual({
+      name: 'Hostel Register',
+      institution: 'Govt. School',
+      author: '',
+      accent: '#0F766E',
+      accentLabel: 'Teal',
+      dataNotes: ['Include the demo class: No'],
+    });
+    expect(
+      appPreviewModel(
+        project('expense-tracker'),
+        previewValues(project('expense-tracker'), initialFormValues(project('expense-tracker'))),
+      ).institution,
+    ).toBeNull();
+  });
+
+  it('restores a saved draft only when it still fits the template', () => {
+    const saved = {
+      templateId: 'attendance-system',
+      step: 'options',
+      values: { projectName: 'Saved Name', seedDemoData: 'yes', unknown: 1 },
+    };
+    const restored = restoreDraft(saved, null, getProjectById);
+    expect(restored?.step).toBe('options');
+    expect(restored?.values.projectName).toBe('Saved Name');
+    // A wrongly typed value falls back to the default.
+    expect(restored?.values.seedDemoData).toBe(true);
+    expect(restoreDraft(saved, 'expense-tracker', getProjectById)).toBeNull();
+    expect(restoreDraft({ ...saved, step: 'done' }, null, getProjectById)?.step).toBe('details');
+    expect(restoreDraft({ templateId: 'nope' }, null, getProjectById)).toBeNull();
+    expect(restoreDraft('garbage', null, getProjectById)).toBeNull();
   });
 });

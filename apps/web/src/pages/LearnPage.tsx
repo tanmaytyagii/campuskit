@@ -1,9 +1,11 @@
+import { catalog } from '@campuskit/project-catalog';
 import { BookOpen, Presentation, ShieldCheck, Terminal } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { Link } from 'react-router';
+import { Link, Navigate, useSearchParams } from 'react-router';
 
 import { PageHeader } from '../components/layout/PageHeader.tsx';
-import { ReportBuilder } from '../features/documentation/ReportBuilder.tsx';
+import { ButtonLink } from '../components/ui/Button.tsx';
+import { ProjectLearningCard } from '../features/learning/ProjectLearningCard.tsx';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.ts';
 import { getRepoDoc } from '../lib/repo-docs.ts';
 
@@ -16,13 +18,56 @@ const GUIDES: Array<{ slug: string; icon: ReactNode }> = [
 
 export function LearnPage() {
   useDocumentTitle('Learning center');
+  const [params] = useSearchParams();
+  // The report builder used to live here (/learn?project=…); keep old links working.
+  const project = params.get('project');
+  if (project)
+    return <Navigate to={`/learn/report?project=${encodeURIComponent(project)}`} replace />;
+
   return (
     <>
       <PageHeader
         title="Learning center"
-        description="Understand your project, write your report and get ready to present it. Start with a guide, then draft your report below."
+        description="Understand your project, practise explaining it and prepare your report. Your progress is saved in this browser only."
       />
       <div className="container-page space-y-14">
+        <section aria-labelledby="projects-heading" className="space-y-4">
+          <div className="max-w-3xl space-y-2">
+            <h2 id="projects-heading" className="heading text-2xl text-ink">
+              Choose a project
+            </h2>
+            <p className="text-ink-2">
+              Each project has a learning studio (architecture, code walkthrough, checklist and
+              troubleshooting), viva practice and a report workspace.
+            </p>
+          </div>
+          <ul className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {catalog.map((item) => (
+              <li key={item.id}>
+                <ProjectLearningCard project={item} />
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section
+          aria-labelledby="report-heading"
+          className="flex flex-wrap items-center justify-between gap-6 rounded-[18px] border border-line bg-surface p-6 shadow-card"
+        >
+          <div className="max-w-2xl space-y-2">
+            <h2 id="report-heading" className="heading flex items-center gap-2 text-2xl text-ink">
+              <BookOpen aria-hidden="true" className="size-6 text-violet" />
+              Submission workspace
+            </h2>
+            <p className="text-ink-2">
+              Draft every section of a project report from the project’s real features and
+              limitations, keep CampusKit’s facts separate from what you write, and prepare your
+              demonstration. Download it as Markdown to paste into your institution’s template.
+            </p>
+          </div>
+          <ButtonLink to="/learn/report">Open the workspace</ButtonLink>
+        </section>
+
         <section aria-labelledby="guides-heading">
           <h2 id="guides-heading" className="heading text-xl text-ink">
             Guides
@@ -47,22 +92,6 @@ export function LearnPage() {
               );
             })}
           </ul>
-        </section>
-
-        <section aria-labelledby="report-heading" className="space-y-6">
-          <div className="max-w-3xl space-y-2">
-            <h2 id="report-heading" className="heading flex items-center gap-2 text-2xl text-ink">
-              <BookOpen aria-hidden="true" className="size-6 text-violet" />
-              Report builder
-            </h2>
-            <p className="text-ink-2">
-              Starter drafts for every section of a typical project report: abstract, problem
-              statement, objectives and scope, requirements, architecture, database design, test
-              cases, results, future work, a presentation outline and viva questions. Edit them
-              here, then download Markdown to paste into your institution’s template.
-            </p>
-          </div>
-          <ReportBuilder />
         </section>
       </div>
     </>

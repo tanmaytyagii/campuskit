@@ -5,9 +5,9 @@
 
 **Build it. Understand it. Present it.**
 
-CampusKit is a free, open-source project factory for school and college students. Pick a complete starter project, customize it in your browser, download a ZIP that runs on your own computer, and get the documentation you need to explain it in your viva.
+CampusKit is a free, open-source project factory and learning studio for school and college students. Pick a complete starter project, customize it in your browser, download a ZIP that runs on your own computer, learn how it works, practise explaining it for your viva and prepare your report.
 
-It is a static website: no accounts, no server, no database and no AI service. Projects are generated in the browser, so nothing a student types leaves their computer.
+It is a static website: no accounts, no server, no database and no AI service. Projects are generated in the browser, learning progress is saved only in the student's own browser, and nothing a student types leaves their computer.
 
 ![The CampusKit home page: headline, search, and a live preview of where the generator writes a project name](docs/screenshots/home.png)
 
@@ -27,16 +27,23 @@ It is a static website: no accounts, no server, no database and no AI service. P
 - **project pages** with screenshots, features, limitations, prerequisites, setup and test commands, customization options, verification results, documentation, viva questions and related projects;
 - a **generator** that validates your choices, shows exactly which files they change, lets you read the generated files before downloading, and builds the ZIP in your browser together with a `GETTING_STARTED.md` (setup steps, environment variables, known limitations) and a project report draft for that project;
 - a **verification status** for every template (Verified, Awaiting verification, Needs attention or Draft), backed by recorded runs of `pnpm verify:generated` and tied to a fingerprint of the exact files the site serves, so a badge can't outlive the code it describes;
-- a **learning center** that drafts the sections of a project report from the project's real features and limitations, clearly marked as drafts for you to complete;
+- a **learning studio** for every project: an architecture explorer (layers, components, connections and data flows), a walkthrough of the important files with links that open the source browser at each function's definition, a checklist of what to be able to explain, and troubleshooting for the project's own stack, with problems actually seen during verification marked as such;
+- **viva practice** with quick, topic, mixed and review modes: write your answer, compare it with a model answer based on the code, see which key ideas your answer mentions (a transparent word check, not an assessment), and rate yourself on four criteria;
+- a **submission workspace** that drafts every report section from the project's real features and limitations, keeps CampusKit's facts and verification results in a labelled appendix apart from what you write, and adds a demonstration checklist and a presentation outline you can copy as a slide list;
+- a **comparison page** that puts two or three projects side by side and suggests projects for goals such as “my first project” or “a Python project” using written rules over the projects' own data;
 - **documentation** for students and contributors.
 
-| Gallery                                                                                                             | Generator                                                                                                                                |
-| ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| ![Project gallery with filters for audience, category, difficulty, language and type](docs/screenshots/gallery.png) | ![Generator with a project name full of special characters and the live preview of the files it changes](docs/screenshots/generator.png) |
-| **Project page**                                                                                                    | **Ready to download**                                                                                                                    |
-| ![Project page for the Student Result Analyzer with screenshots and setup steps](docs/screenshots/project.png)      | ![The generator's final step with the setup commands for the generated project](docs/screenshots/generator-done.png)                     |
-| **Learning center**                                                                                                 | **Dark theme**                                                                                                                           |
-| ![Report builder with draft sections for an attendance project](docs/screenshots/learn.png)                         | ![The home page in the dark theme](docs/screenshots/home-dark.png)                                                                       |
+| Gallery                                                                                                                          | Generator                                                                                                                                |
+| -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| ![Project gallery with filters for audience, category, difficulty, language and type](docs/screenshots/gallery.png)              | ![Generator with a project name full of special characters and the live preview of the files it changes](docs/screenshots/generator.png) |
+| **Project page**                                                                                                                 | **Ready to download**                                                                                                                    |
+| ![Project page for the Student Result Analyzer with screenshots and setup steps](docs/screenshots/project.png)                   | ![The generator's final step with the setup commands for the generated project](docs/screenshots/generator-done.png)                     |
+| **Learning studio**                                                                                                              | **Viva practice**                                                                                                                        |
+| ![The architecture explorer for the attendance system with the storage component selected](docs/screenshots/learning-studio.png) | ![A viva question with the student's answer, the key ideas it mentions and the model answer](docs/screenshots/viva-practice.png)         |
+| **Submission workspace**                                                                                                         | **Compare projects**                                                                                                                     |
+| ![Report workspace with draft sections for an attendance project](docs/screenshots/learn.png)                                    | ![Comparison page with a goal suggestion and two projects chosen](docs/screenshots/compare.png)                                          |
+| **Dark theme**                                                                                                                   |                                                                                                                                          |
+| ![The home page in the dark theme](docs/screenshots/home-dark.png)                                                               |                                                                                                                                          |
 
 ## Quick start
 
@@ -128,7 +135,9 @@ The site is static. `pnpm build` produces `apps/web/dist`, which you can host on
 - The generator changes only what each template declares: names, branding, theme colours, sample data and a few settings. It does not add features.
 - Generated projects need Node.js or Python installed on the student's computer, and installing their dependencies needs an internet connection the first time.
 - The React templates store data in the browser's `localStorage`, with no accounts or sync. They are learning projects, not systems for real institutional records.
-- Report drafts are saved only in the browser that wrote them, and they are prompts and facts to build on, not finished text.
+- Report drafts, checklist ticks and viva ratings are saved only in the browser that wrote them, with no sync between devices. Drafts are prompts and facts to build on, not finished text, and nothing is exported as PDF or PowerPoint: the workspace downloads Markdown and copies a plain slide list.
+- The key-idea check in viva practice only looks for words in the student's answer. It can't judge whether an explanation is correct; students rate themselves.
+- Learning guides are written by people. The validator guarantees that every file and function they mention exists in the template, but the explanations themselves are checked by review, not automatically.
 - Verification records are written on a maintainer's computer and committed. CI repeats the verification on three operating systems but does not write records, so the website shows only the platforms someone recorded.
 - A record covers a template's files and its manifest settings. A change to the template engine itself is covered by CI, which verifies every template when the engine changes, rather than by the records.
 - Automated browser tests run in Chromium only. The site uses standard web features and should work in current Firefox and Safari, but those browsers are not tested automatically.

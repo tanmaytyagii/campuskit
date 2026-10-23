@@ -30,3 +30,21 @@ export function removeStored(key: string): void {
     // Nothing to do: storage is unavailable.
   }
 }
+
+/** Like readStored, but for sessionStorage: kept until the tab is closed. */
+export function readSession(key: string): unknown {
+  try {
+    const raw = window.sessionStorage.getItem(key);
+    return raw === null ? null : (JSON.parse(raw) as unknown);
+  } catch {
+    return null;
+  }
+}
+
+export function writeSession(key: string, value: unknown): void {
+  try {
+    window.sessionStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Nothing to do: storage is unavailable.
+  }
+}

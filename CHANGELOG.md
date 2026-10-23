@@ -1,5 +1,47 @@
 # Changelog
 
+## 3.0.0 (23 October 2026)
+
+This release turns CampusKit into a learning studio: students can now understand, explain and present a project, not only download it. The three templates are unchanged (version 1.0.0) and still verified.
+
+### Learning studio
+
+- Every project has a learning studio at `/projects/<project>/learn` with five sections: an overview (who it is for, prerequisite knowledge, what you will learn, setup, stack, limitations and your progress), an **architecture explorer** (layers, selectable components, connections and step-by-step data flows), a **code walkthrough** of the important files, a **checklist** of what to be able to explain, and **troubleshooting**.
+- Walkthrough and architecture links open the source browser at the line where each function, class, constant or setting is defined; the source browser now highlights that line.
+- The content lives in learning guides (`packages/project-catalog/learning/`), written for each template from its code and documentation. `pnpm validate:catalog` checks every guide against the real template: files must exist, named functions must be defined in those files, preview labels must appear in the source, and troubleshooting commands may not delete files, change system settings or run downloaded scripts.
+
+### Viva practice
+
+- Each project has viva practice at `/projects/<project>/viva`, and `/viva` lists them all. There are 18 to 20 questions per project across basics, technology choices, architecture, implementation, data structures, testing, security, limitations and improvements.
+- Quick (five questions, missed and unpractised first), topic, mixed and review modes. Students write an answer (never saved), compare it with the model answer and an optional longer explanation, see which key ideas their answer mentions, with a plain statement that this is only a word check, and rate themselves on correctness, understanding, clarity and awareness of limitations. Questions rated “Not yet” or “Partly” return in review mode.
+- Ratings are saved in the browser only and can be reset; no AI service is used.
+
+### Submission workspace
+
+- The report builder moved to `/learn/report` (old `/learn?project=` links redirect) and became the submission workspace, with two new sections, “Implemented features” and “Testing methodology”.
+- Downloads end with **Appendix A: Project facts from CampusKit**, labelled as not written by the student, including the template's real verification results, and **Appendix B: Demonstration checklist** from the project's demonstration steps, ticked as the student rehearses.
+- Sections are labelled “CampusKit draft” or “Edited by you”; the presentation outline can be copied as a plain slide list. Drafts saved by 2.0 are restored, with the new sections filled in.
+- Generated ZIPs' `docs/PROJECT_REPORT_DRAFT.md` gains the new sections and the facts appendix.
+
+### Comparison and selection
+
+- A new `/compare` page puts two or three projects side by side (languages, frameworks, difficulty, tools, server, data storage, offline use, external services, learning objectives and verification) and explains the differences in plain sentences.
+- Goal suggestions (first project, frontend, Python, AI/ML, database, software engineering practice) follow written rules shown next to the results. Where nothing matches, a labelled fallback says so; there are no popularity numbers or time estimates.
+- Manifests have a new `stack` field (`backend` and `persistence`) that the comparison and the studio use.
+
+### Customization studio
+
+- The generator shows an illustration of the generated app's header with the chosen name, institution, author and the template's real theme colour (the validator now checks that every colour swatch is a colour the template uses) and its real navigation labels.
+- Each setting lists the files it is written to, and settings that other templates offer but the chosen one doesn't are listed as unavailable.
+- Choices survive leaving the generator and coming back in the same tab.
+
+### Navigation, accessibility and fixes
+
+- The header has a Viva practice item; the desktop navigation switches to the menu below 1024 px so five items never overflow.
+- After navigation, focus moves to the main region unless the page has placed it inside (the studio moves it to the section heading).
+- The Python guide's port advice was corrected: Streamlit 1.66 moves to the next free port unless you choose the port yourself.
+- `pnpm verify:generated` waits for the Streamlit process to exit and retries deleting temporary folders, so a locked file on Windows no longer aborts the run.
+
 ## 2.0.0 (22 October 2026)
 
 This release makes every template's state visible and checkable, and gives students more of what they need inside the ZIP. The three templates themselves are unchanged (version 1.0.0).

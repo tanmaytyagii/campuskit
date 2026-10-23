@@ -27,6 +27,7 @@ import { formatIsoDate } from '../../lib/format.ts';
 import { siteConfig } from '../../site.config.ts';
 import { NotFoundPage } from '../../pages/NotFoundPage.tsx';
 import { relatedProjects } from '../gallery/filtering.ts';
+import { reportHref, studioHref, vivaHref } from '../learning/links.ts';
 import { ScreenshotGallery } from './ScreenshotGallery.tsx';
 import { useQuickDownload } from './useQuickDownload.ts';
 import { VerificationPanel } from './VerificationPanel.tsx';
@@ -388,14 +389,28 @@ function ProjectDetails({ project }: { project: ProjectManifest }) {
               </div>
               <VivaPreview project={project} />
             </div>
-            <Callout tone="info" title="Prepare your report">
-              The learning center drafts report sections from this project’s real features and
-              limitations, ready for you to edit.{' '}
-              <Link to={`/learn?project=${project.id}`} className="link">
-                Open the report builder
-              </Link>
-              .
-            </Callout>
+            <div className="rounded-xl bg-raised p-5">
+              <p className="max-w-[70ch] text-ink-2">
+                The learning studio explains this project’s architecture and important files, with a
+                checklist and troubleshooting. Viva practice asks you its questions one at a time,
+                and the submission workspace drafts your report from the project’s real features and
+                limitations.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <ButtonLink to={studioHref(project)} size="sm">
+                  Open the learning studio
+                </ButtonLink>
+                <ButtonLink to={vivaHref(project)} size="sm" variant="secondary">
+                  Practise viva questions
+                </ButtonLink>
+                <ButtonLink to={reportHref(project)} size="sm" variant="secondary">
+                  Prepare your report
+                </ButtonLink>
+                <ButtonLink to={studioHref(project, 'troubleshooting')} size="sm" variant="ghost">
+                  Troubleshooting
+                </ButtonLink>
+              </div>
+            </div>
           </Section>
 
           <Section id="documentation" title="Documentation">

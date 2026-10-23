@@ -21,6 +21,10 @@ export const AUDIENCES = ['school', 'college'] as const;
 export const DIFFICULTIES = ['beginner', 'intermediate', 'advanced'] as const;
 export const PACKAGE_MANAGERS = ['npm', 'pip'] as const;
 export const DOC_KINDS = ['readme', 'architecture', 'viva', 'guide'] as const;
+/** Where the project's code runs besides the browser. */
+export const BACKEND_KINDS = ['none', 'local-server', 'remote-server'] as const;
+/** Where the project keeps data between runs. */
+export const PERSISTENCE_KINDS = ['browser-storage', 'files', 'database', 'none'] as const;
 
 /** Documents every non-draft template must include, besides the README. */
 const REQUIRED_DOCS: ReadonlyArray<readonly [(typeof DOC_KINDS)[number], string]> = [
@@ -32,6 +36,8 @@ export type Category = (typeof CATEGORIES)[number];
 export type ProjectType = (typeof PROJECT_TYPES)[number];
 export type Audience = (typeof AUDIENCES)[number];
 export type Difficulty = (typeof DIFFICULTIES)[number];
+export type BackendKind = (typeof BACKEND_KINDS)[number];
+export type PersistenceKind = (typeof PERSISTENCE_KINDS)[number];
 
 const slug = z
   .string()
@@ -132,6 +138,12 @@ export const manifestSchema = z
     environment: z.strictObject({
       variables: z.array(environmentVariableSchema).max(20),
     }),
+    stack: z.strictObject({
+      backend: z.enum(BACKEND_KINDS),
+      persistence: z.enum(PERSISTENCE_KINDS),
+      /** One or two sentences: where the code runs and where data lives. */
+      summary: sentence,
+    }),
     network: z.strictObject({
       installNeedsInternet: z.boolean(),
       runsOffline: z.boolean(),
@@ -196,6 +208,13 @@ export const manifestSchema = z
           });
         }
       }
+    }
+    if (manifest.stack.backend === 'remote-server' && manifest.network.runsOffline) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['network', 'runsOffline'],
+        message: 'A project that needs an online server cannot run offline',
+      });
     }
     if (manifest.draft && manifest.featured) {
       ctx.addIssue({

@@ -9,8 +9,11 @@ const COLUMNS = [
     links: [
       { to: '/projects', label: 'Project gallery' },
       { to: '/generate', label: 'Project generator' },
+      { to: '/compare', label: 'Compare projects' },
       { to: '/learn', label: 'Learning center' },
-      { to: '/docs/prepare-for-your-viva', label: 'Viva preparation' },
+      { to: '/viva', label: 'Viva practice' },
+      { to: '/learn/report', label: 'Submission workspace' },
+      { to: '/docs/prepare-for-your-viva', label: 'Viva preparation guide' },
     ],
   },
   {

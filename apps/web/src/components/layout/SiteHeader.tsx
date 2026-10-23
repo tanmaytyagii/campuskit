@@ -10,6 +10,7 @@ export const NAV_ITEMS = [
   { to: '/projects', label: 'Projects' },
   { to: '/generate', label: 'Generator' },
   { to: '/learn', label: 'Learn' },
+  { to: '/viva', label: 'Viva practice' },
   { to: '/docs', label: 'Docs' },
 ] as const;
 
@@ -52,7 +53,7 @@ export function SiteHeader() {
           <Wordmark />
         </Link>
 
-        <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
+        <nav aria-label="Main" className="hidden items-center gap-1 lg:flex">
           {NAV_ITEMS.map((item) => (
             <NavLink key={item.to} to={item.to} className={navClasses}>
               {item.label}
@@ -68,7 +69,7 @@ export function SiteHeader() {
           <button
             ref={buttonRef}
             type="button"
-            className="inline-flex size-10 items-center justify-center rounded-lg border border-line bg-surface text-ink md:hidden"
+            className="inline-flex size-10 items-center justify-center rounded-lg border border-line bg-surface text-ink lg:hidden"
             aria-expanded={open}
             aria-controls={menuId}
             onClick={() => setOpen((value) => !value)}
@@ -83,7 +84,7 @@ export function SiteHeader() {
         </div>
       </div>
 
-      <div id={menuId} hidden={!open} className="border-t border-line bg-surface md:hidden">
+      <div id={menuId} hidden={!open} className="border-t border-line bg-surface lg:hidden">
         <nav aria-label="Main" className="container-page flex flex-col gap-1 py-3">
           {NAV_ITEMS.map((item) => (
             <NavLink key={item.to} to={item.to} className={navClasses}>

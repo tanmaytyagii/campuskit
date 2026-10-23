@@ -147,6 +147,38 @@ function run(command: string, commandArgs: string[], options: RunOptions): Promi
   });
 }
 
+/**
+ * Stops a long-running child process and waits until it has exited. On Windows,
+ * files stay locked until the process is really gone, so deleting its folder
+ * straight after `kill()` can fail.
+ */
+function stop(child: ChildProcess, timeoutMs = 15_000): Promise<void> {
+  if (child.exitCode !== null || child.signalCode !== null) return Promise.resolve();
+  return new Promise((resolvePromise) => {
+    const timer = setTimeout(resolvePromise, timeoutMs);
+    child.once('exit', () => {
+      clearTimeout(timer);
+      resolvePromise();
+    });
+    child.kill();
+  });
+}
+
+/**
+ * Deletes a temporary folder, retrying while Windows still holds files open.
+ * A folder that can't be deleted is reported, but it doesn't fail the
+ * verification: the project itself passed.
+ */
+async function removeWorkDir(workDir: string, details: string[]): Promise<void> {
+  try {
+    await rm(workDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 500 });
+  } catch (error) {
+    details.push(
+      `could not delete the temporary folder ${workDir} (${(error as Error).message}); delete it yourself`,
+    );
+  }
+}
+
 function freePort(): Promise<number> {
   return new Promise((resolvePromise, reject) => {
     const server = createServer();
@@ -367,7 +399,7 @@ async function runPipProject(projectDir: string): Promise<string[]> {
       await waitForHealth(`http://localhost:${port}/_stcore/health`, app, 90_000);
       steps.push('streamlit run app.py (health check answered)');
     } finally {
-      app.kill();
+      await stop(app);
     }
   }
   return steps;
@@ -449,11 +481,16 @@ async function verify(
     if (!(error instanceof CheckError) && error instanceof Error && error.stack)
       details.push(error.stack);
   } finally {
-    if (ok && !keep) await rm(workDir, { recursive: true, force: true });
+    if (ok && !keep) await removeWorkDir(workDir, details);
     else details.push(`files kept in ${workDir}`);
   }
   const steps = details
-    .filter((line) => !line.startsWith('FAILED: ') && !line.startsWith('files kept in '))
+    .filter(
+      (line) =>
+        !line.startsWith('FAILED: ') &&
+        !line.startsWith('files kept in ') &&
+        !line.startsWith('could not delete the temporary folder'),
+    )
     .filter((line) => !line.includes('\n'))
     .map((line) => line.slice(0, 200));
   return { template: manifest.id, variant, ok, details, steps, failure };

@@ -1,7 +1,7 @@
-import { getProjectBySlug, type ProjectManifest } from '@campuskit/project-catalog';
+import { findSymbolLine, getProjectBySlug, type ProjectManifest } from '@campuskit/project-catalog';
 import { formatBytes, type BundleFile } from '@campuskit/template-engine';
 import { Check, Copy, Download, FileCode, Folder, RotateCcw } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router';
 
 import { MarkdownView } from '../../components/MarkdownView.tsx';
@@ -55,8 +55,24 @@ function Tree({ folder, selected, slug }: { folder: TreeFolder; selected: string
   );
 }
 
-function FileViewer({ file, project }: { file: BundleFile; project: ProjectManifest }) {
-  const [rendered, setRendered] = useState(true);
+function FileViewer({
+  file,
+  project,
+  symbol,
+}: {
+  file: BundleFile;
+  project: ProjectManifest;
+  /** A function or setting to highlight, from ?symbol= (links from the learning studio). */
+  symbol: string | null;
+}) {
+  const highlightLine =
+    symbol && file.encoding === 'utf8' ? findSymbolLine(file.path, file.content, symbol) : null;
+  const highlighted = useRef<HTMLSpanElement>(null);
+  const [rendered, setRendered] = useState(!symbol);
+  useEffect(() => {
+    // jsdom has no scrollIntoView, so it is optional here.
+    highlighted.current?.scrollIntoView?.({ block: 'center' });
+  }, [highlightLine]);
   const { state, copy } = useCopyToClipboard();
   const image = file.encoding === 'base64' ? imageMimeType(file.path) : undefined;
   const isMarkdown = file.path.endsWith('.md') && file.encoding === 'utf8';
@@ -117,6 +133,20 @@ function FileViewer({ file, project }: { file: BundleFile; project: ProjectManif
           Download file
         </Button>
       </div>
+      {symbol && file.encoding === 'utf8' ? (
+        <p className="border-b border-line bg-violet-soft px-4 py-2 text-sm text-ink" role="status">
+          {highlightLine ? (
+            <>
+              <code className="font-mono font-semibold">{symbol}</code> is defined on line{' '}
+              {highlightLine}, highlighted below.
+            </>
+          ) : (
+            <>
+              <code className="font-mono font-semibold">{symbol}</code> isn’t defined in this file.
+            </>
+          )}
+        </p>
+      ) : null}
       {image ? (
         <div className="bg-sunken p-4">
           <img
@@ -139,7 +169,15 @@ function FileViewer({ file, project }: { file: BundleFile; project: ProjectManif
           <pre className="py-3 text-[0.8rem] leading-6">
             <code>
               {lines.map((line, index) => (
-                <span key={index} className="grid grid-cols-[3.5rem_1fr]">
+                <span
+                  key={index}
+                  ref={index + 1 === highlightLine ? highlighted : undefined}
+                  className={cn(
+                    'grid grid-cols-[3.5rem_1fr]',
+                    index + 1 === highlightLine &&
+                      'bg-white/15 shadow-[inset_3px_0_0_var(--color-lime)]',
+                  )}
+                >
                   <span aria-hidden="true" className="select-none pr-4 text-right text-code-ink/40">
                     {index + 1}
                   </span>
@@ -235,7 +273,12 @@ function ProjectSource({ project }: { project: ProjectManifest }) {
             <Tree folder={tree} selected={file?.path ?? ''} slug={project.slug} />
           </nav>
           {file ? (
-            <FileViewer key={file.path} file={file} project={project} />
+            <FileViewer
+              key={`${file.path}#${params.get('symbol') ?? ''}`}
+              file={file}
+              project={project}
+              symbol={params.get('symbol')}
+            />
           ) : (
             <Callout tone="warn" title="File not found">
               {requested} is not part of this template. Choose a file from the list.

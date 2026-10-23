@@ -28,7 +28,7 @@ if (report.issues.length > 0) {
 console.log(`\nCatalog OK: ${report.manifests.length} projects validated.`);
 for (const manifest of report.manifests) {
   console.log(
-    `  ✓ ${manifest.id} (${report.fileCounts[manifest.id] ?? 0} template files, ${manifest.customization.edits.length} edits): ${report.statuses[manifest.id]?.label ?? 'unknown status'}`,
+    `  ✓ ${manifest.id} (${report.fileCounts[manifest.id] ?? 0} template files, ${manifest.customization.edits.length} edits, ${report.learningGuides[manifest.id] ? 'learning guide' : 'no learning guide'}): ${report.statuses[manifest.id]?.label ?? 'unknown status'}`,
   );
 }
 if (report.warnings.length > 0) {

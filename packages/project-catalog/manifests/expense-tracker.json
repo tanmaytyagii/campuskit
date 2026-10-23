@@ -133,6 +133,11 @@
   "environment": {
     "variables": []
   },
+  "stack": {
+    "backend": "none",
+    "persistence": "browser-storage",
+    "summary": "A single-page React app: after npm run dev serves the files, all the code runs in your browser and transactions are saved in the browser's localStorage."
+  },
   "network": {
     "installNeedsInternet": true,
     "runsOffline": true,

@@ -15,6 +15,14 @@ const PAGES = [
   '/projects/expense-tracker/source',
   '/generate?template=student-result-analyzer',
   '/learn',
+  '/learn/report?project=student-result-analyzer',
+  '/viva',
+  '/compare?ids=attendance-system,student-result-analyzer&goal=database',
+  '/projects/attendance-system/learn',
+  '/projects/expense-tracker/learn/architecture',
+  '/projects/student-result-analyzer/learn/code',
+  '/projects/attendance-system/learn/checklist',
+  '/projects/expense-tracker/viva',
   '/docs/template-engine',
   '/no-such-page',
 ];
@@ -42,6 +50,26 @@ for (const scheme of ['light', 'dark'] as const) {
         expect(await violations(page)).toEqual([]);
       });
     }
+
+    test('an open troubleshooting entry has no accessibility violations', async ({ page }) => {
+      await page.goto('/projects/student-result-analyzer/learn/troubleshooting');
+      await page.getByText('Creating .venv fails with an ensurepip error').click();
+      await expect(page.getByText('Seen on macOS on 22 Oct 2026', { exact: false })).toBeVisible();
+      expect(await violations(page)).toEqual([]);
+    });
+
+    test('a revealed viva answer and its rating form have no accessibility violations', async ({
+      page,
+    }) => {
+      await page.goto('/projects/attendance-system/viva');
+      await page.getByRole('button', { name: 'Start quick practice' }).click();
+      await page
+        .getByRole('textbox', { name: 'Your answer' })
+        .fill('It saves data in localStorage.');
+      await page.getByRole('button', { name: 'Compare with the model answer' }).click();
+      await expect(page.getByRole('heading', { name: 'Model answer' })).toBeVisible();
+      expect(await violations(page)).toEqual([]);
+    });
 
     test('the open project guide has no accessibility violations', async ({ page }) => {
       await page.goto('/projects');

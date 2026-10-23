@@ -6,7 +6,7 @@ import {
   PROJECT_TYPE_LABELS,
   type ProjectManifest,
 } from '@campuskit/project-catalog';
-import { formatBytes } from '@campuskit/template-engine';
+import { formatBytes, type TemplateOption } from '@campuskit/template-engine';
 import { Download, PackageOpen, RotateCcw } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import { Link, useSearchParams } from 'react-router';
@@ -19,20 +19,28 @@ import { Button, ButtonLink } from '../../components/ui/Button.tsx';
 import { Callout } from '../../components/ui/Callout.tsx';
 import { Spinner } from '../../components/ui/Spinner.tsx';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts';
+import { useLearningGuide } from '../../hooks/useLearningGuide.ts';
 import { useTemplateBundle } from '../../hooks/useTemplateBundle.ts';
 import { cn } from '../../lib/cn.ts';
 import { downloadFile } from '../../lib/download.ts';
+import { readSession, writeSession } from '../../lib/storage.ts';
 import { getTemplateStatus } from '../../lib/verification.ts';
+import { studioHref, vivaHref } from '../learning/links.ts';
+import { AppPreview } from './AppPreview.tsx';
 import { FilePreview } from './FilePreview.tsx';
 import { KitPreview } from './KitPreview.tsx';
 import {
+  appPreviewModel,
   buildZip,
   initialFormValues,
+  optionFiles,
   optionsForStep,
   planProject,
   previewValues,
+  restoreDraft,
   setupFacts,
   STEP_IDS,
+  unavailableOptions,
   validateOptions,
   type FormValue,
   type FormValues,
@@ -41,6 +49,8 @@ import {
 } from './logic.ts';
 import { OptionInput, optionInputId } from './OptionInput.tsx';
 import { STEP_LABELS, Stepper } from './Stepper.tsx';
+
+const DRAFT_KEY = 'campuskit:generator:v1';
 
 const GROUP_LABELS = {
   appearance: 'Appearance',
@@ -79,15 +89,26 @@ export function GeneratorPage() {
   const requested = getProjectById(params.get('template') ?? '');
   const requestedName = params.get('name');
 
-  const [templateId, setTemplateId] = useState<string | null>(requested?.id ?? null);
-  const [step, setStep] = useState<StepId>(requested ? 'details' : 'template');
-  const [values, setValues] = useState<FormValues>(() =>
-    requested
-      ? initialFormValues(
-          requested,
-          requestedName ? { projectName: requestedName.slice(0, 60) } : {},
-        )
-      : {},
+  // Choices survive leaving the page (for example to read a project page) and coming back,
+  // until the tab is closed. A name in the address (from the home page) starts fresh.
+  const [restored] = useState(() =>
+    requestedName
+      ? null
+      : restoreDraft(readSession(DRAFT_KEY), requested?.id ?? null, getProjectById),
+  );
+  const [templateId, setTemplateId] = useState<string | null>(
+    restored?.templateId ?? requested?.id ?? null,
+  );
+  const [step, setStep] = useState<StepId>(restored?.step ?? (requested ? 'details' : 'template'));
+  const [values, setValues] = useState<FormValues>(
+    () =>
+      restored?.values ??
+      (requested
+        ? initialFormValues(
+            requested,
+            requestedName ? { projectName: requestedName.slice(0, 60) } : {},
+          )
+        : {}),
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [generated, setGenerated] = useState<GeneratedZip | null>(null);
@@ -95,6 +116,11 @@ export function GeneratorPage() {
 
   const manifest = templateId ? getProjectById(templateId) : undefined;
   const bundle = useTemplateBundle(templateId);
+  const guide = useLearningGuide(manifest);
+
+  useEffect(() => {
+    if (templateId && step !== 'done') writeSession(DRAFT_KEY, { templateId, values, step });
+  }, [templateId, values, step]);
   const heading = useRef<HTMLHeadingElement>(null);
   const previousStep = useRef(step);
 
@@ -272,8 +298,9 @@ export function GeneratorPage() {
                 )}
                 <div className="space-y-6">
                   {optionsForStep(manifest, 'details').map((option) => (
-                    <OptionInput
+                    <OptionField
                       key={option.id}
+                      manifest={manifest}
                       option={option}
                       value={values[option.id]}
                       error={errors[option.id]}
@@ -281,6 +308,7 @@ export function GeneratorPage() {
                     />
                   ))}
                 </div>
+                <UnavailableNote manifest={manifest} groups={['identity']} />
                 {navigation(
                   steps.includes('options') ? 'Continue to options' : 'Review your project',
                 )}
@@ -303,8 +331,9 @@ export function GeneratorPage() {
                       <div key={group} className="space-y-5">
                         <h3 className="text-base font-bold text-ink">{GROUP_LABELS[group]}</h3>
                         {options.map((option) => (
-                          <OptionInput
+                          <OptionField
                             key={option.id}
+                            manifest={manifest}
                             option={option}
                             value={values[option.id]}
                             error={errors[option.id]}
@@ -315,6 +344,7 @@ export function GeneratorPage() {
                     );
                   })}
                 </div>
+                <UnavailableNote manifest={manifest} groups={['appearance', 'data']} />
                 {navigation('Review your project')}
               </>
             ) : null}
@@ -399,7 +429,12 @@ export function GeneratorPage() {
               aria-label="Live preview"
               className="space-y-3 lg:sticky lg:top-24 lg:self-start"
             >
-              <h2 className="text-sm font-bold text-ink">What your choices change</h2>
+              <h2 className="text-sm font-bold text-ink">How your app will look</h2>
+              <AppPreview
+                model={appPreviewModel(manifest, preview)}
+                preview={guide.status === 'ready' ? guide.loaded.guide.preview : null}
+              />
+              <h2 className="pt-4 text-sm font-bold text-ink">What your choices change</h2>
               <p className="text-sm text-ink-3">
                 The template engine writes these values into these files, and nowhere else.
               </p>
@@ -692,8 +727,14 @@ function DonePanel({
       </Callout>
 
       <div className="flex flex-wrap gap-3 border-t border-line pt-6">
-        <ButtonLink to={`/learn?project=${manifest.id}`} variant="secondary">
-          Draft your report and viva answers
+        <ButtonLink to={studioHref(manifest)} variant="secondary">
+          Learn how it works
+        </ButtonLink>
+        <ButtonLink to={vivaHref(manifest)} variant="secondary">
+          Practise viva questions
+        </ButtonLink>
+        <ButtonLink to={`/learn/report?project=${manifest.id}`} variant="secondary">
+          Draft your report
         </ButtonLink>
         <ButtonLink to={`/projects/${manifest.slug}`} variant="secondary">
           Open the project page
@@ -702,6 +743,64 @@ function DonePanel({
           Change settings and generate again
         </Button>
       </div>
+    </div>
+  );
+}
+
+function OptionField({
+  manifest,
+  option,
+  value,
+  error,
+  onChange,
+}: {
+  manifest: ProjectManifest;
+  option: TemplateOption;
+  value: FormValue | undefined;
+  error: string | undefined;
+  onChange: (value: FormValue) => void;
+}) {
+  const files = optionFiles(manifest, option.id);
+  return (
+    <div className="space-y-1.5">
+      <OptionInput option={option} value={value} error={error} onChange={onChange} />
+      {files.length > 0 ? (
+        <p className="text-xs text-ink-3">
+          Written to{' '}
+          {files.map((file, index) => (
+            <span key={file}>
+              {index > 0 ? ', ' : ''}
+              <code className="font-mono">{file}</code>
+            </span>
+          ))}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function UnavailableNote({
+  manifest,
+  groups,
+}: {
+  manifest: ProjectManifest;
+  groups: Array<TemplateOption['group']>;
+}) {
+  const missing = unavailableOptions(manifest, catalog).filter((item) =>
+    groups.includes(item.group),
+  );
+  if (missing.length === 0) return null;
+  return (
+    <div className="mt-6 rounded-xl border border-dashed border-line-strong p-4 text-sm text-ink-3">
+      <p className="font-semibold text-ink-2">Not available in {manifest.name}</p>
+      <ul className="mt-1 space-y-0.5">
+        {missing.map((item) => (
+          <li key={item.label}>
+            {item.label} (offered by {item.offeredBy.join(' and ')})
+          </li>
+        ))}
+      </ul>
+      <p className="mt-1">The generator only offers settings that change this template’s files.</p>
     </div>
   );
 }

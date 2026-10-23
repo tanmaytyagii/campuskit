@@ -5,6 +5,7 @@ import {
   draftSection,
   emptyInfo,
   getProjectById,
+  presentationAsSlides,
   SECTION_IDS,
   SECTION_TITLES,
   type ProjectManifest,
@@ -13,40 +14,45 @@ import {
 } from '@campuskit/project-catalog';
 import { Check, Copy, Download, Eye, RotateCcw, Trash } from 'lucide-react';
 import { useEffect, useId, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 
 import { MarkdownView } from '../../components/MarkdownView.tsx';
+import { Badge } from '../../components/ui/Badge.tsx';
 import { Button } from '../../components/ui/Button.tsx';
 import { Callout } from '../../components/ui/Callout.tsx';
 import { Dialog } from '../../components/ui/Dialog.tsx';
-import { SelectField, TextField } from '../../components/ui/Field.tsx';
+import { Checkbox, SelectField, TextField } from '../../components/ui/Field.tsx';
 import { useCopyToClipboard } from '../../hooks/useCopyToClipboard.ts';
+import { useLearningGuide } from '../../hooks/useLearningGuide.ts';
 import { loadTemplateDoc } from '../../lib/assets.ts';
 import { cn } from '../../lib/cn.ts';
 import { downloadFile } from '../../lib/download.ts';
 import { formatIsoDate, todayIso } from '../../lib/format.ts';
+import { readTicked, readVivaProgress, summarizeViva, writeTicked } from '../../lib/progress.ts';
 import { readStored, removeStored, writeStored } from '../../lib/storage.ts';
+import { verificationLines } from '../../lib/verification.ts';
+import { studioHref, vivaHref } from '../learning/links.ts';
 
 const CUSTOM = 'custom';
 const STORAGE_PREFIX = 'campuskit:report:v1:';
 
-interface SavedReport {
+interface StoredReport {
   info: ReportInfo;
-  sections: Record<SectionId, string>;
+  sections: Partial<Record<SectionId, string>>;
 }
 
-function isSavedReport(value: unknown): value is SavedReport {
+/**
+ * Accepts drafts saved before sections were added (they only lack the new
+ * sections, which are then filled with fresh drafts) but never a value with a
+ * section that isn't text.
+ */
+function isStoredReport(value: unknown): value is StoredReport {
   if (typeof value !== 'object' || value === null) return false;
-  const candidate = value as Partial<SavedReport>;
-  return (
-    typeof candidate.info === 'object' &&
-    candidate.info !== null &&
-    typeof candidate.sections === 'object' &&
-    candidate.sections !== null &&
-    SECTION_IDS.every(
-      (id) => typeof (candidate.sections as Record<string, unknown>)[id] === 'string',
-    )
-  );
+  const candidate = value as Partial<StoredReport>;
+  if (typeof candidate.info !== 'object' || candidate.info === null) return false;
+  if (typeof candidate.sections !== 'object' || candidate.sections === null) return false;
+  const sections = candidate.sections as Record<string, unknown>;
+  return SECTION_IDS.every((id) => sections[id] === undefined || typeof sections[id] === 'string');
 }
 
 function draftAll(
@@ -99,13 +105,16 @@ export function ReportBuilder() {
         : (catalog[0]?.id ?? CUSTOM);
   const project = projectId === CUSTOM ? null : (getProjectById(projectId) ?? null);
   const viva = useVivaDoc(project);
+  const guide = useLearningGuide(project ?? undefined);
 
-  return viva.ready ? (
+  return viva.ready && guide.status !== 'loading' ? (
     <ReportEditor
       key={projectId}
       projectId={projectId}
       project={project}
       viva={viva.markdown}
+      demoSteps={guide.status === 'ready' ? guide.loaded.guide.demo : null}
+      questionIds={guide.status === 'ready' ? guide.loaded.guide.viva.map((item) => item.id) : null}
       onChangeProject={(id) => setParams({ project: id }, { replace: true, flushSync: true })}
     />
   ) : (
@@ -119,22 +128,35 @@ function ReportEditor({
   projectId,
   project,
   viva,
+  demoSteps,
+  questionIds,
   onChangeProject,
 }: {
   projectId: string;
   project: ProjectManifest | null;
   viva: string | undefined;
+  /** Demonstration steps from the learning guide, when the project has one. */
+  demoSteps: string[] | null;
+  questionIds: string[] | null;
   onChangeProject: (id: string) => void;
 }) {
   const storageKey = `${STORAGE_PREFIX}${projectId}`;
-  const [saved] = useState(() => readStored(storageKey, isSavedReport));
+  const [saved] = useState(() => readStored(storageKey, isStoredReport));
   const [info, setInfo] = useState<ReportInfo>(() => ({
     ...emptyInfo(project),
     ...(saved?.info ?? {}),
   }));
-  const [sections, setSections] = useState<Record<SectionId, string>>(
-    () => saved?.sections ?? draftAll(project, info, viva),
+  const [sections, setSections] = useState<Record<SectionId, string>>(() => ({
+    ...draftAll(project, info, viva),
+    ...(saved?.sections ?? {}),
+  }));
+  const demoIds = (demoSteps ?? []).map((_, index) => `step-${index + 1}`);
+  const [demoDone, setDemoDone] = useState(() => readTicked('demo', projectId, demoIds));
+  const [vivaSummary] = useState(() =>
+    questionIds ? summarizeViva(readVivaProgress(projectId, questionIds), questionIds) : null,
   );
+  const verification = useMemo(() => (project ? verificationLines(project) : []), [project]);
+  const slides = useCopyToClipboard();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(
     saved ? 'Restored your saved draft from this browser.' : null,
@@ -152,9 +174,28 @@ function ReportEditor({
   }, [edited, storageKey, info, sections]);
 
   const report = useMemo(
-    () => assembleReport(project, info, sections, formatIsoDate(today)),
-    [project, info, sections, today],
+    () =>
+      assembleReport(project, info, sections, formatIsoDate(today), {
+        verification,
+        ...(demoSteps
+          ? {
+              demo: demoSteps.map((text, index) => ({
+                text,
+                done: demoDone.has(`step-${index + 1}`),
+              })),
+            }
+          : {}),
+      }),
+    [project, info, sections, today, verification, demoSteps, demoDone],
   );
+
+  function toggleDemo(id: string, checked: boolean) {
+    const next = new Set(demoDone);
+    if (checked) next.add(id);
+    else next.delete(id);
+    setDemoDone(next);
+    writeTicked('demo', projectId, next);
+  }
   const remaining = SECTION_IDS.reduce((sum, id) => sum + countPrompts(sections[id]), 0);
 
   function updateInfo(field: keyof ReportInfo, value: string) {
@@ -254,6 +295,7 @@ function ReportEditor({
           {SECTION_IDS.map((id, index) => {
             const prompts = countPrompts(sections[id]);
             const words = sections[id].trim() ? sections[id].trim().split(/\s+/).length : 0;
+            const untouched = sections[id].trim() === draftSection(id, project, info, viva).trim();
             return (
               <section
                 key={id}
@@ -262,8 +304,16 @@ function ReportEditor({
                 className="scroll-mt-24 rounded-xl border border-line bg-surface p-5"
               >
                 <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-                  <h3 id={`section-${id}-title`} className="text-lg font-bold text-ink">
+                  <h3
+                    id={`section-${id}-title`}
+                    className="flex flex-wrap items-center gap-2 text-lg font-bold text-ink"
+                  >
                     {index + 1}. {SECTION_TITLES[id]}
+                    {untouched ? (
+                      <Badge tone="outline">CampusKit draft</Badge>
+                    ) : (
+                      <Badge tone="violet">Edited by you</Badge>
+                    )}
                   </h3>
                   <span
                     className={cn(
@@ -291,6 +341,20 @@ function ReportEditor({
                 />
                 <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-ink-3">
                   <span>{words} words</span>
+                  {id === 'presentation' ? (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => void slides.copy(presentationAsSlides(sections[id]))}
+                      icon={<Copy aria-hidden="true" className="size-3.5" />}
+                    >
+                      {slides.state === 'copied'
+                        ? 'Copied the slide list'
+                        : slides.state === 'failed'
+                          ? 'Copy failed'
+                          : 'Copy as a slide list'}
+                    </Button>
+                  ) : null}
                   <Button
                     size="sm"
                     variant="ghost"
@@ -303,6 +367,95 @@ function ReportEditor({
               </section>
             );
           })}
+          {project ? (
+            <section
+              aria-labelledby="facts-heading"
+              className="rounded-xl border border-dashed border-line-strong bg-raised p-5"
+            >
+              <h3 id="facts-heading" className="text-lg font-bold text-ink">
+                Appendix: facts from CampusKit
+              </h3>
+              <p className="mt-1 text-sm text-ink-3">
+                Added to the end of your download, clearly labelled as generated by CampusKit and
+                not written by you. These facts describe the template as published, not your
+                changes.
+              </p>
+              <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-ink-2">
+                <li>
+                  {project.name} {project.version}:{' '}
+                  {[...project.languages, ...project.frameworks].join(', ')}
+                </li>
+                <li>
+                  Automated tests: {project.testing.tools.join(', ')} (
+                  {project.testing.commands.map((command) => command.command).join(', ')})
+                </li>
+                {verification.length > 0 ? (
+                  verification.map((line) => <li key={line}>Verified by CampusKit: {line}</li>)
+                ) : (
+                  <li>No verification of the current template files has been recorded.</li>
+                )}
+              </ul>
+              <p className="mt-2 text-xs text-ink-3">
+                These are CampusKit’s results for the unmodified template. Run the tests yourself
+                and record your own results in the Test cases section.
+              </p>
+            </section>
+          ) : null}
+
+          {project && demoSteps ? (
+            <section
+              aria-labelledby="demo-heading"
+              className="rounded-xl border border-line bg-surface p-5"
+            >
+              <h3 id="demo-heading" className="text-lg font-bold text-ink">
+                Demonstration checklist
+              </h3>
+              <p className="mt-1 text-sm text-ink-3">
+                Steps for a live demonstration of {project.name}. Tick them as you rehearse; they
+                are saved in this browser and included at the end of your download.
+              </p>
+              <ol className="mt-3 space-y-3">
+                {demoSteps.map((text, index) => (
+                  <li key={text}>
+                    <Checkbox
+                      label={`${index + 1}. ${text}`}
+                      checked={demoDone.has(`step-${index + 1}`)}
+                      onChange={(event) => toggleDemo(`step-${index + 1}`, event.target.checked)}
+                    />
+                  </li>
+                ))}
+              </ol>
+              <p className="mt-3 text-sm text-ink-2" aria-live="polite">
+                {demoDone.size} of {demoSteps.length} steps rehearsed.
+              </p>
+            </section>
+          ) : null}
+
+          {project && vivaSummary ? (
+            <section
+              aria-labelledby="viva-prep-heading"
+              className="rounded-xl border border-line bg-surface p-5"
+            >
+              <h3 id="viva-prep-heading" className="text-lg font-bold text-ink">
+                Viva preparation
+              </h3>
+              <p className="mt-1 text-sm text-ink-2">
+                You have practised {vivaSummary.practised} of {vivaSummary.total} questions and
+                rated {vivaSummary.confident} as confident.
+                {vivaSummary.missed + vivaSummary.partly > 0
+                  ? ` ${vivaSummary.missed + vivaSummary.partly} still need work.`
+                  : ''}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-3 text-sm">
+                <Link to={vivaHref(project)} className="link">
+                  Practise viva questions
+                </Link>
+                <Link to={studioHref(project, 'checklist')} className="link">
+                  Open the learning checklist
+                </Link>
+              </div>
+            </section>
+          ) : null}
         </div>
 
         <aside aria-label="Your report" className="space-y-4 lg:sticky lg:top-24 lg:self-start">

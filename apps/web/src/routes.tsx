@@ -28,6 +28,27 @@ const TemplateDocPage = lazy(() =>
 const LearnPage = lazy(() =>
   import('./pages/LearnPage.tsx').then((module) => ({ default: module.LearnPage })),
 );
+const ReportPage = lazy(() =>
+  import('./pages/ReportPage.tsx').then((module) => ({ default: module.ReportPage })),
+);
+const VivaHubPage = lazy(() =>
+  import('./pages/VivaHubPage.tsx').then((module) => ({ default: module.VivaHubPage })),
+);
+const LearningStudioPage = lazy(() =>
+  import('./features/learning/LearningStudioPage.tsx').then((module) => ({
+    default: module.LearningStudioPage,
+  })),
+);
+const VivaPracticePage = lazy(() =>
+  import('./features/viva/VivaPracticePage.tsx').then((module) => ({
+    default: module.VivaPracticePage,
+  })),
+);
+const ComparePage = lazy(() =>
+  import('./features/compare/ComparePage.tsx').then((module) => ({
+    default: module.ComparePage,
+  })),
+);
 const DocsIndexPage = lazy(() =>
   import('./pages/DocsPages.tsx').then((module) => ({ default: module.DocsIndexPage })),
 );
@@ -68,8 +89,14 @@ export const routes: RouteObject[] = [
           { path: 'projects/:slug', element: <ProjectPage /> },
           { path: 'projects/:slug/docs/:kind', element: load(TemplateDocPage) },
           { path: 'projects/:slug/source', element: load(SourcePage) },
+          // One route for every section, so moving between sections keeps the page (and focus).
+          { path: 'projects/:slug/learn/:section?', element: load(LearningStudioPage) },
+          { path: 'projects/:slug/viva', element: load(VivaPracticePage) },
+          { path: 'compare', element: load(ComparePage) },
           { path: 'generate', element: load(GeneratorPage) },
           { path: 'learn', element: load(LearnPage) },
+          { path: 'learn/report', element: load(ReportPage) },
+          { path: 'viva', element: load(VivaHubPage) },
           { path: 'docs', element: load(DocsIndexPage) },
           { path: 'docs/:slug', element: load(DocPage) },
           { path: '*', element: <NotFoundPage /> },

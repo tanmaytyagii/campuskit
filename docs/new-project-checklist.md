@@ -36,6 +36,13 @@ Copy this list into your pull request description and tick each item. A maintain
 - [ ] The template has no file named `GETTING_STARTED.md` or `docs/PROJECT_REPORT_DRAFT.md`; CampusKit generates those.
 - [ ] `"draft": true` is set if anything above is still missing, and removed once everything is done.
 
+## The learning guide is accurate
+
+- [ ] `packages/project-catalog/learning/<id>.json` exists and `pnpm validate:catalog` reports no problems with it.
+- [ ] Every model answer describes how this code actually works; nothing is copied from another project.
+- [ ] Viva questions cover basics, technology choices, architecture, implementation, testing, security and limitations.
+- [ ] Troubleshooting entries are specific to this stack; only problems actually seen during verification are marked `observed`.
+
 ## Verification
 
 - [ ] `pnpm verify:generated <id> --record` passed, and the updated `packages/project-catalog/verification/<id>.json` is committed. Or: the pull request says which platforms I couldn't run it on.

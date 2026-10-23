@@ -27,5 +27,6 @@ window.scrollTo = () => undefined;
 afterEach(() => {
   cleanup();
   window.localStorage.clear();
+  window.sessionStorage.clear();
   document.documentElement.classList.remove('dark');
 });

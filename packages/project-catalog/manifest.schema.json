@@ -367,6 +367,39 @@
       ],
       "additionalProperties": false
     },
+    "stack": {
+      "type": "object",
+      "properties": {
+        "backend": {
+          "type": "string",
+          "enum": [
+            "none",
+            "local-server",
+            "remote-server"
+          ]
+        },
+        "persistence": {
+          "type": "string",
+          "enum": [
+            "browser-storage",
+            "files",
+            "database",
+            "none"
+          ]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 400
+        }
+      },
+      "required": [
+        "backend",
+        "persistence",
+        "summary"
+      ],
+      "additionalProperties": false
+    },
     "network": {
       "type": "object",
       "properties": {
@@ -984,6 +1017,7 @@
     "setup",
     "testing",
     "environment",
+    "stack",
     "network",
     "media",
     "docs",

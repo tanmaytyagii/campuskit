@@ -1,0 +1,1613 @@
+{
+  "schemaVersion": 1,
+  "templateId": "attendance-system",
+  "audience": {
+    "summary": "School and college students building their first complete web application. Teachers are the imagined users: they keep a roster, mark attendance each school day and watch for students below the required percentage.",
+    "knowledge": [
+      "Basic HTML and CSS: elements, classes and forms.",
+      "JavaScript fundamentals: variables, functions, arrays, objects and arrow functions.",
+      "Reading TypeScript type annotations such as `name: string` (writing them is learned along the way).",
+      "Using a terminal to run commands such as npm install and npm run dev."
+    ]
+  },
+  "architecture": {
+    "summary": "A single-page React application with no backend. main.tsx reads src/app.config.json, the App component picks a screen from the URL hash, every data change goes through one reducer, and the AttendanceProvider saves the data to the browser's localStorage after each change. All calculations are pure functions in src/lib, so they can be tested without a browser.",
+    "layers": [
+      {
+        "id": "configuration",
+        "label": "Configuration",
+        "description": "Settings a student can change without touching code, checked when the app starts."
+      },
+      {
+        "id": "interface",
+        "label": "Screens and components",
+        "description": "What the user sees: the app shell, one view per screen and reusable components."
+      },
+      {
+        "id": "state",
+        "label": "State",
+        "description": "One reducer owns every change; a React context shares the data and saves it."
+      },
+      {
+        "id": "logic",
+        "label": "Logic",
+        "description": "Pure TypeScript functions with no React: calculations, validation, dates, CSV and demo data."
+      },
+      {
+        "id": "storage",
+        "label": "Browser storage",
+        "description": "Loading, checking and saving the data in localStorage."
+      },
+      {
+        "id": "tests",
+        "label": "Tests",
+        "description": "Vitest unit tests for the logic and Testing Library tests for whole user flows."
+      }
+    ],
+    "components": [
+      {
+        "id": "config",
+        "name": "App configuration",
+        "layer": "configuration",
+        "kind": "configuration",
+        "responsibility": "src/app.config.json holds the app name, institution, author, theme, attendance threshold and the demo-data switch. parseConfig in src/config.ts checks every value and throws a ConfigError that names the wrong setting; main.tsx shows that message instead of a blank page.",
+        "files": ["src/app.config.json", "src/config.ts", "src/main.tsx"],
+        "symbols": [
+          {
+            "file": "src/config.ts",
+            "name": "parseConfig"
+          },
+          {
+            "file": "src/config.ts",
+            "name": "applyTheme"
+          },
+          {
+            "file": "src/config.ts",
+            "name": "THEMES"
+          }
+        ]
+      },
+      {
+        "id": "app-shell",
+        "name": "App shell and navigation",
+        "layer": "interface",
+        "kind": "interface",
+        "responsibility": "App.tsx draws the header, navigation and footer, shows a banner when storage has a problem, and renders the current view. useHashRoute keeps the current screen in the URL hash, and focus moves to the page heading after navigation.",
+        "files": ["src/App.tsx", "src/lib/useHashRoute.ts"],
+        "symbols": [
+          {
+            "file": "src/App.tsx",
+            "name": "App"
+          },
+          {
+            "file": "src/App.tsx",
+            "name": "StorageBanner"
+          },
+          {
+            "file": "src/lib/useHashRoute.ts",
+            "name": "useHashRoute"
+          }
+        ]
+      },
+      {
+        "id": "views",
+        "name": "Screens",
+        "layer": "interface",
+        "kind": "interface",
+        "responsibility": "One component per screen: Dashboard, Mark attendance, Students, Records and Settings. Views read data with useAttendance, call the logic functions to compute what they show, and dispatch actions to change data.",
+        "files": [
+          "src/views/DashboardView.tsx",
+          "src/views/MarkAttendanceView.tsx",
+          "src/views/StudentsView.tsx",
+          "src/views/RecordsView.tsx",
+          "src/views/SettingsView.tsx"
+        ],
+        "symbols": [
+          {
+            "file": "src/views/MarkAttendanceView.tsx",
+            "name": "save"
+          },
+          {
+            "file": "src/views/RecordsView.tsx",
+            "name": "exportCsv"
+          },
+          {
+            "file": "src/views/SettingsView.tsx",
+            "name": "handleImport"
+          }
+        ]
+      },
+      {
+        "id": "ui-components",
+        "name": "Reusable components",
+        "layer": "interface",
+        "kind": "interface",
+        "responsibility": "The student form, the confirmation dialog (both built on the native <dialog> element), status badges, percentage bars, empty states and the notices that announce changes through an aria-live region.",
+        "files": [
+          "src/components/StudentForm.tsx",
+          "src/components/ConfirmDialog.tsx",
+          "src/components/Notices.tsx",
+          "src/components/StatusBadge.tsx",
+          "src/components/EmptyState.tsx"
+        ],
+        "symbols": [
+          {
+            "file": "src/components/StudentForm.tsx",
+            "name": "StudentForm"
+          },
+          {
+            "file": "src/components/ConfirmDialog.tsx",
+            "name": "ConfirmDialog"
+          },
+          {
+            "file": "src/components/Notices.tsx",
+            "name": "useNotify"
+          }
+        ]
+      },
+      {
+        "id": "state",
+        "name": "Reducer and context",
+        "layer": "state",
+        "kind": "state",
+        "responsibility": "attendanceReducer is the only place data changes: add, update and delete students, save a day's attendance, or replace everything. AttendanceProvider holds the data with useReducer, saves it in an effect after every change and exposes it through the useAttendance hook.",
+        "files": ["src/state/reducer.ts", "src/state/AttendanceContext.tsx"],
+        "symbols": [
+          {
+            "file": "src/state/reducer.ts",
+            "name": "attendanceReducer"
+          },
+          {
+            "file": "src/state/AttendanceContext.tsx",
+            "name": "AttendanceProvider"
+          },
+          {
+            "file": "src/state/AttendanceContext.tsx",
+            "name": "useAttendance"
+          }
+        ]
+      },
+      {
+        "id": "calculations",
+        "name": "Attendance calculations",
+        "layer": "logic",
+        "kind": "logic",
+        "responsibility": "Every number on screen comes from here: per-student and per-class counts, percentages rounded to one decimal place, students below the threshold, recorded dates, sorting and search.",
+        "files": ["src/lib/attendance.ts"],
+        "symbols": [
+          {
+            "file": "src/lib/attendance.ts",
+            "name": "attendancePercentage"
+          },
+          {
+            "file": "src/lib/attendance.ts",
+            "name": "summarizeStudent"
+          },
+          {
+            "file": "src/lib/attendance.ts",
+            "name": "summarizeClasses"
+          }
+        ]
+      },
+      {
+        "id": "validation",
+        "name": "Validation and dates",
+        "layer": "logic",
+        "kind": "logic",
+        "responsibility": "validateStudentInput checks names, roll numbers and classes and rejects duplicate roll numbers in a class. dates.ts builds local YYYY-MM-DD keys and rejects impossible dates such as 2026-02-30.",
+        "files": ["src/lib/validation.ts", "src/lib/dates.ts"],
+        "symbols": [
+          {
+            "file": "src/lib/validation.ts",
+            "name": "validateStudentInput"
+          },
+          {
+            "file": "src/lib/dates.ts",
+            "name": "toDateKey"
+          },
+          {
+            "file": "src/lib/dates.ts",
+            "name": "isValidDateKey"
+          }
+        ]
+      },
+      {
+        "id": "export",
+        "name": "CSV and file downloads",
+        "layer": "logic",
+        "kind": "logic",
+        "responsibility": "Builds CSV text with RFC 4180 quoting, neutralises cells that a spreadsheet would run as formulas, and starts browser downloads for CSV exports and JSON backups.",
+        "files": ["src/lib/csv.ts"],
+        "symbols": [
+          {
+            "file": "src/lib/csv.ts",
+            "name": "escapeCsvCell"
+          },
+          {
+            "file": "src/lib/csv.ts",
+            "name": "toCsv"
+          },
+          {
+            "file": "src/lib/csv.ts",
+            "name": "downloadTextFile"
+          }
+        ]
+      },
+      {
+        "id": "demo-data",
+        "name": "Demo class",
+        "layer": "logic",
+        "kind": "logic",
+        "responsibility": "Creates a fictional class of 12 students with ten school days of attendance, two of them below 75 %, for the first run and for Settings → Load demo data.",
+        "files": ["src/lib/demo-data.ts"],
+        "symbols": [
+          {
+            "file": "src/lib/demo-data.ts",
+            "name": "createDemoData"
+          },
+          {
+            "file": "src/lib/demo-data.ts",
+            "name": "createEmptyData"
+          }
+        ]
+      },
+      {
+        "id": "storage",
+        "name": "localStorage persistence",
+        "layer": "storage",
+        "kind": "storage",
+        "responsibility": "Loads the saved JSON under the key campuskit-attendance:v1, checks every field with validateData before using it, keeps unreadable data under a backup key, and saves the data after each change.",
+        "files": ["src/lib/storage.ts"],
+        "symbols": [
+          {
+            "file": "src/lib/storage.ts",
+            "name": "loadData"
+          },
+          {
+            "file": "src/lib/storage.ts",
+            "name": "validateData"
+          },
+          {
+            "file": "src/lib/storage.ts",
+            "name": "saveData"
+          }
+        ]
+      },
+      {
+        "id": "tests",
+        "name": "Automated tests",
+        "layer": "tests",
+        "kind": "tests",
+        "responsibility": "Unit tests check the calculations, dates, CSV escaping, validation, configuration, demo data and storage recovery. App.test.tsx renders the whole app in jsdom and acts like a user: adding, editing, searching and deleting students and saving attendance.",
+        "files": [
+          "src/App.test.tsx",
+          "src/lib/attendance.test.ts",
+          "src/lib/helpers.test.ts",
+          "src/lib/storage.test.ts"
+        ],
+        "symbols": []
+      }
+    ],
+    "connections": [
+      {
+        "from": "config",
+        "to": "app-shell",
+        "label": "passes the checked settings (name, institution, threshold, demo data)"
+      },
+      {
+        "from": "app-shell",
+        "to": "views",
+        "label": "renders the screen named in the URL hash"
+      },
+      {
+        "from": "views",
+        "to": "ui-components",
+        "label": "use the form, dialogs, badges and notices"
+      },
+      {
+        "from": "views",
+        "to": "state",
+        "label": "read data and dispatch actions"
+      },
+      {
+        "from": "views",
+        "to": "calculations",
+        "label": "compute percentages, summaries and filters"
+      },
+      {
+        "from": "views",
+        "to": "validation",
+        "label": "check form input and dates"
+      },
+      {
+        "from": "views",
+        "to": "export",
+        "label": "build CSV exports and JSON backups"
+      },
+      {
+        "from": "state",
+        "to": "demo-data",
+        "label": "creates the demo class when nothing is saved and seedDemoData is true"
+      },
+      {
+        "from": "state",
+        "to": "storage",
+        "label": "loads on start-up and saves after every change"
+      },
+      {
+        "from": "storage",
+        "to": "validation",
+        "label": "checks saved dates with isValidDateKey"
+      },
+      {
+        "from": "tests",
+        "to": "calculations",
+        "label": "unit tests with hand-checked numbers"
+      },
+      {
+        "from": "tests",
+        "to": "app-shell",
+        "label": "component tests render the whole app"
+      }
+    ],
+    "flows": [
+      {
+        "id": "save-attendance",
+        "title": "Saving a day's attendance",
+        "steps": [
+          {
+            "component": "views",
+            "text": "On Mark attendance, each click changes a draft held in the component's own state; nothing is saved yet."
+          },
+          {
+            "component": "views",
+            "text": "Save calls dispatch({ type: 'attendance/save', date, marks }) with the marks of the students shown."
+          },
+          {
+            "component": "state",
+            "text": "attendanceReducer merges the marks into a new attendance object for that date; the old object is not changed."
+          },
+          {
+            "component": "storage",
+            "text": "The effect in AttendanceProvider sees the new data and calls saveData, which writes JSON to localStorage."
+          },
+          {
+            "component": "ui-components",
+            "text": "useNotify shows “Attendance saved for …”, which screen readers announce through the aria-live region."
+          }
+        ]
+      },
+      {
+        "id": "start-up",
+        "title": "Starting the app",
+        "steps": [
+          {
+            "component": "config",
+            "text": "main.tsx calls loadConfig; if a setting is invalid it shows “Configuration problem.” with the reason and stops."
+          },
+          {
+            "component": "config",
+            "text": "applyTheme writes the theme's colours into CSS custom properties that styles.css uses."
+          },
+          {
+            "component": "storage",
+            "text": "AttendanceProvider calls loadData, which parses the saved JSON and runs validateData on it."
+          },
+          {
+            "component": "demo-data",
+            "text": "If nothing was saved (or the data was unreadable) and seedDemoData is true, createDemoData provides a sample class."
+          },
+          {
+            "component": "app-shell",
+            "text": "useHashRoute reads the hash, for example #/records, and App renders that screen."
+          }
+        ]
+      },
+      {
+        "id": "percentage",
+        "title": "Calculating a student's percentage",
+        "steps": [
+          {
+            "component": "views",
+            "text": "The Dashboard and Students screens ask for summaries of every student."
+          },
+          {
+            "component": "calculations",
+            "text": "summarizeStudent counts the student's present, late and absent marks on every recorded date in range."
+          },
+          {
+            "component": "calculations",
+            "text": "attendancePercentage returns (present + late) / days marked × 100, rounded to one decimal place, or null when there are no marks."
+          },
+          {
+            "component": "views",
+            "text": "A student is flagged when the percentage is below attendanceThreshold from app.config.json; null is never flagged."
+          }
+        ]
+      }
+    ]
+  },
+  "walkthrough": [
+    {
+      "id": "types",
+      "title": "The data model",
+      "file": "src/types.ts",
+      "role": "Defines the shape of students and attendance, shared by every other file.",
+      "explanation": "A Student has a random id, a roll number that is unique within a class, a name, a class name and a creation time. Attendance is stored per date, then per student id: { \"2026-10-20\": { \"student-id\": \"present\" } }. AttendanceData wraps both with a version number so a future release can migrate old saved data.",
+      "symbols": [
+        {
+          "name": "AttendanceStatus",
+          "explanation": "A union type: only 'present', 'absent' or 'late' are allowed, so a misspelt status is a type error."
+        },
+        {
+          "name": "Student",
+          "explanation": "The fields stored for each student; rollNumber is unique within className."
+        },
+        {
+          "name": "AttendanceByDate",
+          "explanation": "Record<date, Record<studentId, AttendanceStatus>>: one update saves a whole day, and it is easy to see whether a date was recorded."
+        },
+        {
+          "name": "AttendanceData",
+          "explanation": "Everything the app saves: version, students and attendance."
+        }
+      ],
+      "related": ["src/state/reducer.ts", "src/lib/storage.ts"],
+      "tests": []
+    },
+    {
+      "id": "config",
+      "title": "Configuration and themes",
+      "file": "src/config.ts",
+      "role": "Reads src/app.config.json, checks each value and applies the colour theme.",
+      "explanation": "The generator writes your choices into src/app.config.json. parseConfig turns that unknown JSON into a typed AppConfig, trimming text and rejecting anything invalid with a ConfigError that names the setting. applyTheme copies the chosen theme's colours from THEMES into CSS custom properties, so styles.css never needs to change.",
+      "symbols": [
+        {
+          "name": "THEMES",
+          "explanation": "The four accent colour sets (indigo, teal, rose, amber) that the theme setting can choose."
+        },
+        {
+          "name": "parseConfig",
+          "explanation": "Validates every setting: text fields, a theme that exists in THEMES, a whole-number threshold from 1 to 100 and a true/false demo-data switch."
+        },
+        {
+          "name": "applyTheme",
+          "explanation": "Sets --accent, --accent-strong and the soft accent colours on the root element."
+        },
+        {
+          "name": "ConfigError",
+          "explanation": "An error whose message starts with “src/app.config.json:” and names the problem."
+        }
+      ],
+      "related": ["src/app.config.json", "src/main.tsx", "src/styles.css"],
+      "tests": ["src/lib/helpers.test.ts"]
+    },
+    {
+      "id": "main",
+      "title": "Start-up",
+      "file": "src/main.tsx",
+      "role": "The entry point: loads the configuration, applies the theme and renders the App.",
+      "explanation": "main.tsx runs once when the page loads. Inside a try block it calls loadConfig, applies the theme, sets the page title and renders <App> in React's StrictMode. If the configuration is invalid, the catch block renders a “Configuration problem.” banner with the ConfigError message, so a typo in app.config.json explains itself instead of showing a blank page.",
+      "symbols": [],
+      "related": ["src/config.ts", "src/App.tsx", "index.html"],
+      "tests": []
+    },
+    {
+      "id": "app",
+      "title": "The app shell",
+      "file": "src/App.tsx",
+      "role": "Header, navigation, storage banner, the current screen and the footer.",
+      "explanation": "App wraps everything in AttendanceProvider (data) and NoticeProvider (announcements). It reads the current screen from useHashRoute, updates document.title and moves keyboard focus to the page heading when the screen changes. StorageBanner shows a message when saved data was unreadable, storage is blocked or a save failed.",
+      "symbols": [
+        {
+          "name": "App",
+          "explanation": "Takes the checked config (and, in tests, an injected storage object) and lays out the page."
+        },
+        {
+          "name": "StorageBanner",
+          "explanation": "Shows one of three messages depending on storageState.kind: recovered, unavailable or save-failed."
+        },
+        {
+          "name": "CurrentView",
+          "explanation": "Chooses which view component to render for the current hash."
+        }
+      ],
+      "related": [
+        "src/lib/useHashRoute.ts",
+        "src/state/AttendanceContext.tsx",
+        "src/components/Notices.tsx"
+      ],
+      "tests": ["src/App.test.tsx"]
+    },
+    {
+      "id": "router",
+      "title": "Hash-based navigation",
+      "file": "src/lib/useHashRoute.ts",
+      "role": "A tiny router: the current screen lives in the URL hash, such as #/students.",
+      "explanation": "Instead of adding a routing library, the app keeps the screen name in window.location.hash. readView turns the hash into a known view id (falling back to the dashboard) and useHashRoute listens for the browser's hashchange event. Links, refreshing the page and the back button all keep working.",
+      "symbols": [
+        {
+          "name": "VIEWS",
+          "explanation": "The five screens with their ids and labels; the navigation is drawn from this list."
+        },
+        {
+          "name": "readView",
+          "explanation": "Reads the hash and returns a valid view id, or 'dashboard' for anything unknown."
+        },
+        {
+          "name": "useHashRoute",
+          "explanation": "A custom hook that stores the view in state and updates it on hashchange."
+        }
+      ],
+      "related": ["src/App.tsx"],
+      "tests": ["src/App.test.tsx"]
+    },
+    {
+      "id": "reducer",
+      "title": "The reducer",
+      "file": "src/state/reducer.ts",
+      "role": "The only function that changes the app's data.",
+      "explanation": "attendanceReducer is a pure function: given the current data and an action, it returns new data without modifying the old object. Deleting a student also removes that student's marks from every date and drops dates left with no marks, so the saved data never refers to a missing student.",
+      "symbols": [
+        {
+          "name": "AttendanceAction",
+          "explanation": "The five possible actions, as a discriminated union on the type field."
+        },
+        {
+          "name": "attendanceReducer",
+          "explanation": "A switch over action.type that returns a new AttendanceData for each action."
+        }
+      ],
+      "related": ["src/state/AttendanceContext.tsx", "src/types.ts"],
+      "tests": ["src/App.test.tsx"]
+    },
+    {
+      "id": "context",
+      "title": "Sharing and saving the data",
+      "file": "src/state/AttendanceContext.tsx",
+      "role": "Holds the data with useReducer, saves it after every change and shares it through context.",
+      "explanation": "AttendanceProvider loads the saved data once, falls back to demo or empty data, and keeps it in useReducer. An effect runs saveData whenever the data changes and records whether it worked. The storageState value tells App whether to show a banner. Components call useAttendance to get data and dispatch without passing props through every level.",
+      "symbols": [
+        {
+          "name": "AttendanceProvider",
+          "explanation": "The context provider; it accepts an injected storage object so tests can use a fake one."
+        },
+        {
+          "name": "initialData",
+          "explanation": "Uses the loaded data, or demo data when seedDemoData is true, or an empty roster."
+        },
+        {
+          "name": "useAttendance",
+          "explanation": "The hook every view uses; it throws a clear error if used outside the provider."
+        },
+        {
+          "name": "StorageState",
+          "explanation": "ok, recovered, unavailable or save-failed, each with a reason the banner shows."
+        }
+      ],
+      "related": ["src/state/reducer.ts", "src/lib/storage.ts", "src/lib/demo-data.ts"],
+      "tests": ["src/App.test.tsx"]
+    },
+    {
+      "id": "storage",
+      "title": "Loading and saving in localStorage",
+      "file": "src/lib/storage.ts",
+      "role": "Reads and writes the data under one localStorage key, never trusting what is stored.",
+      "explanation": "loadData parses the saved JSON inside try/catch and runs validateData, which checks the version, every student field, unique ids, every date and every status. Marks for students that no longer exist are dropped. If anything is wrong, the raw value is copied to a backup key and the app starts fresh, so bad data can't crash it. getBrowserStorage returns null when the browser blocks storage.",
+      "symbols": [
+        {
+          "name": "STORAGE_KEY",
+          "explanation": "campuskit-attendance:v1: the key you can find in the browser's developer tools."
+        },
+        {
+          "name": "BACKUP_KEY",
+          "explanation": "Where unreadable data is kept instead of being thrown away."
+        },
+        {
+          "name": "validateData",
+          "explanation": "Returns clean AttendanceData, or a sentence describing the first problem."
+        },
+        {
+          "name": "loadData",
+          "explanation": "Returns empty, loaded, invalid (with a reason) or unavailable."
+        },
+        {
+          "name": "saveData",
+          "explanation": "Writes JSON and reports failures, for example when storage is full."
+        }
+      ],
+      "related": ["src/state/AttendanceContext.tsx", "src/lib/dates.ts"],
+      "tests": ["src/lib/storage.test.ts"]
+    },
+    {
+      "id": "calculations",
+      "title": "Attendance calculations",
+      "file": "src/lib/attendance.ts",
+      "role": "Pure functions that produce every number the app shows.",
+      "explanation": "The rule is the same everywhere: a student's percentage is (days present + days late) / days marked × 100, rounded to one decimal place. Days with no mark for a student, for example before they joined, are not counted. These functions take plain data and return plain data, so they are tested without React.",
+      "symbols": [
+        {
+          "name": "attendancePercentage",
+          "explanation": "Returns null instead of 0 % when a student has no marks, so new students aren't flagged."
+        },
+        {
+          "name": "summarizeStudent",
+          "explanation": "Counts one student's marks on every date in an optional range and flags them against the threshold."
+        },
+        {
+          "name": "overallCounts",
+          "explanation": "Counts all marks for a set of students, used for overall and per-class attendance."
+        },
+        {
+          "name": "countsForDate",
+          "explanation": "How many students are present, late, absent or still unmarked on one date."
+        },
+        {
+          "name": "summarizeClasses",
+          "explanation": "Groups students by class and computes each class's percentage."
+        },
+        {
+          "name": "matchesSearch",
+          "explanation": "Case-insensitive search by name or roll number."
+        }
+      ],
+      "related": ["src/views/DashboardView.tsx", "src/views/StudentsView.tsx"],
+      "tests": ["src/lib/attendance.test.ts"]
+    },
+    {
+      "id": "validation",
+      "title": "Validating student details",
+      "file": "src/lib/validation.ts",
+      "role": "Form rules for adding and editing students.",
+      "explanation": "normalizeStudentInput trims spaces and collapses repeated spaces. validateStudentInput returns one message per invalid field: names need 2 to 60 characters without control characters, roll numbers allow letters, numbers, spaces and . / _ -, and a roll number may appear only once per class, compared case-insensitively. The student being edited is ignored, so saving without changes isn't a duplicate.",
+      "symbols": [
+        {
+          "name": "normalizeStudentInput",
+          "explanation": "Cleans the typed values before they are checked or saved."
+        },
+        {
+          "name": "validateStudentInput",
+          "explanation": "Returns StudentErrors: an object with a message for each invalid field."
+        }
+      ],
+      "related": ["src/components/StudentForm.tsx", "src/views/StudentsView.tsx"],
+      "tests": ["src/lib/helpers.test.ts"]
+    },
+    {
+      "id": "dates",
+      "title": "Local dates",
+      "file": "src/lib/dates.ts",
+      "role": "Dates as local YYYY-MM-DD strings.",
+      "explanation": "toDateKey builds the key from getFullYear, getMonth and getDate, so attendance marked late in the evening is saved for the right day in every time zone; toISOString would use UTC and could shift it to the next day in India. parseDateKey rejects impossible dates by building a Date and checking it formats back to the same key.",
+      "symbols": [
+        {
+          "name": "toDateKey",
+          "explanation": "Date → \"YYYY-MM-DD\" using local date parts."
+        },
+        {
+          "name": "parseDateKey",
+          "explanation": "\"YYYY-MM-DD\" → Date, or null for impossible dates such as 2026-02-30."
+        },
+        {
+          "name": "isValidDateKey",
+          "explanation": "A yes/no wrapper used by forms and validateData."
+        },
+        {
+          "name": "previousWeekdays",
+          "explanation": "The most recent school days (Monday to Friday), used to build the demo class."
+        }
+      ],
+      "related": ["src/lib/storage.ts", "src/lib/demo-data.ts"],
+      "tests": ["src/lib/helpers.test.ts"]
+    },
+    {
+      "id": "csv",
+      "title": "CSV export",
+      "file": "src/lib/csv.ts",
+      "role": "Safe CSV text and browser downloads.",
+      "explanation": "escapeCsvCell quotes values that contain commas, quotes or line breaks (RFC 4180) and prefixes cells starting with =, +, - or @ with an apostrophe, so a spreadsheet treats them as text instead of running them as formulas. downloadTextFile adds a byte-order mark so Excel reads UTF-8 names correctly.",
+      "symbols": [
+        {
+          "name": "escapeCsvCell",
+          "explanation": "Formula-injection protection and quoting for one cell."
+        },
+        {
+          "name": "toCsv",
+          "explanation": "Joins a header and rows with CRLF line endings."
+        },
+        {
+          "name": "downloadTextFile",
+          "explanation": "Creates a Blob and a temporary link to start a download."
+        }
+      ],
+      "related": ["src/views/RecordsView.tsx", "src/views/SettingsView.tsx"],
+      "tests": ["src/lib/helpers.test.ts"]
+    },
+    {
+      "id": "mark-attendance",
+      "title": "Marking attendance",
+      "file": "src/views/MarkAttendanceView.tsx",
+      "role": "The screen where a day's attendance is marked, corrected and saved.",
+      "explanation": "The view keeps a draft of marks in its own state so changes can be made freely before saving. It compares the draft with the saved marks to know whether there are unsaved changes, and asks for confirmation before switching to another date with unsaved changes. Future dates are rejected.",
+      "symbols": [
+        {
+          "name": "MarkAttendanceView",
+          "explanation": "Holds the selected date, the class filter and the draft marks."
+        },
+        {
+          "name": "requestDate",
+          "explanation": "Switches date, or asks first when the draft has unsaved changes."
+        },
+        {
+          "name": "markAllPresent",
+          "explanation": "Sets every visible student to present in the draft."
+        },
+        {
+          "name": "save",
+          "explanation": "Dispatches 'attendance/save' with the marked students and announces the result."
+        }
+      ],
+      "related": ["src/state/reducer.ts", "src/components/ConfirmDialog.tsx"],
+      "tests": ["src/App.test.tsx"]
+    },
+    {
+      "id": "student-form",
+      "title": "The student form",
+      "file": "src/components/StudentForm.tsx",
+      "role": "An accessible add/edit form in a native dialog.",
+      "explanation": "The form opens with showModal on a native <dialog>, which traps focus and closes with Escape. On submit it runs validateStudentInput; each error is shown next to its field, linked with aria-describedby, and focus moves to the first invalid field.",
+      "symbols": [
+        {
+          "name": "StudentForm",
+          "explanation": "Receives the student being edited (or null) and calls onSave with clean input."
+        }
+      ],
+      "related": ["src/lib/validation.ts", "src/views/StudentsView.tsx"],
+      "tests": ["src/App.test.tsx"]
+    },
+    {
+      "id": "settings",
+      "title": "Backups and demo data",
+      "file": "src/views/SettingsView.tsx",
+      "role": "Export and import JSON backups, load the demo class or delete all data.",
+      "explanation": "exportBackup downloads the current data as JSON. handleImport rejects files over 5 MB, parses the JSON and runs the same validateData used at start-up before asking for confirmation, so an edited or damaged backup is refused with a reason. Every destructive action goes through a confirmation dialog.",
+      "symbols": [
+        {
+          "name": "exportBackup",
+          "explanation": "Downloads the data as a dated .json file."
+        },
+        {
+          "name": "handleImport",
+          "explanation": "Reads the chosen file, validates it and stores it as a pending import."
+        },
+        {
+          "name": "confirmPending",
+          "explanation": "Runs the confirmed action: load demo data, delete all data or import."
+        }
+      ],
+      "related": ["src/lib/storage.ts", "src/lib/demo-data.ts", "src/lib/csv.ts"],
+      "tests": []
+    },
+    {
+      "id": "demo-data",
+      "title": "The demo class",
+      "file": "src/lib/demo-data.ts",
+      "role": "A fictional class for the first run and for Load demo data.",
+      "explanation": "createDemoData builds 12 fictional students in two classes and ten school days of attendance ending the day before today. Each student follows a pattern of absences and late arrivals, offset so they don't all fall on one day, which gives two students below 75 %.",
+      "symbols": [
+        {
+          "name": "DEMO_STUDENTS",
+          "explanation": "The invented names, roll numbers and classes."
+        },
+        {
+          "name": "PATTERNS",
+          "explanation": "How often each demo student is absent or late."
+        },
+        {
+          "name": "createDemoData",
+          "explanation": "Builds the students and attendance relative to a reference date."
+        },
+        {
+          "name": "createEmptyData",
+          "explanation": "An empty roster, used when demo data is off."
+        }
+      ],
+      "related": ["src/lib/dates.ts", "src/state/AttendanceContext.tsx"],
+      "tests": ["src/lib/helpers.test.ts"]
+    }
+  ],
+  "checklist": [
+    {
+      "id": "setup-run",
+      "area": "setup",
+      "text": "Install the dependencies and start the app with npm install and npm run dev.",
+      "how": "Open the address Vite prints and click through all five screens."
+    },
+    {
+      "id": "setup-tests",
+      "area": "setup",
+      "text": "Run the automated tests with npm test and read the summary.",
+      "how": "Count how many test files and tests ran, and find one test name you recognise."
+    },
+    {
+      "id": "architecture-layers",
+      "area": "architecture",
+      "text": "Draw the layers from memory: configuration, screens, state, logic and browser storage.",
+      "how": "Compare your drawing with the Architecture tab and docs/ARCHITECTURE.md.",
+      "file": "docs/ARCHITECTURE.md"
+    },
+    {
+      "id": "architecture-lib",
+      "area": "architecture",
+      "text": "Explain why the calculations live in src/lib instead of inside the components.",
+      "file": "src/lib/attendance.ts"
+    },
+    {
+      "id": "functionality-flow",
+      "area": "functionality",
+      "text": "Add a student, mark today's attendance and find the new percentage on the Students screen.",
+      "how": "Then explain which functions ran, starting from the Save button."
+    },
+    {
+      "id": "functionality-draft",
+      "area": "functionality",
+      "text": "Explain how the Mark attendance screen keeps a draft and warns about unsaved changes.",
+      "file": "src/views/MarkAttendanceView.tsx"
+    },
+    {
+      "id": "data-model",
+      "area": "data",
+      "text": "Describe AttendanceData and why attendance is stored by date, then by student id.",
+      "file": "src/types.ts"
+    },
+    {
+      "id": "data-storage",
+      "area": "data",
+      "text": "Find the campuskit-attendance:v1 key in your browser's developer tools and explain what is saved.",
+      "how": "Developer tools → Application (or Storage) → Local Storage → your localhost address."
+    },
+    {
+      "id": "validation-duplicate",
+      "area": "validation",
+      "text": "Trigger the duplicate roll number error and explain where the message comes from.",
+      "file": "src/lib/validation.ts"
+    },
+    {
+      "id": "validation-corrupt",
+      "area": "validation",
+      "text": "Explain what happens when the saved data is corrupted: loadData, validateData and the backup key.",
+      "file": "src/lib/storage.ts"
+    },
+    {
+      "id": "testing-read",
+      "area": "testing",
+      "text": "Read one test in src/lib/attendance.test.ts and explain what it checks and why the expected number is right.",
+      "file": "src/lib/attendance.test.ts"
+    },
+    {
+      "id": "testing-break",
+      "area": "testing",
+      "text": "Change the percentage rule on purpose, run npm test, see which tests fail, then undo the change.",
+      "how": "This shows you know which tests protect which behaviour."
+    },
+    {
+      "id": "limitations-list",
+      "area": "limitations",
+      "text": "List at least three limitations: one browser only, no accounts, attendance once per day, about 5 MB of storage."
+    },
+    {
+      "id": "limitations-school",
+      "area": "limitations",
+      "text": "Explain why localStorage is not suitable for a whole school's attendance."
+    },
+    {
+      "id": "improvements-period",
+      "area": "improvements",
+      "text": "Describe how you would record attendance per period or subject, starting with the data model.",
+      "file": "src/types.ts"
+    },
+    {
+      "id": "improvements-backend",
+      "area": "improvements",
+      "text": "Sketch the database tables you would use with a backend, as in docs/ARCHITECTURE.md.",
+      "file": "docs/ARCHITECTURE.md"
+    }
+  ],
+  "viva": [
+    {
+      "id": "problem",
+      "category": "basics",
+      "difficulty": "easy",
+      "question": "What problem does this project solve, and who is it for?",
+      "answer": "It helps teachers record daily attendance and spot students who miss too many classes. It keeps a roster, records Present, Late or Absent for each school day and calculates each student's attendance percentage, flagging anyone below the threshold (75 % by default).",
+      "keyConcepts": [
+        {
+          "label": "Daily attendance records",
+          "terms": ["attendance", "present", "absent", "daily"]
+        },
+        {
+          "label": "Attendance percentage",
+          "terms": ["percentage", "percent"]
+        },
+        {
+          "label": "Threshold flagging",
+          "terms": ["threshold", "below", "flag", "75"]
+        }
+      ],
+      "files": ["README.md"],
+      "symbols": []
+    },
+    {
+      "id": "react-typescript",
+      "category": "technology",
+      "difficulty": "easy",
+      "question": "Why did you choose React and TypeScript?",
+      "answer": "React builds the interface from reusable components that re-render automatically when the data changes. TypeScript adds types such as Student and AttendanceStatus, so mistakes like a misspelt status are caught before the app runs.",
+      "explanation": "Point to src/types.ts: AttendanceStatus only allows 'present', 'absent' and 'late', so writing 'presnt' anywhere is a compile-time error rather than a silent bug.",
+      "keyConcepts": [
+        {
+          "label": "Reusable components",
+          "terms": ["component", "reusable"]
+        },
+        {
+          "label": "Automatic re-rendering",
+          "terms": ["re-render", "rerender", "render", "update"]
+        },
+        {
+          "label": "Types catch mistakes early",
+          "terms": ["type", "typescript", "compile", "error"]
+        }
+      ],
+      "files": ["src/types.ts"],
+      "symbols": [
+        {
+          "file": "src/types.ts",
+          "name": "AttendanceStatus"
+        }
+      ]
+    },
+    {
+      "id": "vite",
+      "category": "technology",
+      "difficulty": "medium",
+      "question": "What does Vite do in this project?",
+      "answer": "Vite runs the development server for npm run dev, reloading the page as you edit, and bundles the code into optimised files in dist for npm run build. Before building, the build script runs tsc --noEmit so type errors stop the build; the dev server itself doesn't type-check.",
+      "keyConcepts": [
+        {
+          "label": "Development server",
+          "terms": ["dev server", "development", "npm run dev", "reload"]
+        },
+        {
+          "label": "Production bundle",
+          "terms": ["bundle", "build", "dist", "optimis", "optimiz"]
+        },
+        {
+          "label": "Type check before building",
+          "terms": ["tsc", "type-check", "type check", "noemit"]
+        }
+      ],
+      "files": ["package.json", "vite.config.ts"],
+      "symbols": []
+    },
+    {
+      "id": "storage-security",
+      "category": "security",
+      "difficulty": "medium",
+      "question": "Where is the data stored, and is it secure?",
+      "answer": "In the browser's localStorage under the key campuskit-attendance:v1. It never leaves the computer, which protects privacy, but anyone using the same browser profile can read or change it and there are no accounts. A real school would need a server with authentication and access control.",
+      "keyConcepts": [
+        {
+          "label": "localStorage in the browser",
+          "terms": ["localstorage", "local storage", "browser"]
+        },
+        {
+          "label": "Data stays on the computer",
+          "terms": ["never leaves", "privacy", "private", "local"]
+        },
+        {
+          "label": "No accounts or access control",
+          "terms": ["account", "login", "authentication", "access"]
+        }
+      ],
+      "files": ["src/lib/storage.ts"],
+      "symbols": [
+        {
+          "file": "src/lib/storage.ts",
+          "name": "STORAGE_KEY"
+        }
+      ]
+    },
+    {
+      "id": "percentage",
+      "category": "implementation",
+      "difficulty": "medium",
+      "question": "How is a student's attendance percentage calculated?",
+      "answer": "(present + late) / days marked × 100, rounded to one decimal place. Late counts as attended. Days without a mark for that student are not counted, so someone who joined later isn't penalised, and a student with no marks shows “No marks yet” instead of 0 %.",
+      "keyConcepts": [
+        {
+          "label": "Late counts as attended",
+          "terms": ["late"]
+        },
+        {
+          "label": "Only marked days count",
+          "terms": ["marked", "no mark", "not counted", "joined"]
+        },
+        {
+          "label": "Rounded to one decimal",
+          "terms": ["round", "decimal"]
+        },
+        {
+          "label": "No marks gives no percentage",
+          "terms": ["null", "no marks", "0 %", "0%"]
+        }
+      ],
+      "files": ["src/lib/attendance.ts"],
+      "symbols": [
+        {
+          "file": "src/lib/attendance.ts",
+          "name": "attendancePercentage"
+        }
+      ]
+    },
+    {
+      "id": "reducer",
+      "category": "architecture",
+      "difficulty": "medium",
+      "question": "What is a reducer, and why does this app use one?",
+      "answer": "A reducer is a pure function (state, action) → new state. Every change — adding, editing or deleting a student, saving attendance, importing — goes through attendanceReducer. One place for updates makes the logic easy to test and stops components changing data inconsistently.",
+      "keyConcepts": [
+        {
+          "label": "Pure function",
+          "terms": ["pure"]
+        },
+        {
+          "label": "State and action in, new state out",
+          "terms": ["action", "new state", "dispatch"]
+        },
+        {
+          "label": "One place for every change",
+          "terms": ["one place", "single", "every change", "centrali"]
+        }
+      ],
+      "files": ["src/state/reducer.ts"],
+      "symbols": [
+        {
+          "file": "src/state/reducer.ts",
+          "name": "attendanceReducer"
+        }
+      ]
+    },
+    {
+      "id": "context",
+      "category": "architecture",
+      "difficulty": "medium",
+      "question": "How do the screens get the data they need?",
+      "answer": "Through React Context. AttendanceProvider keeps the data in useReducer and shares it with the useAttendance hook, so any view can read data or dispatch actions without passing props through every level.",
+      "keyConcepts": [
+        {
+          "label": "React Context",
+          "terms": ["context", "provider"]
+        },
+        {
+          "label": "useReducer holds the data",
+          "terms": ["usereducer", "reducer"]
+        },
+        {
+          "label": "A custom hook",
+          "terms": ["useattendance", "hook"]
+        },
+        {
+          "label": "No prop drilling",
+          "terms": ["props", "prop drilling", "every level"]
+        }
+      ],
+      "files": ["src/state/AttendanceContext.tsx"],
+      "symbols": [
+        {
+          "file": "src/state/AttendanceContext.tsx",
+          "name": "AttendanceProvider"
+        },
+        {
+          "file": "src/state/AttendanceContext.tsx",
+          "name": "useAttendance"
+        }
+      ]
+    },
+    {
+      "id": "corrupted-data",
+      "category": "implementation",
+      "difficulty": "hard",
+      "question": "What happens if the saved data is corrupted?",
+      "answer": "loadData parses the JSON inside try/catch and validateData checks every field: ids, dates and statuses. If anything is wrong, the app starts with fresh data, copies the unreadable value to a backup key and shows a banner with the reason. Bad data is never used, so the app can't crash on it.",
+      "explanation": "The banner text comes from StorageBanner in App.tsx (kind 'recovered'). The backup key is campuskit-attendance:v1:unreadable-backup, so nothing is silently lost.",
+      "keyConcepts": [
+        {
+          "label": "Parsing inside try/catch",
+          "terms": ["try", "catch", "parse"]
+        },
+        {
+          "label": "Field-by-field validation",
+          "terms": ["validatedata", "validate", "check"]
+        },
+        {
+          "label": "Backup of the unreadable value",
+          "terms": ["backup"]
+        },
+        {
+          "label": "Fresh start with a message",
+          "terms": ["fresh", "banner", "message", "start"]
+        }
+      ],
+      "files": ["src/lib/storage.ts", "src/App.tsx"],
+      "symbols": [
+        {
+          "file": "src/lib/storage.ts",
+          "name": "loadData"
+        },
+        {
+          "file": "src/lib/storage.ts",
+          "name": "validateData"
+        }
+      ]
+    },
+    {
+      "id": "duplicate-roll",
+      "category": "implementation",
+      "difficulty": "easy",
+      "question": "How do you prevent duplicate roll numbers?",
+      "answer": "validateStudentInput compares the roll number and class with existing students, ignoring case and ignoring the student being edited. If they match, the form shows the error next to the roll number field and moves focus there.",
+      "keyConcepts": [
+        {
+          "label": "Checked within the same class",
+          "terms": ["class"]
+        },
+        {
+          "label": "Case-insensitive comparison",
+          "terms": ["case"]
+        },
+        {
+          "label": "Ignores the student being edited",
+          "terms": ["edit", "editing", "ignore"]
+        }
+      ],
+      "files": ["src/lib/validation.ts", "src/components/StudentForm.tsx"],
+      "symbols": [
+        {
+          "file": "src/lib/validation.ts",
+          "name": "validateStudentInput"
+        }
+      ]
+    },
+    {
+      "id": "date-strings",
+      "category": "data-structures",
+      "difficulty": "medium",
+      "question": "Why are dates stored as YYYY-MM-DD strings built from local date parts?",
+      "answer": "Strings in this format sort and compare like the dates they represent, so date ranges are simple string comparisons. They are built with getFullYear, getMonth and getDate; toISOString would use UTC and can move late-evening attendance to the next day in time zones such as IST.",
+      "keyConcepts": [
+        {
+          "label": "Sorts and compares as text",
+          "terms": ["sort", "compare", "range"]
+        },
+        {
+          "label": "Local date parts",
+          "terms": ["local", "getfullyear", "getdate"]
+        },
+        {
+          "label": "UTC shift with toISOString",
+          "terms": ["utc", "toisostring", "time zone", "timezone"]
+        }
+      ],
+      "files": ["src/lib/dates.ts"],
+      "symbols": [
+        {
+          "file": "src/lib/dates.ts",
+          "name": "toDateKey"
+        }
+      ]
+    },
+    {
+      "id": "by-date",
+      "category": "data-structures",
+      "difficulty": "medium",
+      "question": "Why is attendance stored by date and then by student id?",
+      "answer": "AttendanceByDate is an object keyed by date whose values map student ids to statuses. Saving a whole class for one day is a single update, it is easy to tell whether a date has been recorded, and a student's mark for a day is a direct lookup by id.",
+      "explanation": "When a student is deleted, attendanceReducer walks every date and removes that id, dropping dates with no marks left. In a database the same data would be an attendance table with the primary key (date, student_id).",
+      "keyConcepts": [
+        {
+          "label": "Keyed by date, then student id",
+          "terms": ["date", "student id", "key"]
+        },
+        {
+          "label": "One update per day",
+          "terms": ["one update", "single update", "whole class", "day"]
+        },
+        {
+          "label": "Direct lookup",
+          "terms": ["lookup", "look up", "object", "record"]
+        }
+      ],
+      "files": ["src/types.ts", "src/state/reducer.ts"],
+      "symbols": [
+        {
+          "file": "src/types.ts",
+          "name": "AttendanceByDate"
+        }
+      ]
+    },
+    {
+      "id": "navigation",
+      "category": "architecture",
+      "difficulty": "easy",
+      "question": "How does navigation work without a router library?",
+      "answer": "The current screen is kept in the URL hash, for example #/records. useHashRoute reads it and listens for the hashchange event, so links, refreshing and the back button all work. After navigation, focus moves to the page heading.",
+      "keyConcepts": [
+        {
+          "label": "URL hash",
+          "terms": ["hash"]
+        },
+        {
+          "label": "hashchange event",
+          "terms": ["hashchange", "event", "listen"]
+        },
+        {
+          "label": "Back button still works",
+          "terms": ["back", "refresh"]
+        }
+      ],
+      "files": ["src/lib/useHashRoute.ts"],
+      "symbols": [
+        {
+          "file": "src/lib/useHashRoute.ts",
+          "name": "useHashRoute"
+        }
+      ]
+    },
+    {
+      "id": "csv-injection",
+      "category": "security",
+      "difficulty": "medium",
+      "question": "What does the CSV export protect against?",
+      "answer": "Values with commas, quotes or line breaks are quoted (RFC 4180), and cells that start with =, +, - or @ get an apostrophe in front, so spreadsheet programs show them as text instead of running them as formulas. This is called CSV or formula injection.",
+      "keyConcepts": [
+        {
+          "label": "Quoting special characters",
+          "terms": ["quote", "comma", "rfc"]
+        },
+        {
+          "label": "Formula injection",
+          "terms": ["formula", "injection"]
+        },
+        {
+          "label": "Apostrophe prefix",
+          "terms": ["apostrophe", "prefix"]
+        }
+      ],
+      "files": ["src/lib/csv.ts"],
+      "symbols": [
+        {
+          "file": "src/lib/csv.ts",
+          "name": "escapeCsvCell"
+        }
+      ]
+    },
+    {
+      "id": "testing",
+      "category": "testing",
+      "difficulty": "easy",
+      "question": "How did you test the project?",
+      "answer": "With Vitest and Testing Library, run by npm test. Unit tests check the calculations, date handling, storage recovery, CSV escaping, validation, configuration and demo data. Component tests render the whole app in jsdom and act like a user: adding, editing, searching and deleting students and saving attendance.",
+      "keyConcepts": [
+        {
+          "label": "Vitest",
+          "terms": ["vitest", "npm test"]
+        },
+        {
+          "label": "Unit tests for the logic",
+          "terms": ["unit"]
+        },
+        {
+          "label": "Component tests of user flows",
+          "terms": ["component", "testing library", "user", "jsdom"]
+        }
+      ],
+      "files": ["src/lib/attendance.test.ts", "src/App.test.tsx"],
+      "symbols": []
+    },
+    {
+      "id": "pure-functions-testing",
+      "category": "testing",
+      "difficulty": "medium",
+      "question": "Why are the calculations easy to test?",
+      "answer": "They are pure functions in src/lib: they take plain data and return plain data, with no React, browser or saved state involved. A test can call summarizeStudent with a small hand-made roster and compare the result with a number worked out by hand.",
+      "keyConcepts": [
+        {
+          "label": "Pure functions",
+          "terms": ["pure"]
+        },
+        {
+          "label": "No browser or React needed",
+          "terms": ["no react", "without", "browser", "plain data"]
+        },
+        {
+          "label": "Hand-checked expected values",
+          "terms": ["hand", "expected", "compare"]
+        }
+      ],
+      "files": ["src/lib/attendance.ts", "src/lib/attendance.test.ts"],
+      "symbols": [
+        {
+          "file": "src/lib/attendance.ts",
+          "name": "summarizeStudent"
+        }
+      ]
+    },
+    {
+      "id": "threshold",
+      "category": "implementation",
+      "difficulty": "hard",
+      "question": "How does the dashboard decide which students are below the threshold?",
+      "answer": "summarizeStudents computes every student's summary; a student is flagged when the percentage is not null and is lower than attendanceThreshold from app.config.json. Students with no marks have a null percentage and are never flagged.",
+      "keyConcepts": [
+        {
+          "label": "Per-student summaries",
+          "terms": ["summarizestudent", "summary", "summaries"]
+        },
+        {
+          "label": "Threshold from the configuration",
+          "terms": ["threshold", "config"]
+        },
+        {
+          "label": "Null is never flagged",
+          "terms": ["null", "no marks"]
+        }
+      ],
+      "files": ["src/lib/attendance.ts", "src/views/DashboardView.tsx"],
+      "symbols": [
+        {
+          "file": "src/lib/attendance.ts",
+          "name": "summarizeStudents"
+        }
+      ]
+    },
+    {
+      "id": "delete-student",
+      "category": "implementation",
+      "difficulty": "medium",
+      "question": "What happens to a student's attendance when you delete the student?",
+      "answer": "The Students screen first asks for confirmation in a dialog. Then the 'student/delete' action removes the student and walks every date, removing their marks and dropping any date left with no marks, so the saved data never refers to a student who no longer exists.",
+      "keyConcepts": [
+        {
+          "label": "Confirmation first",
+          "terms": ["confirm", "dialog"]
+        },
+        {
+          "label": "Marks removed from every date",
+          "terms": ["every date", "marks", "remove"]
+        },
+        {
+          "label": "No references to missing students",
+          "terms": ["no longer exists", "refer", "consistent"]
+        }
+      ],
+      "files": ["src/state/reducer.ts", "src/views/StudentsView.tsx"],
+      "symbols": [
+        {
+          "file": "src/views/StudentsView.tsx",
+          "name": "confirmDelete"
+        }
+      ]
+    },
+    {
+      "id": "accessibility",
+      "category": "implementation",
+      "difficulty": "medium",
+      "question": "How is the app made accessible?",
+      "answer": "Form fields have labels and inline errors linked with aria-describedby; dialogs use the native <dialog> element for focus trapping and Escape; changes are announced through an aria-live region; focus moves to the page heading after navigation; and keyboard focus is always visible.",
+      "keyConcepts": [
+        {
+          "label": "Labels and linked errors",
+          "terms": ["label", "aria-describedby", "error"]
+        },
+        {
+          "label": "Native dialog",
+          "terms": ["dialog", "focus trap", "escape"]
+        },
+        {
+          "label": "Announcements",
+          "terms": ["aria-live", "announce", "screen reader"]
+        },
+        {
+          "label": "Focus management",
+          "terms": ["focus", "keyboard"]
+        }
+      ],
+      "files": ["src/components/StudentForm.tsx", "src/components/Notices.tsx"],
+      "symbols": [
+        {
+          "file": "src/components/Notices.tsx",
+          "name": "NoticeProvider"
+        }
+      ]
+    },
+    {
+      "id": "limitations",
+      "category": "limitations",
+      "difficulty": "easy",
+      "question": "What are the limitations of this project?",
+      "answer": "Data stays in one browser on one device with no sync, there are no accounts or permissions, attendance is recorded once per day rather than per period, localStorage holds only about 5 MB, and the interface is English only.",
+      "keyConcepts": [
+        {
+          "label": "One browser, no sync",
+          "terms": ["one browser", "browser", "device", "sync"]
+        },
+        {
+          "label": "No accounts",
+          "terms": ["account", "permission", "login"]
+        },
+        {
+          "label": "Once per day",
+          "terms": ["per day", "period", "subject"]
+        },
+        {
+          "label": "Storage size",
+          "terms": ["5 mb", "size", "space", "storage"]
+        }
+      ],
+      "files": ["README.md"],
+      "symbols": []
+    },
+    {
+      "id": "share-data",
+      "category": "improvements",
+      "difficulty": "medium",
+      "question": "How would you let several teachers share the same data?",
+      "answer": "Replace localStorage with a backend API and a database, add teacher accounts with authentication and permissions, and keep the reducer and calculations, which don't depend on where data is stored. A relational design would have students and attendance tables, with (date, student_id) as the attendance primary key.",
+      "keyConcepts": [
+        {
+          "label": "Backend API and database",
+          "terms": ["backend", "api", "database", "server"]
+        },
+        {
+          "label": "Authentication",
+          "terms": ["account", "login", "authentication", "permission"]
+        },
+        {
+          "label": "Tables",
+          "terms": ["table", "students", "primary key"]
+        }
+      ],
+      "files": ["docs/ARCHITECTURE.md"],
+      "symbols": []
+    }
+  ],
+  "demo": [
+    "Start the app with npm run dev and open the address Vite prints.",
+    "Show the Dashboard: today's status, overall attendance, attendance by class and the students below the threshold in the demo class.",
+    "Add a student with a roll number that already exists in the class to show the validation message, then correct it.",
+    "Mark today's attendance with “Mark all present”, change one student to Late, and save. Point out the announcement.",
+    "Open Records, filter by class or date range and export the filtered records as CSV.",
+    "In Settings, export a JSON backup and explain that the data stays in this browser.",
+    "Run npm test in the terminal and say what the tests cover.",
+    "Open src/lib/attendance.ts and explain how the percentage is calculated."
+  ],
+  "preview": {
+    "layout": "top-navigation",
+    "navigation": ["Dashboard", "Mark attendance", "Students", "Records", "Settings"]
+  },
+  "troubleshooting": {
+    "include": ["npm-vite"],
+    "entries": [
+      {
+        "id": "config-problem",
+        "stage": "run",
+        "title": "A “Configuration problem.” message instead of the app",
+        "symptom": "The page shows “Configuration problem. src/app.config.json: …” followed by a reason, for example “\"theme\" must be one of: indigo, teal, rose, amber”.",
+        "causes": [
+          "A value in src/app.config.json was changed to something the app doesn't accept, such as an unknown theme or a threshold above 100."
+        ],
+        "diagnose": [
+          {
+            "text": "Read the message after “src/app.config.json:”. It names the setting that is wrong and what is allowed.",
+            "commands": []
+          },
+          {
+            "text": "Compare the file with the rules in parseConfig in src/config.ts.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "Correct the setting the message names and save the file. The dev server reloads the page.",
+            "commands": []
+          }
+        ],
+        "confirm": "The app loads and shows your app name in the header.",
+        "platforms": []
+      },
+      {
+        "id": "data-disappeared",
+        "stage": "data",
+        "title": "My students and attendance disappeared",
+        "symptom": "The app shows the demo class or an empty roster, although you added students earlier.",
+        "causes": [
+          "You opened the app in a different browser, browser profile or private window. Data is saved per browser profile.",
+          "The address changed, for example http://localhost:5174/ instead of http://localhost:5173/ because another server was using the port. localStorage is separate for every address, including the port number.",
+          "The browser's data for the site was cleared."
+        ],
+        "diagnose": [
+          {
+            "text": "Check the address bar: same browser, same profile and the same address, including the port number?",
+            "commands": []
+          },
+          {
+            "text": "Open the browser's developer tools → Application (or Storage) → Local Storage and look for the key campuskit-attendance:v1 under this address.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "Open the app at the address you used before. If another dev server is still running on the old port, use that one.",
+            "commands": []
+          },
+          {
+            "text": "To move data between browsers or addresses, use Settings → Export backup (JSON), then Import backup in the other one.",
+            "commands": []
+          }
+        ],
+        "confirm": "Your students appear on the Students screen.",
+        "platforms": []
+      },
+      {
+        "id": "saved-data-unreadable",
+        "stage": "data",
+        "title": "“Saved data couldn’t be read … so the app started fresh”",
+        "symptom": "A banner says the saved data couldn't be read, gives a reason in brackets, and the app shows fresh data.",
+        "causes": [
+          "The value under campuskit-attendance:v1 was edited by hand or damaged, so validateData rejected it."
+        ],
+        "diagnose": [
+          {
+            "text": "The reason in brackets names the first problem, for example an unknown status or an invalid date.",
+            "commands": []
+          },
+          {
+            "text": "In the developer tools, the old value is kept under campuskit-attendance:v1:unreadable-backup.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "If you need the old data, copy the backup value into a text file, fix the problem the banner named, save it with a .json extension and use Settings → Import backup.",
+            "commands": []
+          }
+        ],
+        "confirm": "After reloading the page, the banner is gone and your data is shown.",
+        "platforms": []
+      },
+      {
+        "id": "storage-blocked",
+        "stage": "data",
+        "title": "“Changes can’t be saved because this browser is blocking local storage”",
+        "symptom": "A banner warns that changes can't be saved and will be lost when you close the tab.",
+        "causes": [
+          "The browser blocks site data for localhost, for example because of a privacy setting or an extension."
+        ],
+        "diagnose": [
+          {
+            "text": "Open the app in a normal (not private) window of another browser. If the banner disappears there, a setting in the first browser is blocking storage.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "Allow site data (cookies and site storage) for localhost in the browser's settings, or use another browser for the project.",
+            "commands": []
+          }
+        ],
+        "confirm": "After reloading, the banner is gone and a new student is still there after another reload.",
+        "platforms": []
+      }
+    ]
+  }
+}

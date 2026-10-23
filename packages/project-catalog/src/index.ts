@@ -22,6 +22,7 @@ export function getProjectById(id: string): ProjectManifest | undefined {
 export * from './catalog.ts';
 export * from './generation.ts';
 export * from './labels.ts';
+export * from './learning.ts';
 export * from './markdown-links.ts';
 export * from './report.ts';
 export { REGISTERED_MANIFESTS } from './registry.ts';
