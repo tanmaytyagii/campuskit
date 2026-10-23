@@ -156,6 +156,35 @@ describe('generateProject', () => {
     ).toThrow(/reserved/);
   });
 
+  it('adds generated documents next to the template files', () => {
+    const project = generateProject({
+      bundle: sampleBundle(),
+      customization: sampleSpec,
+      input: { projectName: 'Report <Demo>' },
+      createGuide: sampleGuide,
+      createDocuments: (values) => [
+        { path: 'docs/REPORT.md', content: `# ${String(values.options.projectName)}\n` },
+      ],
+    });
+    expect(project.files.find((file) => file.path === 'docs/REPORT.md')?.content).toBe(
+      '# Report <Demo>\n',
+    );
+  });
+
+  it('refuses generated documents that would replace a template file or escape the folder', () => {
+    const generate = (path: string) =>
+      generateProject({
+        bundle: sampleBundle(),
+        customization: sampleSpec,
+        input: {},
+        createGuide: sampleGuide,
+        createDocuments: () => [{ path, content: 'x' }],
+      });
+    expect(() => generate('README.md')).toThrow(/must not contain a file with that name/);
+    expect(() => generate(GETTING_STARTED_FILE)).toThrow(/must not contain a file with that name/);
+    expect(() => generate('../outside.md')).toThrow(UnsafePathError);
+  });
+
   it('is deterministic for the same inputs and date', async () => {
     const options = {
       bundle: sampleBundle(),

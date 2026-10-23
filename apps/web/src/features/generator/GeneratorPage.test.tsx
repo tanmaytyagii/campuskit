@@ -81,6 +81,17 @@ describe('project generator', () => {
     expect(await screen.findByText(/will be packed into/)).toHaveTextContent(
       'riya-s-lab-attendance-and-notes.zip',
     );
+
+    // The preview shows the real generated files, not an illustration.
+    const fileSelect = screen.getByRole('combobox', { name: 'File' });
+    expect(fileSelect).toHaveValue('GETTING_STARTED.md');
+    expect(screen.getByLabelText('Contents of GETTING_STARTED.md')).toHaveTextContent(
+      'cd riya-s-lab-attendance-and-notes',
+    );
+    await user.selectOptions(fileSelect, 'src/app.config.json');
+    expect(screen.getByLabelText('Contents of src/app.config.json')).toHaveTextContent(
+      '"institutionName": "St. Xavier’s College"',
+    );
     await user.click(screen.getByRole('button', { name: 'Generate ZIP' }));
 
     // Done: setup steps for this exact project.
@@ -88,6 +99,9 @@ describe('project generator', () => {
       await screen.findByRole('heading', { name: 'riya-s-lab-attendance-and-notes.zip is ready' }),
     ).toHaveFocus();
     expect(screen.getAllByText('cd riya-s-lab-attendance-and-notes').length).toBeGreaterThan(0);
+    expect(screen.getByRole('heading', { name: 'Environment variables' })).toBeInTheDocument();
+    expect(screen.getByText(/needs no API keys, passwords or other secrets/)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Known limitations' })).toBeInTheDocument();
 
     const zip = await downloadedZip();
     expect(zip.fileName).toBe('riya-s-lab-attendance-and-notes.zip');
@@ -109,6 +123,15 @@ describe('project generator', () => {
     expect(zip.text(`${root}GETTING_STARTED.md`)).toContain(
       '# Getting started with Riya’s Lab \\<Attendance\\> \\& “Notes” — हाज़िरी',
     );
+    const guide = zip.text(`${root}GETTING_STARTED.md`);
+    expect(guide).toContain('## Known limitations');
+    expect(guide).toContain(
+      '[Project report draft (edit before you submit)](docs/PROJECT_REPORT_DRAFT.md)',
+    );
+    const report = zip.text(`${root}docs/PROJECT_REPORT_DRAFT.md`);
+    expect(report).toContain('# Riya’s Lab \\<Attendance\\> \\& “Notes” — हाज़िरी');
+    expect(report).toContain('**Institution:** St. Xavier’s College');
+    expect(report).toContain('## 1. Abstract');
     const paths = zip.entries.map((entry) => entry.path);
     expect(paths).toContain(`${root}.gitignore`);
     expect(paths.some((path) => /node_modules|\/dist\/|\.env$/.test(path))).toBe(false);

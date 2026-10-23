@@ -17,7 +17,10 @@
  *
  * Generated code only runs here, in a temporary folder, never in the browser.
  *
- * Options: --files-only skips step 4; --keep keeps the temporary folders.
+ * Options: --files-only skips step 4; --keep keeps the temporary folders;
+ * --record writes the results for this platform to
+ * packages/project-catalog/verification/<id>.json, which is what the website
+ * shows as the template's verification status (commit the file).
  * Environment: CAMPUSKIT_PYTHON chooses the Python interpreter (default:
  * python on Windows, python3 elsewhere).
  */
@@ -25,12 +28,24 @@ import { spawn, type ChildProcess } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
 import { createServer } from 'node:net';
-import { tmpdir } from 'node:os';
+import { arch, release, tmpdir } from 'node:os';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { buildSetupGuide, catalog, type ProjectManifest } from '@campuskit/project-catalog';
-import { STRESS_PROJECT_NAME } from '@campuskit/project-catalog/node';
+import {
+  catalog,
+  generationOptions,
+  PLATFORM_LABELS,
+  REPORT_DRAFT_FILE,
+  type ProjectManifest,
+  type VerificationEntry,
+} from '@campuskit/project-catalog';
+import {
+  platformFromNode,
+  STRESS_PROJECT_NAME,
+  templateFingerprint,
+  writeVerificationEntry,
+} from '@campuskit/project-catalog/node';
 import {
   base64ToBytes,
   escapeHtml,
@@ -54,6 +69,8 @@ const GENERATED_ON = new Date('2026-10-21T10:30:00Z');
 const args = process.argv.slice(2);
 const filesOnly = args.includes('--files-only');
 const keep = args.includes('--keep');
+const record = args.includes('--record');
+const verificationDir = join(repoRoot, 'packages', 'project-catalog', 'verification');
 const requested = args.filter((arg) => !arg.startsWith('--'));
 const python = process.env.CAMPUSKIT_PYTHON ?? (isWindows ? 'python' : 'python3');
 
@@ -239,6 +256,7 @@ async function checkFiles(
     check(extracted.includes(path), `The hidden project file ${path} was dropped`);
   }
   check(extracted.includes('GETTING_STARTED.md'), 'GETTING_STARTED.md is missing');
+  check(extracted.includes(REPORT_DRAFT_FILE), `${REPORT_DRAFT_FILE} is missing`);
 
   const text = async (path: string) => readFile(join(projectDir, path), 'utf8');
   for (const edit of manifest.customization.edits) {
@@ -361,9 +379,12 @@ async function runPipProject(projectDir: string): Promise<string[]> {
 
 interface Result {
   template: string;
-  variant: string;
+  variant: 'defaults' | 'customized';
   ok: boolean;
   details: string[];
+  /** What passed, for the verification record. */
+  steps: string[];
+  failure?: string;
 }
 
 async function verify(
@@ -373,6 +394,7 @@ async function verify(
   const details: string[] = [];
   const workDir = await mkdtemp(join(tmpdir(), `campuskit-${manifest.id}-${variant}-`));
   let ok = false;
+  let failure: string | undefined;
   try {
     const { bundle, skipped } = await buildTemplateBundle(
       join(repoRoot, manifest.template.directory),
@@ -394,9 +416,8 @@ async function verify(
           );
     const { project, zip } = await generateProjectZip({
       bundle,
-      customization: manifest.customization,
       input,
-      createGuide: (values) => buildSetupGuide(manifest, values, '2026-10-21'),
+      ...generationOptions(manifest, '2026-10-21'),
       date: GENERATED_ON,
     });
     details.push(
@@ -423,14 +444,90 @@ async function verify(
     }
     ok = true;
   } catch (error) {
-    details.push(`FAILED: ${error instanceof Error ? error.message : String(error)}`);
+    failure = error instanceof Error ? error.message : String(error);
+    details.push(`FAILED: ${failure}`);
     if (!(error instanceof CheckError) && error instanceof Error && error.stack)
       details.push(error.stack);
   } finally {
     if (ok && !keep) await rm(workDir, { recursive: true, force: true });
     else details.push(`files kept in ${workDir}`);
   }
-  return { template: manifest.id, variant, ok, details };
+  const steps = details
+    .filter((line) => !line.startsWith('FAILED: ') && !line.startsWith('files kept in '))
+    .filter((line) => !line.includes('\n'))
+    .map((line) => line.slice(0, 200));
+  return { template: manifest.id, variant, ok, details, steps, failure };
+}
+
+// ---------------------------------------------------------------------------
+// Verification records
+// ---------------------------------------------------------------------------
+
+/** Runs a `--version` style command and returns just the version number (tools may also print warnings). */
+async function versionOf(command: string, commandArgs: string[]): Promise<string | undefined> {
+  try {
+    const output = await run(command, commandArgs, { cwd: repoRoot });
+    return /\b\d+\.\d+(?:\.\d+)?\b/.exec(output)?.[0];
+  } catch {
+    return undefined;
+  }
+}
+
+async function describeOs(): Promise<string> {
+  if (process.platform === 'darwin') {
+    const version = await versionOf('sw_vers', ['-productVersion']);
+    return `macOS ${version ?? release()} (${arch()})`;
+  }
+  if (process.platform === 'linux') {
+    try {
+      const osRelease = await readFile('/etc/os-release', 'utf8');
+      const name = /^PRETTY_NAME="?([^"\n]+)"?$/m.exec(osRelease)?.[1];
+      if (name) return `${name} (${arch()})`;
+    } catch {
+      // fall through
+    }
+    return `Linux ${release()} (${arch()})`;
+  }
+  return `Windows ${release()} (${arch()})`;
+}
+
+async function recordResults(manifest: ProjectManifest, results: Result[]): Promise<void> {
+  const platform = platformFromNode(process.platform);
+  if (!platform) {
+    console.log(`  (not recorded: ${process.platform} is not a supported platform)`);
+    return;
+  }
+  const { bundle } = await buildTemplateBundle(join(repoRoot, manifest.template.directory), {
+    templateId: manifest.id,
+    templateVersion: manifest.version,
+  });
+  const pythonVersion =
+    manifest.template.packageManager === 'pip' ? await versionOf(python, ['--version']) : undefined;
+  const npmVersion =
+    manifest.template.packageManager === 'npm' ? await versionOf('npm', ['--version']) : undefined;
+  const now = new Date();
+  const entry: VerificationEntry = {
+    platform,
+    verifiedOn: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`,
+    templateVersion: manifest.version,
+    fingerprint: templateFingerprint(manifest, bundle.files),
+    environment: {
+      os: (await describeOs()).slice(0, 80),
+      node: process.version.replace(/^v/, ''),
+      ...(npmVersion ? { npm: npmVersion } : {}),
+      ...(pythonVersion ? { python: pythonVersion } : {}),
+    },
+    runs: results.map((result) => ({
+      variant: result.variant,
+      passed: result.ok,
+      steps: result.steps,
+      ...(result.failure ? { failure: result.failure.slice(0, 2000) } : {}),
+    })),
+  };
+  await writeVerificationEntry(verificationDir, manifest.id, entry);
+  console.log(
+    `  → recorded ${results.every((result) => result.ok) ? 'a passing' : 'a FAILED'} ${PLATFORM_LABELS[platform]} verification in packages/project-catalog/verification/${manifest.id}.json`,
+  );
 }
 
 const unknown = requested.filter((id) => !catalog.some((manifest) => manifest.id === id));
@@ -438,6 +535,10 @@ if (unknown.length > 0) {
   console.error(
     `Unknown template id(s): ${unknown.join(', ')}. Known: ${catalog.map((manifest) => manifest.id).join(', ')}`,
   );
+  process.exit(1);
+}
+if (record && filesOnly) {
+  console.error('--record needs the full verification; it cannot be combined with --files-only.');
   process.exit(1);
 }
 const manifests = catalog.filter(
@@ -456,16 +557,31 @@ if (!filesOnly && manifests.some((manifest) => manifest.template.packageManager 
 }
 
 const results: Result[] = [];
+const recordFailures: string[] = [];
 for (const manifest of manifests) {
+  const templateResults: Result[] = [];
   for (const variant of ['defaults', 'customized'] as const) {
     process.stdout.write(`\n${manifest.id} (${variant})\n`);
     const result = await verify(manifest, variant);
     for (const line of result.details) console.log(`  ${result.ok ? '✓' : '•'} ${line}`);
-    results.push(result);
+    templateResults.push(result);
+  }
+  results.push(...templateResults);
+  if (record) {
+    try {
+      await recordResults(manifest, templateResults);
+    } catch (error) {
+      recordFailures.push(manifest.id);
+      console.error(`  ✗ could not record the result: ${(error as Error).message}`);
+    }
   }
 }
 
 const failed = results.filter((result) => !result.ok);
+if (recordFailures.length > 0) {
+  console.error(`\nCould not write verification records for: ${recordFailures.join(', ')}`);
+  process.exitCode = 1;
+}
 console.log(
   `\n${results.length - failed.length} of ${results.length} generated projects verified${filesOnly ? ' (files only)' : ''}.`,
 );

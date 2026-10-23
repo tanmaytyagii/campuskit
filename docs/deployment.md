@@ -40,7 +40,9 @@ GitHub Pages answers deep links through `404.html` with an HTTP 404 status. Brow
 
 ## Netlify
 
-`netlify.toml` in the repository root configures the build command, the output folder and the single-page app fallback. Create a new site from the repository and keep the settings it detects.
+`netlify.toml` in the repository root configures the build command, the output folder and the single-page app fallback. Create a new site from the repository and keep the settings it detects. The build command runs `pnpm validate` before `pnpm build`, like the GitHub Pages workflow, so a template that fails the catalog checks is never published.
+
+On any host, build the site with `pnpm validate && pnpm build` rather than `pnpm build` alone: the project pages tell students these checks passed.
 
 ## Other static hosts
 

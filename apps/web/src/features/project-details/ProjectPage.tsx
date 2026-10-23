@@ -1,5 +1,6 @@
 import {
   AUDIENCE_LABELS,
+  catalog,
   CATEGORY_LABELS,
   DIFFICULTY_LABELS,
   getProjectBySlug,
@@ -12,7 +13,9 @@ import { BookOpen, CodeXml, Download, FileText, GraduationCap, Wand } from 'luci
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router';
 
+import { ProjectCard } from '../../components/ProjectCard.tsx';
 import { SetupSteps } from '../../components/SetupSteps.tsx';
+import { StatusBadge } from '../../components/StatusBadge.tsx';
 import { Badge } from '../../components/ui/Badge.tsx';
 import { Button, ButtonLink } from '../../components/ui/Button.tsx';
 import { Callout } from '../../components/ui/Callout.tsx';
@@ -23,14 +26,17 @@ import { loadTemplateDoc } from '../../lib/assets.ts';
 import { formatIsoDate } from '../../lib/format.ts';
 import { siteConfig } from '../../site.config.ts';
 import { NotFoundPage } from '../../pages/NotFoundPage.tsx';
+import { relatedProjects } from '../gallery/filtering.ts';
 import { ScreenshotGallery } from './ScreenshotGallery.tsx';
 import { useQuickDownload } from './useQuickDownload.ts';
+import { VerificationPanel } from './VerificationPanel.tsx';
 
 const SECTIONS = [
   { id: 'overview', label: 'Overview' },
   { id: 'setup', label: 'Setup' },
   { id: 'customization', label: 'Customization' },
   { id: 'testing', label: 'Testing' },
+  { id: 'verification', label: 'Verification' },
   { id: 'learn', label: 'Learn and present' },
   { id: 'documentation', label: 'Documentation' },
 ] as const;
@@ -141,6 +147,7 @@ function ProjectDetails({ project }: { project: ProjectManifest }) {
   const quick = useQuickDownload(project);
   const steps = setupSteps(project);
   const programmingLanguages = project.languages;
+  const related = relatedProjects(project, catalog);
 
   return (
     <article className="pb-8">
@@ -162,6 +169,7 @@ function ProjectDetails({ project }: { project: ProjectManifest }) {
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:items-start">
           <div className="space-y-5">
             <div className="flex flex-wrap gap-1.5">
+              <StatusBadge project={project} />
               <Badge tone="violet">{DIFFICULTY_LABELS[project.difficulty]}</Badge>
               <Badge>{CATEGORY_LABELS[project.category]}</Badge>
               <Badge>{PROJECT_TYPE_LABELS[project.projectType]}</Badge>
@@ -361,6 +369,10 @@ function ProjectDetails({ project }: { project: ProjectManifest }) {
             </ul>
           </Section>
 
+          <Section id="verification" title="Verification">
+            <VerificationPanel project={project} />
+          </Section>
+
           <Section id="learn" title="Learn and present">
             <div className="grid gap-6 md:grid-cols-2">
               <div className="rounded-xl border border-line bg-surface p-5">
@@ -529,6 +541,30 @@ function ProjectDetails({ project }: { project: ProjectManifest }) {
           </div>
         </aside>
       </div>
+
+      {related.length > 0 ? (
+        <section aria-labelledby="related-heading" className="container-page mt-16 space-y-5">
+          <h2 id="related-heading" className="heading text-2xl text-ink">
+            Related projects
+          </h2>
+          <ul className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {related.map(({ project: item, shared, sameCategory }) => (
+              <li key={item.id} className="flex flex-col gap-2">
+                <ProjectCard project={item} className="w-full flex-1" />
+                <p className="text-sm text-ink-3">
+                  {shared.length > 0
+                    ? `Also uses ${shared.slice(0, 3).join(', ')}`
+                    : `Also a ${CATEGORY_LABELS[item.category].toLowerCase()} project`}
+                  {shared.length > 0 && sameCategory
+                    ? `; also ${CATEGORY_LABELS[item.category].toLowerCase()}`
+                    : ''}
+                  .
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
     </article>
   );
 }

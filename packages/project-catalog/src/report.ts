@@ -4,11 +4,8 @@
  * write or measure themselves is left as a [bracketed prompt]. Nothing here
  * invents results, citations or test outcomes.
  */
-import {
-  AUDIENCE_LABELS,
-  PROJECT_TYPE_LABELS,
-  type ProjectManifest,
-} from '@campuskit/project-catalog';
+import { AUDIENCE_LABELS, PROJECT_TYPE_LABELS } from './labels.ts';
+import type { ProjectManifest } from './schema.ts';
 
 export interface ReportInfo {
   title: string;

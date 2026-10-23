@@ -10,6 +10,7 @@ import {
   filtersToParams,
   matchesQuery,
   parseFilters,
+  relatedProjects,
   sortProjects,
   suggestions,
   visibleProjects,
@@ -108,5 +109,30 @@ describe('gallery filtering', () => {
     });
     expect(results.some((item) => item.kind === 'topic' && item.label === 'charts')).toBe(true);
     expect(suggestions(catalog, '   ')).toEqual([]);
+  });
+});
+
+describe('relatedProjects', () => {
+  const attendance = catalog.find((project) => project.id === 'attendance-system');
+  const expenses = catalog.find((project) => project.id === 'expense-tracker');
+  if (!attendance || !expenses) throw new Error('missing projects');
+
+  it('suggests projects that share technologies, and says what they share', () => {
+    const related = relatedProjects(attendance, catalog);
+    expect(related[0]?.project.id).toBe('expense-tracker');
+    expect(related[0]?.shared).toEqual(expect.arrayContaining(['TypeScript', 'React']));
+    expect(related.some((item) => item.project.id === attendance.id)).toBe(false);
+  });
+
+  it('never suggests a project with nothing in common', () => {
+    const unrelated = {
+      ...expenses,
+      id: 'unrelated',
+      category: 'ai-ml' as const,
+      languages: ['Rust'],
+      frameworks: [],
+      tags: ['unique-tag'],
+    };
+    expect(relatedProjects(unrelated, catalog)).toEqual([]);
   });
 });

@@ -51,8 +51,40 @@ jobs:
           path: apps/web/playwright-report
           retention-days: 7
 
+  changed-templates:
+    name: Find the templates to verify
+    runs-on: ubuntu-latest
+    outputs:
+      templates: ${{ steps.pick.outputs.templates }}
+      run: ${{ steps.pick.outputs.run }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # the diff needs the base branch
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Pull requests verify only the templates they can affect; pushes to main verify everything.
+      - id: pick
+        name: Pick templates
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            pnpm --silent changed-templates "origin/$BASE_REF"
+          else
+            echo "templates=" >> "$GITHUB_OUTPUT"
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
   generated-projects:
     name: Generated projects (${{ matrix.os }})
+    needs: changed-templates
+    if: needs.changed-templates.outputs.run == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -69,6 +101,9 @@ jobs:
         with:
           python-version: '3.12'
       - run: pnpm install --frozen-lockfile
-      - run: pnpm verify:generated
+      # An empty list verifies every template. The ids are passed as separate words on purpose.
+      - run: pnpm verify:generated $TEMPLATES
+        shell: bash
         env:
           CAMPUSKIT_PYTHON: python
+          TEMPLATES: ${{ needs.changed-templates.outputs.templates }}

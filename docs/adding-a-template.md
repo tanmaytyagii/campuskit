@@ -24,6 +24,8 @@ A template must include:
 
 Keep it beginner-friendly. Prefer the standard library and a few well-known dependencies, explain anything clever in a comment, and make the app work offline once its dependencies are installed.
 
+Two file names are reserved, because the generator writes them into every project: `GETTING_STARTED.md` (the setup steps) and `docs/PROJECT_REPORT_DRAFT.md` (a report outline built from your manifest). Don't add files with those names. Never commit credentials either: the validator rejects templates that contain `.env`, `secrets.toml`, `.npmrc`, private keys and similar files. If the project needs a key, list it in the manifest's `environment` section and ship a `.env.example`.
+
 ## 2. Put customizable values in one place
 
 The generator edits only the locations your manifest declares, so make those few and obvious. A good pattern is a small configuration file that the app reads and validates at startup:
@@ -55,6 +57,8 @@ Copy an existing manifest and change it. Keep `"$schema": "../manifest.schema.js
 
 Dates use `YYYY-MM-DD`. `addedOn` is when the template is first published and `updatedOn` when it last changed.
 
+While the template is unfinished, add `"draft": true`. Drafts are labelled **Draft** everywhere on the site, are never shown as verified, can't be `featured`, and may leave out the architecture notes and viva questions until they are written. Remove the flag when the template is complete.
+
 ## 4. Register the manifest
 
 Add the import to `packages/project-catalog/src/registry.ts`:
@@ -84,6 +88,27 @@ pnpm verify:generated library-manager
 
 This generates the project the way the website does, extracts the ZIP into a temporary folder, checks the customized files and the excluded ones, installs the dependencies and runs the tests and the build in that copy. It needs Node.js for npm templates and Python 3.11 or newer for pip templates.
 
+When it passes, record the result:
+
+```bash
+pnpm verify:generated library-manager --record
+```
+
+This writes `packages/project-catalog/verification/library-manager.json` with the date, your operating system, the Node.js, npm or Python versions, every step that ran, and a fingerprint of the template files and of the manifest's version, template, customization, setup, testing, prerequisites and environment sections. Commit the file. Running it on another operating system adds an entry for that platform. If you can't run it, say so in the pull request and a maintainer will.
+
+## Template statuses
+
+The website shows one status for every template, computed from the manifest, the verification record and the files the site actually serves:
+
+| Status                    | When                                                                                                                                 |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **Draft**                 | The manifest has `"draft": true`.                                                                                                    |
+| **Awaiting verification** | It passes every catalog check, but no recorded verification matches the current files. This is what any change to a template causes. |
+| **Verified**              | At least one platform has a passing verification whose fingerprint matches the current files, and none of them has a failing one.    |
+| **Needs attention**       | A verification of the current files failed on some platform.                                                                         |
+
+Nobody can mark a template as verified by hand: the fingerprint has to match files that passed the script. `pnpm validate:catalog` prints each template's status and warns when a record is out of date or failed. Those warnings don't fail CI, so you can open a pull request before every platform is verified.
+
 ## 7. Screenshots
 
 Screenshots must come from the real app with its demo data. For React templates you can add the template to `scripts/capture-screenshots.ts` and run `pnpm screenshots library-manager`, which builds the app, freezes the browser clock and captures each screen at 1280 × 800. Otherwise, capture them yourself at a similar size.
@@ -100,3 +125,12 @@ pnpm test:e2e
 ```
 
 Then open a pull request and complete the checklist in its description.
+
+## Review process
+
+1. **Automated checks.** CI runs `pnpm validate`, formatting, linting, type checking, the unit tests, the build and the browser tests. For pull requests it also runs `pnpm verify:generated` on Linux, Windows and macOS, but only for the templates the change touches (`pnpm changed-templates` decides; changes to the engine or the catalog code verify every template). Pushes to `main` always verify every template.
+2. **Maintainer review.** A maintainer reads the code and the documentation, checks the [new project checklist](new-project-checklist.md), runs the project, and looks for anything that overstates what it does.
+3. **Verification record.** Before the template is shown as verified, the maintainer runs `pnpm verify:generated <id> --record` (or checks the record you committed against a fresh run) and merges the record.
+4. **Publishing.** A template can be merged as a draft. It loses the draft label only when the checklist is complete.
+
+Templates you don't verify yourself are still published, but they show as **Awaiting verification** until someone does.

@@ -1,6 +1,6 @@
 {
   "name": "campuskit",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "description": "CampusKit — a free, open-source student project factory. Build it. Understand it. Present it.",
   "license": "MIT",
@@ -25,6 +25,7 @@
     "test:e2e": "pnpm --filter @campuskit/web test:e2e",
     "playwright:install": "pnpm --filter @campuskit/web exec playwright install chromium",
     "verify:generated": "tsx scripts/verify-generated-projects.ts",
+    "changed-templates": "tsx scripts/changed-templates.ts",
     "screenshots": "tsx scripts/capture-screenshots.ts",
     "check": "pnpm validate && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },

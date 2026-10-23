@@ -4,7 +4,7 @@
 
 Generation happens in two steps, so the website can show a review screen before anything is downloaded:
 
-1. `generateProject()` validates the bundle and the student's values, applies the declared edits, adds `GETTING_STARTED.md` and returns the final list of files.
+1. `generateProject()` validates the bundle and the student's values, applies the declared edits, adds `GETTING_STARTED.md` and any generated documents, and returns the final list of files.
 2. `packageProject()` writes those files into a ZIP archive with a single root folder.
 
 ## Options: what a student may change
@@ -95,13 +95,16 @@ These are never copied into a generated project, even if a template folder conta
 - **Folders:** `node_modules`, `dist`, `build`, `coverage`, `.git`, `.venv`, `venv`, `__pycache__`, `.pytest_cache` and other tool caches, `.idea`, `.vscode`, test reports.
 - **Files:** `.env` and `.env.*` (except `.env.example`, `.env.sample` and `.env.template`), `secrets.toml`, `.npmrc`, `.pypirc`, `.netrc`, private keys and certificates (`.pem`, `.key`, `.p12`, …), SSH keys, local databases (`.sqlite`, `.db`), Python bytecode, logs and operating-system files such as `.DS_Store`.
 
+Credential files (`.env`, `secrets.toml`, `.npmrc`, `.pypirc`, `.netrc`, keys and certificates) are not only left out: `pnpm validate:catalog` rejects a template folder that contains one, so they can't sit in the repository either.
+
 Hidden files that are part of a working project, such as `.gitignore` and `.streamlit/config.toml`, are kept. The full list, with the reason for each rule, is in `packages/template-engine/src/paths.ts`.
 
 ## The ZIP file
 
 - One root folder named after `projectSlug`, so “Extract here” always produces a single, clean folder.
 - Files are sorted and every entry gets the same timestamp, so generating twice with the same values and date produces identical archives.
-- `GETTING_STARTED.md` is added with the exact setup steps, prerequisites and the student's choices. It is rendered from the same data as the instructions on the website, so the two always match. A template may not contain its own `GETTING_STARTED.md`.
+- `GETTING_STARTED.md` is added with the exact setup steps, prerequisites, environment variables, the student's choices, known limitations and links to the project's documents. It is rendered from the same data as the instructions on the website, so the two always match. A template may not contain its own `GETTING_STARTED.md`.
+- `docs/PROJECT_REPORT_DRAFT.md` is added through the engine's `createDocuments` option: a report outline built from the manifest's features, limitations, technologies and commands, with the student's project name, institution and name filled in (escaped as Markdown) and a [bracketed prompt] for everything they must write or measure themselves. A generated document may never replace a template file; the engine stops with an error instead.
 - Limits: 5 MB per template file, 25 MB per template bundle, 30 MB per generated project.
 
 When an archive is read back (in tests and `scripts/verify-generated-projects.ts`), every entry name is checked again and extraction refuses to write outside the target folder, which protects against “zip slip” archives.

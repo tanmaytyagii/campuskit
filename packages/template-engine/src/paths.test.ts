@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   assertSafeRelativePath,
   getExclusionReason,
+  isSecretPath,
   isExcludedPath,
   isSafeRelativePath,
   UnsafePathError,
@@ -87,5 +88,20 @@ describe('exclusion policy', () => {
     'src/build-info.ts',
   ])('keeps %s', (path) => {
     expect(isExcludedPath(path)).toBe(false);
+  });
+});
+
+describe('isSecretPath', () => {
+  it('flags credential files but not examples or caches', () => {
+    for (const path of [
+      '.env',
+      'config/.env.local',
+      '.streamlit/secrets.toml',
+      'certs/server.pem',
+      '.npmrc',
+    ])
+      expect(isSecretPath(path)).toBe(true);
+    for (const path of ['.env.example', 'node_modules/x.js', 'app.log', 'src/keys.ts'])
+      expect(isSecretPath(path)).toBe(false);
   });
 });

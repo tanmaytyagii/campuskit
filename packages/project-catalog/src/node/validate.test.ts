@@ -27,6 +27,8 @@ describe('validateCatalog on the real repository', () => {
 describe('validateCatalog on a broken copy', () => {
   let workspace: string;
   let messages: string[];
+  let warnings: string[];
+  let status: string | undefined;
 
   beforeAll(async () => {
     workspace = await mkdtemp(join(tmpdir(), 'campuskit-catalog-'));
@@ -69,10 +71,36 @@ describe('validateCatalog on a broken copy', () => {
     );
     // 4. An unregistered manifest with malformed JSON.
     await writeFile(join(manifestsDir, 'half-written.json'), '{ "id": ');
+    // 5. A committed credential file.
+    await writeFile(join(workspace, 'templates', 'attendance-system', '.env'), 'API_KEY=x\n');
+    // 6. A verification record for a template that doesn't exist, and an out-of-date one.
+    const verificationDir = join(workspace, 'verification');
+    await mkdir(verificationDir);
+    const entry = {
+      platform: 'linux',
+      verifiedOn: '2026-10-01',
+      templateVersion: '1.0.0',
+      fingerprint: `sha256:${'0'.repeat(64)}`,
+      environment: { os: 'test', node: '24.0.0' },
+      runs: [{ variant: 'defaults', passed: true, steps: ['npm ci'] }],
+    };
+    for (const templateId of ['attendance-system', 'removed-template']) {
+      await writeFile(
+        join(verificationDir, `${templateId}.json`),
+        JSON.stringify({ schemaVersion: 1, templateId, entries: [entry] }),
+      );
+    }
     // expense-tracker and student-result-analyzer templates are not copied, so their folders are missing.
 
-    const report = await validateCatalog({ repoRoot: workspace, manifestsDir, registeredFiles });
+    const report = await validateCatalog({
+      repoRoot: workspace,
+      manifestsDir,
+      registeredFiles,
+      verificationDir,
+    });
     messages = report.issues.map((issue) => `${issue.manifest} ${issue.path}: ${issue.message}`);
+    warnings = report.warnings.map((issue) => `${issue.manifest} ${issue.path}: ${issue.message}`);
+    status = report.statuses['attendance-system']?.id;
   });
 
   afterAll(async () => {
@@ -102,6 +130,26 @@ describe('validateCatalog on a broken copy', () => {
     expect(messages.join('\n')).toMatch(
       /expense-tracker\.json template\.directory: Folder templates\/expense-tracker does not exist/,
     );
+  });
+
+  it('rejects credential files in a template folder', () => {
+    expect(messages.join('\n')).toMatch(
+      /attendance-system\.json \.env: Credential files must not be committed/,
+    );
+  });
+
+  it('rejects verification records for unknown templates', () => {
+    expect(messages.join('\n')).toMatch(
+      /verification\/removed-template\.json templateId: No manifest/,
+    );
+  });
+
+  it('warns about, but does not fail on, out-of-date verifications', () => {
+    expect(warnings.join('\n')).toMatch(
+      /verification \(Linux\): The 2026-10-01 verification no longer matches/,
+    );
+    expect(messages.join('\n')).not.toMatch(/no longer matches/);
+    expect(status).toBe('awaiting-verification');
   });
 
   it('reports invalid JSON and unregistered manifest files', () => {

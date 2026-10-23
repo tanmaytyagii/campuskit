@@ -14,6 +14,7 @@
 - [ ] `pnpm build`
 - [ ] `pnpm test:e2e` (needed for changes to the website)
 - [ ] `pnpm verify:generated` (needed for changes to a template or the template engine)
+- [ ] `pnpm verify:generated <id> --record`, with the updated verification record committed (for template changes; say which platforms you ran it on)
 
 ## Screenshots
 
@@ -25,4 +26,5 @@
 - [ ] The change works with the keyboard and with a screen reader's labels (every control has a visible label).
 - [ ] Documentation is updated (README, docs/, or the template's README, architecture notes and viva questions).
 - [ ] Nothing in this change invents numbers, screenshots, testimonials or results.
+- [ ] No verification record was written or edited by hand.
 - [ ] For a new template: I completed the [new project checklist](../docs/new-project-checklist.md).

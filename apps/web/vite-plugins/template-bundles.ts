@@ -8,17 +8,25 @@
  *    (template-bundles/<id>.<hash>.json) so browsers never use a stale copy.
  *
  * The app imports `virtual:template-bundles`, which maps template ids to the
- * bundle paths (relative to the site's base URL).
+ * bundle paths (relative to the site's base URL), and
+ * `virtual:template-verification`, which gives each template's fingerprint
+ * (computed from the files being published) and its verification record, so
+ * the site can show whether those exact files were verified.
  */
 import { createHash } from 'node:crypto';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+// The schema entry point avoids loading the manifests, which Node can't import without attributes.
+import { manifestSchema } from '@campuskit/project-catalog/schema';
+import { readVerificationRecords, templateFingerprint } from '@campuskit/project-catalog/node';
 import { buildTemplateBundle } from '@campuskit/template-engine/node';
 import type { Plugin, ResolvedConfig } from 'vite';
 
 const VIRTUAL_ID = 'virtual:template-bundles';
 const RESOLVED_ID = `\0${VIRTUAL_ID}`;
+const VERIFICATION_ID = 'virtual:template-verification';
+const RESOLVED_VERIFICATION_ID = `\0${VERIFICATION_ID}`;
 
 interface TemplateInfo {
   id: string;
@@ -59,6 +67,29 @@ async function bundleJson(repoRoot: string, template: TemplateInfo): Promise<str
   return JSON.stringify(bundle);
 }
 
+/** Template id -> { fingerprint, record }. Invalid manifests are left for the catalog to report. */
+async function verificationModule(repoRoot: string): Promise<string> {
+  const catalogDir = join(repoRoot, 'packages', 'project-catalog');
+  const { records } = await readVerificationRecords(join(catalogDir, 'verification'));
+  const result: Record<string, { fingerprint: string | null; record: unknown }> = {};
+  for (const template of await readTemplates(repoRoot)) {
+    const raw = JSON.parse(
+      await readFile(join(catalogDir, 'manifests', `${template.id}.json`), 'utf8'),
+    ) as unknown;
+    const manifest = manifestSchema.safeParse(raw);
+    let fingerprint: string | null = null;
+    if (manifest.success) {
+      const { bundle } = await buildTemplateBundle(join(repoRoot, template.directory), {
+        templateId: template.id,
+        templateVersion: template.version,
+      });
+      fingerprint = templateFingerprint(manifest.data, bundle.files);
+    }
+    result[template.id] = { fingerprint, record: records.get(template.id) ?? null };
+  }
+  return `export default ${JSON.stringify(result)};\n`;
+}
+
 export function templateBundles(options: { repoRoot: string }): Plugin {
   let config: ResolvedConfig;
   const emitted = new Map<string, string>();
@@ -71,7 +102,9 @@ export function templateBundles(options: { repoRoot: string }): Plugin {
     },
 
     resolveId(id) {
-      return id === VIRTUAL_ID ? RESOLVED_ID : undefined;
+      if (id === VIRTUAL_ID) return RESOLVED_ID;
+      if (id === VERIFICATION_ID) return RESOLVED_VERIFICATION_ID;
+      return undefined;
     },
 
     async buildStart() {
@@ -87,6 +120,7 @@ export function templateBundles(options: { repoRoot: string }): Plugin {
     },
 
     async load(id) {
+      if (id === RESOLVED_VERIFICATION_ID) return verificationModule(options.repoRoot);
       if (id !== RESOLVED_ID) return undefined;
       const paths =
         config.command === 'build'
@@ -101,6 +135,20 @@ export function templateBundles(options: { repoRoot: string }): Plugin {
     },
 
     configureServer(server) {
+      // Recompute statuses when a template or a verification record changes.
+      const watched = [
+        join(options.repoRoot, 'templates'),
+        join(options.repoRoot, 'packages', 'project-catalog'),
+      ];
+      const refresh = (file: string) => {
+        if (!watched.some((directory) => file.startsWith(directory))) return;
+        const module = server.moduleGraph.getModuleById(RESOLVED_VERIFICATION_ID);
+        if (module) server.moduleGraph.invalidateModule(module);
+      };
+      server.watcher.on('change', refresh);
+      server.watcher.on('add', refresh);
+      server.watcher.on('unlink', refresh);
+
       server.middlewares.use((request, response, next) => {
         const pathname = new URL(request.url ?? '/', 'http://localhost').pathname;
         const match = /\/template-bundles\/([a-z0-9-]+)\.json$/.exec(pathname);

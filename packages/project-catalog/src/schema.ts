@@ -22,6 +22,12 @@ export const DIFFICULTIES = ['beginner', 'intermediate', 'advanced'] as const;
 export const PACKAGE_MANAGERS = ['npm', 'pip'] as const;
 export const DOC_KINDS = ['readme', 'architecture', 'viva', 'guide'] as const;
 
+/** Documents every non-draft template must include, besides the README. */
+const REQUIRED_DOCS: ReadonlyArray<readonly [(typeof DOC_KINDS)[number], string]> = [
+  ['architecture', 'an architecture document (docs/ARCHITECTURE.md)'],
+  ['viva', 'viva questions with answers (docs/VIVA_QUESTIONS.md)'],
+];
+
 export type Category = (typeof CATEGORIES)[number];
 export type ProjectType = (typeof PROJECT_TYPES)[number];
 export type Audience = (typeof AUDIENCES)[number];
@@ -100,6 +106,11 @@ export const manifestSchema = z
     addedOn: isoDate,
     updatedOn: isoDate,
     featured: z.boolean(),
+    /**
+     * Set to true while a template is being written or reviewed. Drafts are
+     * labelled on every screen and are never shown as verified.
+     */
+    draft: z.boolean().optional(),
     features: z.array(sentence).min(3).max(20),
     limitations: z.array(sentence).min(1).max(12),
     learningObjectives: z.array(sentence).min(2).max(12),
@@ -171,6 +182,26 @@ export const manifestSchema = z
         code: 'custom',
         path: ['docs'],
         message: 'Every project needs a README document',
+      });
+    }
+    // Students prepare for their viva from these documents, so a template is only
+    // complete with both. Drafts may add them later.
+    if (!manifest.draft) {
+      for (const [kind, name] of REQUIRED_DOCS) {
+        if (!manifest.docs.some((doc) => doc.kind === kind)) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['docs'],
+            message: `Add ${name} (a docs entry with "kind": "${kind}"), or set "draft": true until it is written`,
+          });
+        }
+      }
+    }
+    if (manifest.draft && manifest.featured) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['featured'],
+        message: 'Draft templates cannot be featured',
       });
     }
     if (new Set(manifest.tags).size !== manifest.tags.length) {

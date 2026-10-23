@@ -2,7 +2,7 @@
  * Glue between the generator form and the template engine. Nothing here
  * touches the DOM, so it is easy to test.
  */
-import { buildSetupGuide, type ProjectManifest } from '@campuskit/project-catalog';
+import { generationOptions, type ProjectManifest } from '@campuskit/project-catalog';
 import {
   deriveProjectSlug,
   generateProject,
@@ -137,9 +137,8 @@ export function planProject(
 ): GeneratedProject {
   return generateProject({
     bundle,
-    customization: manifest.customization,
     input: toEngineInput(manifest, values),
-    createGuide: (resolved) => buildSetupGuide(manifest, resolved, todayIso(now)),
+    ...generationOptions(manifest, todayIso(now)),
   });
 }
 
@@ -155,4 +154,29 @@ export async function buildZip(
 ): Promise<GeneratedZip> {
   const zip = await packageProject(project, now);
   return { project, zip, fileName: `${project.rootFolder}.zip` };
+}
+
+/**
+ * Plain facts about what setting a project up involves, from the manifest:
+ * what to install, whether it needs the internet, API keys or services.
+ */
+export function setupFacts(manifest: ProjectManifest): string[] {
+  const requiredVariables = manifest.environment.variables.filter((variable) => variable.required);
+  const facts = [
+    `Install first: ${manifest.prerequisites.map((item) => item.name).join(', ')}`,
+    `${manifest.setup.steps.length + 1} setup steps, starting with extracting the ZIP`,
+    manifest.network.installNeedsInternet
+      ? 'Internet needed once, to download packages'
+      : 'No downloads needed to install',
+    manifest.network.runsOffline
+      ? 'Runs offline after that'
+      : 'Needs an internet connection to run',
+    requiredVariables.length === 0
+      ? 'No API keys, accounts or secrets'
+      : `Needs ${requiredVariables.length} environment ${requiredVariables.length === 1 ? 'variable' : 'variables'}: ${requiredVariables.map((variable) => variable.name).join(', ')}`,
+  ];
+  if (manifest.network.externalServices.length > 0) {
+    facts.push(`Uses: ${manifest.network.externalServices.join('; ')}`);
+  }
+  return facts;
 }

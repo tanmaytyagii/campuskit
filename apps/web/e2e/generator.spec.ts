@@ -67,6 +67,10 @@ test('customize the attendance system and download it', async ({ page }) => {
   await expect(page.getByText('will be packed into')).toContainText(
     'riya-s-lab-attendance-and-notes.zip',
   );
+  await page.getByRole('combobox', { name: 'File' }).selectOption('README.md');
+  await expect(page.getByLabel('Contents of README.md')).toContainText(
+    '# Riya’s Lab \\<Attendance\\>',
+  );
   const download = await generate(page);
   expect(download.suggestedFilename()).toBe('riya-s-lab-attendance-and-notes.zip');
   await expect(
@@ -84,9 +88,13 @@ test('customize the attendance system and download it', async ({ page }) => {
       `${root}/.gitignore`,
       `${root}/package-lock.json`,
       `${root}/GETTING_STARTED.md`,
+      `${root}/docs/PROJECT_REPORT_DRAFT.md`,
       `${root}/LICENSE`,
     ]),
   );
+  const report = await archive.text(`${root}/docs/PROJECT_REPORT_DRAFT.md`);
+  expect(report).toContain('**Team:** Riya Sharma');
+  expect(report).toContain('**Institution:** St. Xavier’s College');
 
   const config = JSON.parse(await archive.text(`${root}/src/app.config.json`)) as Record<
     string,

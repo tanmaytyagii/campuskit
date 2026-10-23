@@ -13,6 +13,9 @@ import type {
 
 import type { ProjectManifest } from './schema.ts';
 
+/** The report draft every generated project includes (see generation.ts). */
+export const REPORT_DRAFT_FILE = 'docs/PROJECT_REPORT_DRAFT.md';
+
 function folderStep(folder: string): SetupStep {
   return {
     title: 'Extract the ZIP and open a terminal in the project folder',
@@ -62,5 +65,11 @@ export function buildSetupGuide(
       label: option.label,
       value: formatOptionValue(option, values.options[option.id] ?? option.default),
     })),
+    environment: manifest.environment.variables.map((variable) => ({ ...variable })),
+    limitations: [...manifest.limitations],
+    documents: [
+      ...manifest.docs.map((doc) => ({ title: doc.title, path: doc.file })),
+      { title: 'Project report draft (edit before you submit)', path: REPORT_DRAFT_FILE },
+    ],
   };
 }

@@ -23,9 +23,10 @@ It is a static website: no accounts, no server, no database and no AI service. P
 
 **A website** with:
 
-- a **project gallery** with search and filters (audience, category, difficulty, language, type) that live in the address, so a filtered view can be shared;
-- **project pages** with screenshots, features, limitations, prerequisites, setup and test commands, customization options, documentation and viva questions;
-- a **generator** that validates your choices, shows exactly which files they change, and builds the ZIP in your browser together with a `GETTING_STARTED.md` for that project;
+- a **project gallery** with search and filters (audience, category, difficulty, language, type) that live in the address, so a filtered view can be shared, and a short guide that compares projects on what they need: what to install, setup steps, whether they run offline, and API keys;
+- **project pages** with screenshots, features, limitations, prerequisites, setup and test commands, customization options, verification results, documentation, viva questions and related projects;
+- a **generator** that validates your choices, shows exactly which files they change, lets you read the generated files before downloading, and builds the ZIP in your browser together with a `GETTING_STARTED.md` (setup steps, environment variables, known limitations) and a project report draft for that project;
+- a **verification status** for every template (Verified, Awaiting verification, Needs attention or Draft), backed by recorded runs of `pnpm verify:generated` and tied to a fingerprint of the exact files the site serves, so a badge can't outlive the code it describes;
 - a **learning center** that drafts the sections of a project report from the project's real features and limitations, clearly marked as drafts for you to complete;
 - **documentation** for students and contributors.
 
@@ -53,21 +54,23 @@ Students don't need any of this: they use the website, download a project and fo
 
 ## Commands
 
-| Command                             | What it does                                                                                 |
-| ----------------------------------- | -------------------------------------------------------------------------------------------- |
-| `pnpm dev`                          | Starts the website with hot reloading on port 5173                                           |
-| `pnpm build`                        | Builds the static site into `apps/web/dist`                                                  |
-| `pnpm preview`                      | Serves the production build on port 4173                                                     |
-| `pnpm test`                         | Runs the unit and component tests of the engine, the catalog, the website and the repository |
-| `pnpm test:e2e`                     | Builds the site and runs the Playwright tests in Chromium, at desktop and phone sizes        |
-| `pnpm playwright:install`           | Downloads the Chromium build that Playwright uses (once)                                     |
-| `pnpm lint`                         | ESLint with TypeScript, accessibility (jsx-a11y) and React hooks rules                       |
-| `pnpm typecheck`                    | TypeScript in strict mode, for every package                                                 |
-| `pnpm format` / `pnpm format:check` | Formats, or checks the formatting of, every file with Prettier                               |
-| `pnpm validate`                     | Validates the catalog against the templates and runs the repository checks                   |
-| `pnpm verify:generated`             | Generates every template, extracts it, installs it, and runs its tests and build             |
-| `pnpm screenshots`                  | Captures the screenshots of the templates and the website from the real apps                 |
-| `pnpm check`                        | Runs validate, format:check, lint, typecheck, test and build in order                        |
+| Command                               | What it does                                                                                 |
+| ------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `pnpm dev`                            | Starts the website with hot reloading on port 5173                                           |
+| `pnpm build`                          | Builds the static site into `apps/web/dist`                                                  |
+| `pnpm preview`                        | Serves the production build on port 4173                                                     |
+| `pnpm test`                           | Runs the unit and component tests of the engine, the catalog, the website and the repository |
+| `pnpm test:e2e`                       | Builds the site and runs the Playwright tests in Chromium, at desktop and phone sizes        |
+| `pnpm playwright:install`             | Downloads the Chromium build that Playwright uses (once)                                     |
+| `pnpm lint`                           | ESLint with TypeScript, accessibility (jsx-a11y) and React hooks rules                       |
+| `pnpm typecheck`                      | TypeScript in strict mode, for every package                                                 |
+| `pnpm format` / `pnpm format:check`   | Formats, or checks the formatting of, every file with Prettier                               |
+| `pnpm validate`                       | Validates the catalog against the templates and runs the repository checks                   |
+| `pnpm verify:generated`               | Generates every template, extracts it, installs it, and runs its tests and build             |
+| `pnpm verify:generated <id> --record` | The same for one template, then saves the result as its verification record                  |
+| `pnpm changed-templates [base]`       | Lists the templates a branch changed (CI uses it to verify only those on pull requests)      |
+| `pnpm screenshots`                    | Captures the screenshots of the templates and the website from the real apps                 |
+| `pnpm check`                          | Runs validate, format:check, lint, typecheck, test and build in order                        |
 
 `pnpm verify:generated` needs Python 3.11 or newer for the Python template. Set `CAMPUSKIT_PYTHON` to choose the interpreter. The screenshot and verification scripts use Playwright's Chromium, or the browser in `CAMPUSKIT_CHROMIUM` if you set it.
 
@@ -78,7 +81,13 @@ packages/project-catalog/manifests/*.json ──▶ gallery, project pages, gene
 templates/<id>/ ──(Vite plugin)──▶ template bundle (JSON) ──▶ template engine in the browser ──▶ ZIP
 ```
 
-Every template has a **manifest**: a JSON file that describes the project and declares its customization options, and, for each option, the exact files and locations it changes. The **template engine** validates the student's values, writes them only to those declared locations (escaped for HTML, Markdown, TOML or JSON as needed), refuses unsafe paths, leaves out dependencies, build output, caches and secret files, adds `GETTING_STARTED.md`, and packages everything into a ZIP with a single root folder. It never runs template code.
+Every template has a **manifest**: a JSON file that describes the project and declares its customization options, and, for each option, the exact files and locations it changes. The **template engine** validates the student's values, writes them only to those declared locations (escaped for HTML, Markdown, TOML or JSON as needed), refuses unsafe paths, leaves out dependencies, build output, caches and secret files, adds `GETTING_STARTED.md` and `docs/PROJECT_REPORT_DRAFT.md`, and packages everything into a ZIP with a single root folder. It never runs template code.
+
+## Template verification
+
+The catalog checks run on every build: a template that fails them is never published. A full verification goes further: `pnpm verify:generated <id> --record` generates the project with the default settings and with every setting changed, extracts each ZIP, installs the dependencies and runs the tests and the build or app, then writes `packages/project-catalog/verification/<id>.json` with the date, operating system, tool versions and every step that ran.
+
+Each record stores a fingerprint of the template files and of the manifest settings that affect them. The website computes the same fingerprint from the files it publishes and shows a template as **Verified** only when they match a passing record. Editing a template therefore returns it to **Awaiting verification** until someone runs the script again; a failed run shows **Needs attention**. The project page lists every recorded run, and which operating systems have not been verified.
 
 Read more in [Architecture](docs/architecture.md) and [Template engine](docs/template-engine.md).
 
@@ -87,7 +96,7 @@ Read more in [Architecture](docs/architecture.md) and [Template engine](docs/tem
 ```text
 apps/web/                  The website (React, TypeScript, Vite, Tailwind CSS, React Router)
 packages/template-engine/  Options, edits, escaping, path safety and ZIP files
-packages/project-catalog/  Manifests, their Zod schema and the catalog validator
+packages/project-catalog/  Manifests, their Zod schema, verification records and the catalog validator
 templates/                 The starter projects, exactly as students receive them
 scripts/                   Repository checks, generated-project verification, screenshots
 tests/                     Repository-level tests
@@ -103,7 +112,7 @@ docs/                      Guides for students and documentation for contributor
 - **End to end:** Playwright tests the production build in Chromium at desktop and phone sizes. They download and inspect real ZIP files, check keyboard navigation and the mobile menu, fail on any console error, failed request or Content Security Policy violation, and run axe with every rule, including colour contrast, in both themes.
 - **Generated projects:** `pnpm verify:generated` extracts each generated ZIP safely, checks the customized and excluded files, then installs the project and runs its own tests and build.
 
-The CI workflow in [.github/workflows/ci.yml](.github/workflows/ci.yml) runs all of these on every push and pull request.
+The CI workflow in [.github/workflows/ci.yml](.github/workflows/ci.yml) runs all of these on every push and pull request. The generated-project verification runs on Linux, Windows and macOS: for every template on pushes to `main`, and for pull requests only for the templates the change touches (a change to the engine or catalog code still verifies every template).
 
 ## Adding a template
 
@@ -120,6 +129,8 @@ The site is static. `pnpm build` produces `apps/web/dist`, which you can host on
 - Generated projects need Node.js or Python installed on the student's computer, and installing their dependencies needs an internet connection the first time.
 - The React templates store data in the browser's `localStorage`, with no accounts or sync. They are learning projects, not systems for real institutional records.
 - Report drafts are saved only in the browser that wrote them, and they are prompts and facts to build on, not finished text.
+- Verification records are written on a maintainer's computer and committed. CI repeats the verification on three operating systems but does not write records, so the website shows only the platforms someone recorded.
+- A record covers a template's files and its manifest settings. A change to the template engine itself is covered by CI, which verifies every template when the engine changes, rather than by the records.
 - Automated browser tests run in Chromium only. The site uses standard web features and should work in current Firefox and Safari, but those browsers are not tested automatically.
 
 ## Contributing, security and licence

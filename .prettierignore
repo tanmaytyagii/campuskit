@@ -14,3 +14,5 @@ __pycache__
 *.py
 # Generated from the Zod schema by `pnpm --filter @campuskit/project-catalog schema`.
 packages/project-catalog/manifest.schema.json
+# Written by `pnpm verify:generated --record`.
+packages/project-catalog/verification/*.json

@@ -1,4 +1,16 @@
-import { catalog, getProjectById, type ProjectManifest } from '@campuskit/project-catalog';
+import {
+  assembleReport,
+  catalog,
+  countPrompts,
+  draftSection,
+  emptyInfo,
+  getProjectById,
+  SECTION_IDS,
+  SECTION_TITLES,
+  type ProjectManifest,
+  type ReportInfo,
+  type SectionId,
+} from '@campuskit/project-catalog';
 import { Check, Copy, Download, Eye, RotateCcw, Trash } from 'lucide-react';
 import { useEffect, useId, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router';
@@ -14,16 +26,6 @@ import { cn } from '../../lib/cn.ts';
 import { downloadFile } from '../../lib/download.ts';
 import { formatIsoDate, todayIso } from '../../lib/format.ts';
 import { readStored, removeStored, writeStored } from '../../lib/storage.ts';
-import {
-  assembleReport,
-  countPrompts,
-  draftSection,
-  emptyInfo,
-  SECTION_IDS,
-  SECTION_TITLES,
-  type ReportInfo,
-  type SectionId,
-} from './report-sections.ts';
 
 const CUSTOM = 'custom';
 const STORAGE_PREFIX = 'campuskit:report:v1:';

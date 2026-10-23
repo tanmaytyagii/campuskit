@@ -8,6 +8,7 @@ import { Link } from 'react-router';
 
 import { cn } from '../lib/cn.ts';
 import { PreviewImage } from './PreviewImage.tsx';
+import { StatusBadge } from './StatusBadge.tsx';
 import { Badge } from './ui/Badge.tsx';
 
 interface ProjectCardProps {
@@ -42,6 +43,7 @@ export function ProjectCard({ project, headingLevel = 'h3', className }: Project
         </Heading>
         <p className="text-[0.95rem] text-ink-2">{project.tagline}</p>
         <div className="mt-auto flex flex-wrap gap-1.5 pt-2">
+          <StatusBadge project={project} />
           <Badge tone="violet">{DIFFICULTY_LABELS[project.difficulty]}</Badge>
           <Badge>
             {project.audience.map((audience) => AUDIENCE_LABELS[audience]).join(' and ')}

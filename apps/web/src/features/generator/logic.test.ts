@@ -10,6 +10,7 @@ import {
   planProject,
   previewEdits,
   previewValues,
+  setupFacts,
   toEngineInput,
   validateOptions,
 } from './logic.ts';
@@ -145,5 +146,31 @@ describe('generator logic', () => {
     expect(paths.some((path) => path.includes('node_modules') || path.includes('/dist/'))).toBe(
       false,
     );
+  });
+});
+
+describe('setupFacts', () => {
+  it('describes setup from the manifest, including what is not needed', () => {
+    const facts = setupFacts(project('student-result-analyzer'));
+    expect(facts[0]).toMatch(/^Install first: Python/);
+    expect(facts).toContain('No API keys, accounts or secrets');
+    expect(facts).toContain('Internet needed once, to download packages');
+  });
+
+  it('lists required environment variables and services when a template has them', () => {
+    const base = project('expense-tracker');
+    const facts = setupFacts({
+      ...base,
+      environment: {
+        variables: [
+          { name: 'API_KEY', required: true, description: 'Key for the demo API.', example: 'abc' },
+          { name: 'DEBUG', required: false, description: 'Extra logging.', example: '1' },
+        ],
+      },
+      network: { ...base.network, runsOffline: false, externalServices: ['A weather API.'] },
+    });
+    expect(facts).toContain('Needs 1 environment variable: API_KEY');
+    expect(facts).toContain('Needs an internet connection to run');
+    expect(facts).toContain('Uses: A weather API.');
   });
 });

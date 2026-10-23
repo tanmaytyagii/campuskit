@@ -29,6 +29,19 @@ export interface SetupPrerequisite {
   note?: string | undefined;
 }
 
+export interface SetupEnvironmentVariable {
+  name: string;
+  required: boolean;
+  description: string;
+  example: string;
+}
+
+export interface SetupDocument {
+  title: string;
+  /** Path inside the project, e.g. "docs/ARCHITECTURE.md". */
+  path: string;
+}
+
 export interface SetupGuide {
   projectName: string;
   folderName: string;
@@ -40,6 +53,12 @@ export interface SetupGuide {
   steps: SetupStep[];
   notes: string[];
   choices: Array<{ label: string; value: string }>;
+  /** Environment variables the project reads. An empty list is rendered as "none needed". */
+  environment?: SetupEnvironmentVariable[] | undefined;
+  /** Known limitations, so nobody presents the project as more than it is. */
+  limitations?: string[] | undefined;
+  /** Documents inside the project worth reading first. */
+  documents?: SetupDocument[] | undefined;
 }
 
 const PLATFORM_LABEL: Record<CommandPlatform, string> = {
@@ -105,6 +124,27 @@ export function renderGettingStarted(guide: SetupGuide): string {
     }
   });
 
+  if (guide.environment) {
+    lines.push('## Environment variables');
+    lines.push('');
+    if (guide.environment.length === 0) {
+      lines.push('None. The project needs no API keys, passwords or other secrets.');
+    } else {
+      lines.push('| Name | Required | What it is for | Example |');
+      lines.push('| --- | --- | --- | --- |');
+      for (const variable of guide.environment) {
+        lines.push(
+          `| \`${variable.name}\` | ${variable.required ? 'Yes' : 'No'} | ${variable.description} | \`${variable.example}\` |`,
+        );
+      }
+      lines.push('');
+      lines.push(
+        'Never commit real values. Keep them in a `.env` file that is listed in `.gitignore`.',
+      );
+    }
+    lines.push('');
+  }
+
   if (guide.choices.length > 0) {
     lines.push('## Your customization');
     lines.push('');
@@ -120,6 +160,20 @@ export function renderGettingStarted(guide: SetupGuide): string {
     lines.push('## Good to know');
     lines.push('');
     for (const note of guide.notes) lines.push(`- ${note}`);
+    lines.push('');
+  }
+
+  if (guide.limitations && guide.limitations.length > 0) {
+    lines.push('## Known limitations');
+    lines.push('');
+    for (const limitation of guide.limitations) lines.push(`- ${limitation}`);
+    lines.push('');
+  }
+
+  if (guide.documents && guide.documents.length > 0) {
+    lines.push('## Documentation in this project');
+    lines.push('');
+    for (const document of guide.documents) lines.push(`- [${document.title}](${document.path})`);
     lines.push('');
   }
 

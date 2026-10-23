@@ -226,3 +226,54 @@ export function suggestions(
   }
   return results.slice(0, limit);
 }
+
+export interface RelatedProject {
+  project: ProjectManifest;
+  /** Technologies and tags the two projects share, for the "why" line under each suggestion. */
+  shared: string[];
+  sameCategory: boolean;
+}
+
+/**
+ * Projects that share technologies, tags or a category with `project`,
+ * most overlap first. Projects with nothing in common are never suggested.
+ */
+export function relatedProjects(
+  project: ProjectManifest,
+  projects: readonly ProjectManifest[],
+  limit = 3,
+): RelatedProject[] {
+  const technologies = (item: ProjectManifest) =>
+    [...item.languages, ...item.frameworks].filter(
+      (value) => !NON_PROGRAMMING_LANGUAGES.has(value),
+    );
+  const mine = new Set(technologies(project));
+  const myTags = new Set(project.tags);
+  return projects
+    .filter((candidate) => candidate.id !== project.id)
+    .map((candidate) => {
+      const sharedTech = technologies(candidate).filter((value) => mine.has(value));
+      // Tags that only repeat a technology name ("react") are already counted.
+      const sharedTags = candidate.tags.filter(
+        (tag) =>
+          myTags.has(tag) &&
+          !sharedTech.some((tech) => tech.toLowerCase() === tag.replace(/-/g, ' ')),
+      );
+      const sameCategory = candidate.category === project.category;
+      const score = sharedTech.length * 2 + sharedTags.length + (sameCategory ? 1 : 0);
+      return {
+        project: candidate,
+        score,
+        shared: [...sharedTech, ...sharedTags.map((tag) => tag.replace(/-/g, ' '))],
+        sameCategory,
+      };
+    })
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score || a.project.name.localeCompare(b.project.name, 'en'))
+    .slice(0, limit)
+    .map(({ project: related, shared, sameCategory }) => ({
+      project: related,
+      shared,
+      sameCategory,
+    }));
+}

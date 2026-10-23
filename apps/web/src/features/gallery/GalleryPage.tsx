@@ -11,6 +11,7 @@ import { EmptyState } from '../../components/ui/EmptyState.tsx';
 import { controlClasses } from '../../components/ui/Field.tsx';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts';
 import { cn } from '../../lib/cn.ts';
+import { ChooseGuide } from './ChooseGuide.tsx';
 import { ActiveFilters, facetDefinitions, FilterPanel } from './FilterPanel.tsx';
 import {
   activeFilterCount,
@@ -137,6 +138,8 @@ export function GalleryPage() {
               Filters{activeCount > 0 ? ` (${activeCount})` : ''}
             </Button>
           </div>
+
+          <ChooseGuide projects={catalog} />
 
           <ActiveFilters filters={filters} facets={FACETS} onRemove={remove} onReset={reset} />
 

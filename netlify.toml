@@ -1,6 +1,7 @@
 # Netlify configuration. See docs/deployment.md.
 [build]
-  command = "pnpm build"
+  # Validation runs first so a template that fails the catalog checks is never published.
+  command = "pnpm validate && pnpm build"
   publish = "apps/web/dist"
 
 [build.environment]

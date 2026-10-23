@@ -78,4 +78,19 @@ describe('project page', () => {
       screen.getByRole('heading', { level: 1, name: 'This page doesn’t exist' }),
     ).toBeInTheDocument();
   });
+
+  it('explains the template’s verification status and suggests related projects', () => {
+    renderRoute('/projects/attendance-system');
+    const verification = within(screen.getByRole('region', { name: 'Verification' }));
+    expect(
+      verification.getByRole('heading', { name: 'Checked before every release of this site' }),
+    ).toBeInTheDocument();
+    expect(
+      verification.getByText('pnpm verify:generated attendance-system --record'),
+    ).toBeInTheDocument();
+
+    const related = within(screen.getByRole('region', { name: 'Related projects' }));
+    expect(related.getByRole('link', { name: 'Personal Expense Tracker' })).toBeInTheDocument();
+    expect(related.getByText(/Also uses TypeScript, React/)).toBeInTheDocument();
+  });
 });

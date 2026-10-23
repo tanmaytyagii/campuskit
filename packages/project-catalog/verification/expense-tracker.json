@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "templateId": "expense-tracker",
+  "entries": [
+    {
+      "platform": "macos",
+      "verifiedOn": "2026-10-22",
+      "templateVersion": "1.0.0",
+      "fingerprint": "sha256:a0cb8a193fdcbf889483b22902600f11a11ab5a00ad728e377998575ff7e0c23",
+      "environment": {
+        "os": "macOS 26.2 (arm64)",
+        "node": "24.12.0",
+        "npm": "11.6.2"
+      },
+      "runs": [
+        {
+          "variant": "defaults",
+          "passed": true,
+          "steps": [
+            "personal-expense-tracker.zip: 47 files, 328 KB, 0 excluded",
+            "files, customizations and exclusions checked",
+            "npm ci",
+            "npm test (39 passed)",
+            "npm run build"
+          ]
+        },
+        {
+          "variant": "customized",
+          "passed": true,
+          "steps": [
+            "riya-and-sam-s-lab-app-v2.zip: 47 files, 329 KB, 0 excluded",
+            "files, customizations and exclusions checked",
+            "npm ci",
+            "npm test (39 passed)",
+            "npm run build"
+          ]
+        }
+      ]
+    }
+  ]
+}

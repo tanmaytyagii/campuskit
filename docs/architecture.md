@@ -35,9 +35,18 @@ templates/<id>/  ──vite-plugins/template-bundles.ts──▶  template-bundl
                                                               ▼
 student's choices ──▶ template engine (in the browser) ──▶ validate options
                                                          ──▶ apply the manifest's declared edits
-                                                         ──▶ add GETTING_STARTED.md
+                                                         ──▶ add GETTING_STARTED.md and docs/PROJECT_REPORT_DRAFT.md
                                                          ──▶ ZIP with one root folder ──▶ download
+
+templates/<id>/ + manifest ──▶ fingerprint (SHA-256) ─┐
+packages/project-catalog/verification/<id>.json ───────┴─▶ template status on every screen
 ```
+
+### Template status
+
+`pnpm verify:generated <id> --record` is the only thing that writes a verification record. Each record has one entry per operating system, holding a fingerprint of the template files and of the manifest's `version`, `template`, `customization`, `setup`, `testing`, `prerequisites` and `environment` fields (`packages/project-catalog/src/node/fingerprint.ts`).
+
+At build time, `vite-plugins/template-bundles.ts` computes the same fingerprint from the files it is about to publish and exposes it, with the record, as `virtual:template-verification`. `templateStatus()` in `packages/project-catalog/src/verification.ts` compares the two: a matching passing entry means **Verified**, a matching failed entry **Needs attention**, no matching entry **Awaiting verification**, and `"draft": true` in the manifest always means **Draft**. `pnpm validate:catalog` prints the same statuses and warns about out-of-date or failed records.
 
 ### One source of truth
 

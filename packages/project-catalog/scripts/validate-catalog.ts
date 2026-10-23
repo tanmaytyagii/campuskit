@@ -28,7 +28,12 @@ if (report.issues.length > 0) {
 console.log(`\nCatalog OK: ${report.manifests.length} projects validated.`);
 for (const manifest of report.manifests) {
   console.log(
-    `  ✓ ${manifest.id} (${report.fileCounts[manifest.id] ?? 0} template files, ${manifest.customization.edits.length} edits)`,
+    `  ✓ ${manifest.id} (${report.fileCounts[manifest.id] ?? 0} template files, ${manifest.customization.edits.length} edits): ${report.statuses[manifest.id]?.label ?? 'unknown status'}`,
   );
+}
+if (report.warnings.length > 0) {
+  console.log(`\n${report.warnings.length} warning(s):\n`);
+  for (const warning of report.warnings)
+    console.log(`  ! ${warning.manifest} › ${warning.path}: ${warning.message}`);
 }
 console.log('');

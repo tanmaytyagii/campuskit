@@ -113,6 +113,9 @@
     "featured": {
       "type": "boolean"
     },
+    "draft": {
+      "type": "boolean"
+    },
     "features": {
       "minItems": 3,
       "maxItems": 20,

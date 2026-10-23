@@ -33,6 +33,13 @@ Copy this list into your pull request description and tick each item. A maintain
 - [ ] Screenshots are real captures of the app with its demo data, and their alt text describes what they show.
 - [ ] Every option's edits change only the intended places, and the generated project still installs, passes its tests and builds (`pnpm verify:generated <id>`).
 - [ ] Third-party components and their licences are listed in `license.thirdParty`.
+- [ ] The template has no file named `GETTING_STARTED.md` or `docs/PROJECT_REPORT_DRAFT.md`; CampusKit generates those.
+- [ ] `"draft": true` is set if anything above is still missing, and removed once everything is done.
+
+## Verification
+
+- [ ] `pnpm verify:generated <id> --record` passed, and the updated `packages/project-catalog/verification/<id>.json` is committed. Or: the pull request says which platforms I couldn't run it on.
+- [ ] `pnpm validate:catalog` shows no warnings for this template.
 
 ## Repository checks pass
 

@@ -9,7 +9,14 @@
  *  - required files exist (README, LICENSE, docs, screenshots, lockfiles);
  *  - relative links in the template's Markdown files point to real files;
  *  - every customization edit applies cleanly, with the defaults and with
- *    a stress-test name full of special characters and Unicode.
+ *    a stress-test name full of special characters and Unicode;
+ *  - the template folder contains no credential files (.env, keys, ...);
+ *  - verification records are well formed and belong to a template.
+ *
+ * It also works out each template's status (verified, awaiting verification,
+ * ...). An out-of-date or failed verification is a warning, not an error:
+ * contributors can't always run every platform, and the site then shows the
+ * template as awaiting verification instead of verified.
  */
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { basename, join } from 'node:path';
@@ -17,7 +24,7 @@ import { basename, join } from 'node:path';
 import {
   generateProject,
   isCanonicalJson,
-  resolveValues,
+  isSecretPath,
   type BundleFile,
 } from '@campuskit/template-engine';
 import { buildTemplateBundle } from '@campuskit/template-engine/node';
@@ -25,7 +32,10 @@ import { buildTemplateBundle } from '@campuskit/template-engine/node';
 import { checkManifests, type RawManifest } from '../catalog.ts';
 import { extractMarkdownLinks, resolveRelativeHref } from '../markdown-links.ts';
 import type { ProjectManifest } from '../schema.ts';
-import { buildSetupGuide } from '../setup-guide.ts';
+import { generationOptions } from '../generation.ts';
+import { PLATFORM_LABELS, templateStatus, type TemplateStatus } from '../verification.ts';
+import { templateFingerprint } from './fingerprint.ts';
+import { readVerificationRecords } from './records.ts';
 
 export interface CatalogIssue {
   manifest: string;
@@ -35,9 +45,14 @@ export interface CatalogIssue {
 
 export interface CatalogReport {
   issues: CatalogIssue[];
+  /** Problems that don't fail validation, such as an out-of-date verification. */
+  warnings: CatalogIssue[];
   manifests: ProjectManifest[];
   /** Number of files bundled per template id. */
   fileCounts: Record<string, number>;
+  /** Fingerprint of each template's files and generation settings. */
+  fingerprints: Record<string, string>;
+  statuses: Record<string, TemplateStatus>;
 }
 
 /** A project name that exercises every escaping rule. */
@@ -153,12 +168,10 @@ function checkGeneration(
   ];
   for (const attempt of attempts) {
     try {
-      const values = resolveValues(manifest.customization, attempt.input, manifest.id);
       generateProject({
         bundle,
-        customization: manifest.customization,
         input: attempt.input,
-        createGuide: () => buildSetupGuide(manifest, values, '2026-01-01'),
+        ...generationOptions(manifest, '2026-01-01'),
       });
     } catch (error) {
       issue(
@@ -173,9 +186,24 @@ export async function validateCatalog(options: {
   repoRoot: string;
   manifestsDir: string;
   registeredFiles: readonly string[];
+  /** Folder with verification records; defaults to ../verification next to the manifests. */
+  verificationDir?: string;
 }): Promise<CatalogReport> {
   const { raw, issues } = await readManifestFiles(options.manifestsDir);
+  const warnings: CatalogIssue[] = [];
   const fileCounts: Record<string, number> = {};
+  const fingerprints: Record<string, string> = {};
+  const statuses: Record<string, TemplateStatus> = {};
+  const verificationDir =
+    options.verificationDir ?? join(options.manifestsDir, '..', 'verification');
+  const { records, problems: recordProblems } = await readVerificationRecords(verificationDir);
+  for (const problem of recordProblems) {
+    issues.push({
+      manifest: `verification/${problem.file}`,
+      path: '(file)',
+      message: problem.message,
+    });
+  }
 
   const registered = new Set(options.registeredFiles);
   for (const entry of raw) {
@@ -213,23 +241,60 @@ export async function validateCatalog(options: {
       continue;
     }
 
-    let bundle;
+    let built;
     try {
-      bundle = (
-        await buildTemplateBundle(directory, {
-          templateId: manifest.id,
-          templateVersion: manifest.version,
-        })
-      ).bundle;
+      built = await buildTemplateBundle(directory, {
+        templateId: manifest.id,
+        templateVersion: manifest.version,
+      });
     } catch (error) {
       issue('template.directory', `The template could not be bundled: ${(error as Error).message}`);
       continue;
+    }
+    const { bundle } = built;
+    for (const skipped of built.skipped) {
+      if (isSecretPath(skipped.path)) {
+        issue(
+          skipped.path,
+          'Credential files must not be committed with a template. Delete it (and rotate the secret if it was real); document variables in manifest "environment" and ship a .env.example instead',
+        );
+      }
     }
     fileCounts[manifest.id] = bundle.files.length;
     const files = new Map(bundle.files.map((file) => [file.path, file]));
     checkTemplateFiles(manifest, files, issue);
     checkGeneration(manifest, bundle, issue);
+
+    const fingerprint = templateFingerprint(manifest, bundle.files);
+    fingerprints[manifest.id] = fingerprint;
+    const status = templateStatus(manifest, records.get(manifest.id) ?? null, fingerprint);
+    statuses[manifest.id] = status;
+    const rerun = `run "pnpm verify:generated ${manifest.id} --record" on that platform`;
+    for (const entry of status.outdated) {
+      warnings.push({
+        manifest: name,
+        path: `verification (${PLATFORM_LABELS[entry.platform]})`,
+        message: `The ${entry.verifiedOn} verification no longer matches the template (it changed since); ${rerun}`,
+      });
+    }
+    for (const entry of status.current.filter((item) => item.runs.some((run) => !run.passed))) {
+      warnings.push({
+        manifest: name,
+        path: `verification (${PLATFORM_LABELS[entry.platform]})`,
+        message: `The ${entry.verifiedOn} verification failed; fix the template, then ${rerun}`,
+      });
+    }
   }
 
-  return { issues, manifests, fileCounts };
+  for (const templateId of records.keys()) {
+    if (!manifests.some((manifest) => manifest.id === templateId)) {
+      issues.push({
+        manifest: `verification/${templateId}.json`,
+        path: 'templateId',
+        message: `No manifest has the id "${templateId}"; delete the record or fix its templateId`,
+      });
+    }
+  }
+
+  return { issues, warnings, manifests, fileCounts, fingerprints, statuses };
 }

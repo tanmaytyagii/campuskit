@@ -13,6 +13,7 @@ import { Link, useSearchParams } from 'react-router';
 
 import { PageHeader } from '../../components/layout/PageHeader.tsx';
 import { SetupSteps } from '../../components/SetupSteps.tsx';
+import { StatusBadge } from '../../components/StatusBadge.tsx';
 import { Badge } from '../../components/ui/Badge.tsx';
 import { Button, ButtonLink } from '../../components/ui/Button.tsx';
 import { Callout } from '../../components/ui/Callout.tsx';
@@ -21,6 +22,8 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts';
 import { useTemplateBundle } from '../../hooks/useTemplateBundle.ts';
 import { cn } from '../../lib/cn.ts';
 import { downloadFile } from '../../lib/download.ts';
+import { getTemplateStatus } from '../../lib/verification.ts';
+import { FilePreview } from './FilePreview.tsx';
 import { KitPreview } from './KitPreview.tsx';
 import {
   buildZip,
@@ -28,6 +31,7 @@ import {
   optionsForStep,
   planProject,
   previewValues,
+  setupFacts,
   STEP_IDS,
   validateOptions,
   type FormValue,
@@ -350,6 +354,7 @@ export function GeneratorPage() {
                     </Callout>
                   ) : null}
                   {plan?.ok ? <FileChanges project={plan.project} /> : null}
+                  {plan?.ok ? <FilePreview project={plan.project} /> : null}
                   {status.kind === 'error' ? (
                     <Callout tone="danger" title="The ZIP could not be created" role="alert">
                       {status.message}
@@ -441,6 +446,7 @@ function TemplateChooser({
                 <span className="block font-semibold text-ink">{project.name}</span>
                 <span className="block text-sm text-ink-2">{project.tagline}</span>
                 <span className="flex flex-wrap gap-1.5 pt-1">
+                  <StatusBadge project={project} />
                   <Badge tone="violet">{DIFFICULTY_LABELS[project.difficulty]}</Badge>
                   <Badge>{PROJECT_TYPE_LABELS[project.projectType]}</Badge>
                   {[
@@ -464,36 +470,60 @@ function TemplateChooser({
 }
 
 function TemplateSummary({ manifest }: { manifest: ProjectManifest }) {
+  const status = getTemplateStatus(manifest);
   return (
-    <div className="mt-6 grid gap-6 rounded-xl bg-raised p-5 md:grid-cols-2">
-      <div>
-        <h3 className="text-sm font-bold text-ink">What you get</h3>
-        <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-ink-2">
-          {manifest.features.slice(0, 5).map((feature) => (
-            <li key={feature}>{feature}</li>
-          ))}
-        </ul>
-        <Link to={`/projects/${manifest.slug}`} className="link mt-3 inline-block text-sm">
-          See every feature and limitation
-        </Link>
-      </div>
-      <div className="space-y-5">
+    <div className="mt-6 space-y-4">
+      {status.id === 'verified' ? null : (
+        <Callout
+          tone={status.id === 'awaiting-verification' ? 'info' : 'warn'}
+          title={`${manifest.name}: ${status.label.toLowerCase()}`}
+        >
+          {status.summary}{' '}
+          <Link to={`/projects/${manifest.slug}#verification`} className="link">
+            What is checked
+          </Link>
+        </Callout>
+      )}
+      <div className="grid gap-6 rounded-xl bg-raised p-5 md:grid-cols-2">
         <div>
-          <h3 className="text-sm font-bold text-ink">You will need</h3>
-          <ul className="mt-2 space-y-1.5 text-sm text-ink-2">
-            {manifest.prerequisites.map((item) => (
-              <li key={item.name}>
-                <span className="font-semibold text-ink">{item.name}</span>
-                {item.version ? ` ${item.version}` : ''}
-              </li>
+          <h3 className="text-sm font-bold text-ink">What you get</h3>
+          <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-ink-2">
+            {manifest.features.slice(0, 5).map((feature) => (
+              <li key={feature}>{feature}</li>
             ))}
           </ul>
+          <Link to={`/projects/${manifest.slug}`} className="link mt-3 inline-block text-sm">
+            See every feature and limitation
+          </Link>
         </div>
-        <div>
-          <h3 className="text-sm font-bold text-ink">You can customize</h3>
-          <p className="mt-2 text-sm text-ink-2">
-            {manifest.customization.options.map((option) => option.label).join(', ')}.
-          </p>
+        <div className="space-y-5">
+          <div>
+            <h3 className="text-sm font-bold text-ink">You will need</h3>
+            <ul className="mt-2 space-y-1.5 text-sm text-ink-2">
+              {manifest.prerequisites.map((item) => (
+                <li key={item.name}>
+                  <span className="font-semibold text-ink">{item.name}</span>
+                  {item.version ? ` ${item.version}` : ''}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-ink">Setting it up</h3>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-ink-2">
+              {setupFacts(manifest)
+                .slice(1)
+                .map((fact) => (
+                  <li key={fact}>{fact}</li>
+                ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-ink">You can customize</h3>
+            <p className="mt-2 text-sm text-ink-2">
+              {manifest.customization.options.map((option) => option.label).join(', ')}.
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -540,8 +570,9 @@ function FileChanges({ project }: { project: ReturnType<typeof planProject> }) {
       <p className="text-sm text-ink-2">
         <span className="font-semibold text-ink">{project.files.length} files</span> (
         {formatBytes(project.totalBytes)}) will be packed into{' '}
-        <span className="font-mono">{project.rootFolder}.zip</span>, including a GETTING_STARTED.md
-        with your setup steps. Your choices change {files.size} files:
+        <span className="font-mono">{project.rootFolder}.zip</span>, including GETTING_STARTED.md
+        with your setup steps and a project report draft in docs/. Your choices change {files.size}{' '}
+        files:
       </p>
       <ul className="grid gap-2 sm:grid-cols-2">
         {[...files.entries()].map(([file, labels]) => (
@@ -624,6 +655,41 @@ function DonePanel({
         </div>
         <SetupSteps steps={project.guide.steps} headingLevel="h3" />
       </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="rounded-xl border border-line p-5 text-sm">
+          <h3 className="font-bold text-ink">Environment variables</h3>
+          {project.guide.environment && project.guide.environment.length > 0 ? (
+            <ul className="mt-2 space-y-2 text-ink-2">
+              {project.guide.environment.map((variable) => (
+                <li key={variable.name}>
+                  <code className="font-mono text-ink">{variable.name}</code>
+                  {variable.required ? ' (required)' : ' (optional)'}: {variable.description}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-2 text-ink-2">
+              None. This project needs no API keys, passwords or other secrets.
+            </p>
+          )}
+        </div>
+        <div className="rounded-xl border border-line p-5 text-sm">
+          <h3 className="font-bold text-ink">Known limitations</h3>
+          <ul className="mt-2 list-disc space-y-1.5 pl-5 text-ink-2">
+            {manifest.limitations.map((limitation) => (
+              <li key={limitation}>{limitation}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <Callout tone="info" title="Your documentation">
+        The ZIP includes the README, docs/ARCHITECTURE.md, docs/VIVA_QUESTIONS.md and{' '}
+        <span className="font-mono">docs/PROJECT_REPORT_DRAFT.md</span>: a report outline built from
+        this project’s real features and limitations, with [bracketed prompts] for everything you
+        must write or measure yourself.
+      </Callout>
 
       <div className="flex flex-wrap gap-3 border-t border-line pt-6">
         <ButtonLink to={`/learn?project=${manifest.id}`} variant="secondary">

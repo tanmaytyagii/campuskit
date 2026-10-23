@@ -140,7 +140,8 @@ const EXCLUDED_DIRECTORIES: ReadonlyMap<string, string> = new Map([
   ['test-results', 'test report output'],
 ]);
 
-const EXCLUDED_FILES: ReadonlyArray<readonly [RegExp, string]> = [
+/** Names that may hold credentials. Matching files are excluded, and the catalog validator rejects templates that contain them. */
+const SECRET_FILES: ReadonlyArray<readonly [RegExp, string]> = [
   [/^\.env$/, 'environment files can contain secrets'],
   [/^\.env\.(?!example$|sample$|template$).+$/, 'environment files can contain secrets'],
   [/^secrets\.toml$/, 'Streamlit secrets must never be shared'],
@@ -149,6 +150,10 @@ const EXCLUDED_FILES: ReadonlyArray<readonly [RegExp, string]> = [
   [/^\.netrc$/, 'credential files must never be shared'],
   [/\.(pem|key|p12|pfx|jks|keystore)$/i, 'private keys and certificates must never be shared'],
   [/^id_(rsa|dsa|ecdsa|ed25519)(\.pub)?$/, 'SSH keys must never be shared'],
+];
+
+const EXCLUDED_FILES: ReadonlyArray<readonly [RegExp, string]> = [
+  ...SECRET_FILES,
   [/\.(sqlite|sqlite3|db)$/i, 'local databases can contain personal data'],
   [/\.py[cod]$/, 'Python bytecode is generated locally'],
   [/\.tsbuildinfo$/, 'TypeScript build cache'],
@@ -181,6 +186,12 @@ export function getExclusionReason(path: string): string | null {
     if (pattern.test(fileName)) return `${fileName} is excluded: ${reason}`;
   }
   return null;
+}
+
+/** True for files that may contain credentials, such as `.env` or private keys. */
+export function isSecretPath(path: string): boolean {
+  const fileName = path.split('/').at(-1) ?? '';
+  return SECRET_FILES.some(([pattern]) => pattern.test(fileName));
 }
 
 export function isExcludedPath(path: string): boolean {

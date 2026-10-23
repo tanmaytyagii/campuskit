@@ -1,10 +1,10 @@
 /**
- * Site-wide settings. When you publish CampusKit (for example on GitHub),
- * set `repositoryUrl` so the footer and project pages can link to it. Until
- * then no repository link is shown, so the site never contains a dead link.
+ * Site-wide settings. `repositoryUrl` is where the footer, project pages and
+ * documentation pages link to the source. If you publish a fork, change it to
+ * your repository, or set it to null to hide every repository link.
  */
 export const siteConfig = {
   name: 'CampusKit',
   tagline: 'Build it. Understand it. Present it.',
-  repositoryUrl: null as string | null,
+  repositoryUrl: 'https://github.com/tanmaytyagii/campuskit' as string | null,
 };

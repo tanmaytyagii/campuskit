@@ -1,13 +1,7 @@
-import { getProjectById } from '@campuskit/project-catalog';
 import { describe, expect, it } from 'vitest';
 
-import {
-  assembleReport,
-  countPrompts,
-  draftSection,
-  emptyInfo,
-  SECTION_IDS,
-} from './report-sections.ts';
+import { assembleReport, countPrompts, draftSection, emptyInfo, SECTION_IDS } from './report.ts';
+import { getProjectById } from './index.ts';
 
 const analyzer = getProjectById('student-result-analyzer');
 if (!analyzer) throw new Error('missing project');
