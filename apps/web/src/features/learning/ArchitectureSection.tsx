@@ -5,7 +5,7 @@ import type {
 } from '@campuskit/project-catalog';
 import { ArrowRight, FileCode } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 
 import { cn } from '../../lib/cn.ts';
 import { fileHref, sourceHref } from './links.ts';
@@ -35,7 +35,14 @@ export function ArchitectureSection({
   guide: LearningGuide;
 }) {
   const { architecture } = guide;
-  const [selectedId, setSelectedId] = useState(architecture.components[0]?.id ?? '');
+  const [params] = useSearchParams();
+  // Links from other pages (the demo studio, for example) can open a component: ?component=storage.
+  const [selectedId, setSelectedId] = useState(() => {
+    const requested = params.get('component');
+    return architecture.components.some((component) => component.id === requested)
+      ? (requested ?? '')
+      : (architecture.components[0]?.id ?? '');
+  });
   const selected =
     architecture.components.find((component) => component.id === selectedId) ??
     architecture.components[0];

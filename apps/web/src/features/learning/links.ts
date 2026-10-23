@@ -45,3 +45,31 @@ export function vivaHref(project: ProjectManifest): string {
 export function reportHref(project: ProjectManifest): string {
   return `/learn/report?project=${project.id}`;
 }
+
+/** The code walkthrough opened at one entry. */
+export function walkthroughHref(project: ProjectManifest, entryId: string): string {
+  return `${studioHref(project, 'code')}?entry=${encodeURIComponent(entryId)}`;
+}
+
+/** The architecture explorer with one component selected. */
+export function architectureHref(project: ProjectManifest, componentId: string): string {
+  return `${studioHref(project, 'architecture')}?component=${encodeURIComponent(componentId)}`;
+}
+
+/** Viva practice offering a session with just these questions. */
+export function vivaQuestionsHref(project: ProjectManifest, questionIds: readonly string[]): string {
+  return `${vivaHref(project)}?questions=${questionIds.map(encodeURIComponent).join(',')}`;
+}
+
+export function demoHref(project: ProjectManifest, feature?: string): string {
+  const base = `/projects/${project.slug}/demo`;
+  return feature ? `${base}?feature=${encodeURIComponent(feature)}` : base;
+}
+
+export function presentationHref(project: ProjectManifest): string {
+  return `/projects/${project.slug}/demo/present`;
+}
+
+export function readinessHref(project: ProjectManifest): string {
+  return `/projects/${project.slug}/ready`;
+}

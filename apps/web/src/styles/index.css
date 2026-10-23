@@ -46,6 +46,9 @@
   /* The inverted band (closing call to action): navy in both themes. */
   --ck-inverse: #121935;
   --ck-on-inverse: #f1f3fb;
+  /* Chart marks, checked with the data-viz palette validator against both surfaces. */
+  --ck-chart-1: #5434e6;
+  --ck-chart-2: #eb6834;
   --ck-shadow: 0 1px 2px rgb(20 26 51 / 5%);
   --ck-shadow-lift: 0 2px 6px rgb(20 26 51 / 6%), 0 16px 36px rgb(20 26 51 / 10%);
 }
@@ -78,6 +81,8 @@
   --ck-code-ink: #e2e7f6;
   --ck-inverse: #16224a;
   --ck-on-inverse: #f1f3fb;
+  --ck-chart-1: #9085e9;
+  --ck-chart-2: #d95926;
   --ck-shadow: 0 1px 2px rgb(0 0 0 / 30%);
   --ck-shadow-lift: 0 2px 6px rgb(0 0 0 / 35%), 0 16px 36px rgb(0 0 0 / 40%);
 }
@@ -113,6 +118,8 @@
   --color-code-ink: var(--ck-code-ink);
   --color-inverse: var(--ck-inverse);
   --color-on-inverse: var(--ck-on-inverse);
+  --color-chart-1: var(--ck-chart-1);
+  --color-chart-2: var(--ck-chart-2);
 
   --shadow-card: var(--ck-shadow);
   --shadow-lift: var(--ck-shadow-lift);
