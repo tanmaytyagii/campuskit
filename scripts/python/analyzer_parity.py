@@ -6,6 +6,11 @@ the browser. `pnpm demo:fixtures` runs this script with the template's real
 the TypeScript port with it, case by case.
 
 Usage:  python scripts/python/analyzer_parity.py <path to templates/student-result-analyzer>
+        python scripts/python/analyzer_parity.py <template path> --cases <cases.json>
+
+With ``--cases``, it reads a JSON list of ``{"name", "csv", "passMark"?, "maxMarks"?}`` and prints
+one result per case instead (used by ``pnpm demo:compare`` for generated cases). An exception in
+the analyzer is reported for that case rather than stopping the run.
 """
 
 from __future__ import annotations
@@ -18,6 +23,7 @@ import sys
 from pathlib import Path
 
 TEMPLATE = Path(sys.argv[1]).resolve()
+CASES_FILE = Path(sys.argv[3]) if len(sys.argv) > 3 and sys.argv[2] == "--cases" else None
 sys.path.insert(0, str(TEMPLATE))
 
 import pandas as pd  # noqa: E402
@@ -37,6 +43,9 @@ SOURCES = [
     "data/sample_results.csv",
     "data/sample_with_errors.csv",
 ]
+
+# Characters Python's str.strip() and \s treat differently from JavaScript's trim() and \s.
+UNIT_SEPARATOR, NEXT_LINE, BYTE_ORDER_MARK, NO_BREAK_SPACE = chr(0x1F), chr(0x85), chr(0xFEFF), chr(0xA0)
 
 # Small files that exercise the edge cases the samples don't reach.
 EXTRA_CASES = {
@@ -87,6 +96,59 @@ EXTRA_CASES = {
         "S12,Li,p,q\n"
         "S13,Mo,r,s\n"
         "S14,Ny,t,u\n"
+    ),
+    # Found by `pnpm demo:compare`: each of these once gave a different result in the port.
+    "valid-but-unusual-numbers": (
+        "Student ID,Name,Maths,Science\n"
+        "U1,Ann,1e1,+5\n"
+        "U2,Ben,007,-0\n"
+        "U3,Cy,.5,5.\n"
+        "U4,Di,1e-400,40.00\n"
+    ),
+    "overflowing-and-foreign-numbers": "Student ID,Name,Maths\nN1,Ann,1e400\nN2,Ben,inf\nN3,Cy,1_000\nN4,Di,\u0661\u0662\n",
+    "python-whitespace": (
+        "Student ID,Name,Class,Maths\n"
+        f"{UNIT_SEPARATOR}W1,{NEXT_LINE}Asha{UNIT_SEPARATOR}Rao{NEXT_LINE},{NO_BREAK_SPACE}10-A,{UNIT_SEPARATOR}50\n"
+        f"{BYTE_ORDER_MARK}W2,Ravi{BYTE_ORDER_MARK},10-A,60\n"
+        f"{UNIT_SEPARATOR},Empty Id,10-B,70\n"
+    ),
+    "whitespace-only-file": "   ",
+    "leading-blank-line": "\nStudent ID,Name,Maths\nS1,Ann,50\n",
+    "ragged-row-after-a-quoted-line-break": 'Student ID,Name,Maths\nS1,"Ann\nLee",50\nS2,Ben,60,70\n',
+    "duplicate-subject-name": "Student ID,Name,Maths,Maths\nD1,Ann,50\nD2,Ben,,60\nD3,Cy,40,AB\n",
+    # pandas reads an all-integer column as integers (no -0); a decimal anywhere keeps -0.0.
+    "negative-zero-in-integer-and-decimal-columns": "Student ID,Name,Maths,Science\nZ1,Ann,-0,-0\nZ2,Ben,44,4.5\n",
+    # numpy's median is a mean of the middle values (never -0); one value is its own quartile.
+    "zero-medians-and-single-value-quartiles": "Student ID,Name,Maths,Science\nM1,Ann,0.0,-0\nM2,Ben,-0,\nM3,Cy,92,\n",
+    # Names without ASCII letters normalize to "": identical ones are now reported, not analysed.
+    "identical-names-without-ascii-letters": "Student ID,Name,\u0917\u0923\u093f\u0924,\u0917\u0923\u093f\u0924\nS1,Ann,50,60\n",
+    # Shapes random files rarely have (`--shapes` in compare-analyzer.ts): one student, no
+    # score at all, everyone tied, and averages and percentages that end in 5.
+    "one-student": "Student ID,Name,Class,Maths,Science\nO1,Ann,10-A,40,72.5\n",
+    "everyone-absent": "Student ID,Name,Class,Maths,Science\nA1,Ann,10-A,AB,-\nA2,Ben,10-B,NA,absent\n",
+    "identical-scores": "Student ID,Name,Maths,Science\nT1,Ann,55,55\nT2,Ben,55,55\nT3,Cy,55,55\n",
+    "averages-that-round": (
+        "Student ID,Name,Maths,Science\n"
+        "R1,Ann,42.125,61.375\nR2,Ben,57.625,38.875\nR3,Cy,40.005,70.015\n"
+    ),
+    # Found by `pnpm demo:compare` once PyArrow was installed, as it is for every student. pandas
+    # then runs str.replace(r"\s+") on RE2 for an all-ASCII column, whose \s leaves out \v and
+    # U+001C to U+001F, and on Python's re once the column has a non-ASCII character.
+    "control-characters-in-ascii-names": (
+        "Student ID,Name,Maths\n"
+        f"C1,Asha{UNIT_SEPARATOR}Rao,50\n"
+        f"C2,Ravi{chr(0x0B)}Teja,60\n"
+        f"C3,  Lena{chr(0x1C)}  Fischer ,70\n"
+    ),
+    "control-characters-beside-non-ascii-names": (
+        "Student ID,Name,Maths\n"
+        f"C1,Asha{UNIT_SEPARATOR}Rao,50\n"
+        f"C2,Omar{chr(0x2029)}{chr(0x205F)}Farooq,80\n"
+    ),
+    # One class, no missing percentage: pandas 3 averages with numpy's reduceat, not Kahan.
+    "one-class-average": (
+        "Student ID,Name,Class,Maths\n"
+        "C1,Ann,10-A,64.68\nC2,Ben,10-A,86.6\nC3,Cy,10-A,19.16\nC4,Di,10-A,83.63\nC5,Ed,10-A,49.78\nC6,Fa,10-A,65.07\n"
     ),
 }
 
@@ -158,7 +220,50 @@ def run_case(name: str, text: str, pass_mark: int, max_marks: int) -> dict:
     return case
 
 
+def compare_cases(path: Path) -> None:
+    config = load_config(TEMPLATE / "app_config.json")
+    results = []
+    for item in json.loads(path.read_text(encoding="utf-8")):
+        pass_mark = item.get("passMark", config.pass_mark)
+        max_marks = item.get("maxMarks", config.max_marks)
+        try:
+            result = run_case(item["name"], item["csv"], pass_mark, max_marks)
+        except Exception as error:  # a crash in the real analyzer is a finding too
+            result = {"name": item["name"], "csv": item["csv"], "error": f"{type(error).__name__}: {error}"}
+        results.append(result)
+    json.dump(results, sys.stdout, ensure_ascii=False, allow_nan=False)
+    sys.stdout.write("\n")
+
+
+def require_student_environment() -> str:
+    r"""Stops unless this Python has what `pip install -r requirements.txt` gives a student, and
+    returns PyArrow's version.
+
+    pandas 2.2 reads a few unusual numbers differently (for example "1e400"). And with PyArrow,
+    which Streamlit installs, pandas 3 runs str.replace(r"\s+") on RE2 for an all-ASCII column,
+    leaving \v and U+001C to U+001F inside names; without it, Python's re collapses them.
+    """
+    if int(pd.__version__.split(".")[0]) < 3:
+        sys.exit(
+            f"pandas {pd.__version__} is older than the pandas 3 a student installs. Run this with a "
+            "Python that has the template's requirements.txt installed (see docs/demo-studio.md)."
+        )
+    try:
+        import pyarrow
+    except ImportError:
+        sys.exit(
+            "PyArrow is missing, but every student has it (Streamlit installs it), and pandas reads text "
+            "differently without it. Run this with a Python that has the template's requirements.txt "
+            "installed (see docs/demo-studio.md)."
+        )
+    return pyarrow.__version__
+
+
 def main() -> None:
+    pyarrow_version = require_student_environment()
+    if CASES_FILE is not None:
+        compare_cases(CASES_FILE)
+        return
     config = load_config(TEMPLATE / "app_config.json")
     cases = [
         ("sample_results.csv", (TEMPLATE / "data" / "sample_results.csv").read_text(encoding="utf-8")),
@@ -170,6 +275,7 @@ def main() -> None:
         "Regenerate with `pnpm demo:fixtures`.",
         "python": platform.python_version(),
         "pandas": pd.__version__,
+        "pyarrow": pyarrow_version,
         "passMark": config.pass_mark,
         "maxMarks": config.max_marks,
         "sources": {

@@ -12,7 +12,21 @@ export type PracticeMode =
   | { kind: 'quick' }
   | { kind: 'topic'; category: VivaCategory }
   | { kind: 'mixed' }
-  | { kind: 'review' };
+  | { kind: 'review' }
+  /** Questions chosen elsewhere, for example by a Demo Studio screen, in that order. */
+  | { kind: 'selected'; ids: readonly string[] };
+
+/** Valid, distinct question ids from a "?questions=a,b" parameter, at most ten. */
+export function selectedQuestionIds(
+  value: string | null,
+  questions: readonly VivaQuestion[],
+): string[] {
+  if (!value) return [];
+  const known = new Set(questions.map((question) => question.id));
+  return [...new Set(value.split(',').map((id) => id.trim()))]
+    .filter((id) => known.has(id))
+    .slice(0, 10);
+}
 
 /** Fisher–Yates shuffle; `random` is injectable so tests are repeatable. */
 export function shuffle<T>(items: readonly T[], random: () => number = Math.random): T[] {
@@ -73,6 +87,10 @@ export function selectQuestions(
       return shuffle(questions, random);
     case 'review':
       return reviewQuestions(questions, progress);
+    case 'selected':
+      return mode.ids
+        .map((id) => questions.find((question) => question.id === id))
+        .filter((question) => question !== undefined);
   }
 }
 

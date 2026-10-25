@@ -7,6 +7,7 @@ import {
   useId,
   type InputHTMLAttributes,
   type ReactNode,
+  type Ref,
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from 'react';
@@ -172,6 +173,8 @@ interface SelectFieldProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>,
   id?: string;
   containerClassName?: string;
   children: ReactNode;
+  /** Lets a form move focus to the select when it has an error. */
+  ref?: Ref<HTMLSelectElement>;
 }
 
 export function SelectField({
@@ -182,6 +185,7 @@ export function SelectField({
   containerClassName,
   className,
   children,
+  ref,
   ...props
 }: SelectFieldProps) {
   const generated = useId();
@@ -195,6 +199,7 @@ export function SelectField({
       className={containerClassName}
     >
       <select
+        ref={ref}
         id={id}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy(id, description, error)}

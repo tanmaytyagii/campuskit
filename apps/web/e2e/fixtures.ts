@@ -47,6 +47,15 @@ export async function hasHorizontalOverflow(page: Page): Promise<boolean> {
   return page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
 }
 
+/**
+ * The key a keyboard user presses to reach the next link or button. Safari, and Playwright's
+ * WebKit on macOS, move Tab only between form fields unless "Press Tab to highlight each item"
+ * is turned on; Option-Tab reaches every link and button. Elsewhere it is Tab.
+ */
+export function nextKey(browserName: string): string {
+  return browserName === 'webkit' && process.platform === 'darwin' ? 'Alt+Tab' : 'Tab';
+}
+
 export function isMobile(projectName: string): boolean {
   return projectName === 'mobile';
 }

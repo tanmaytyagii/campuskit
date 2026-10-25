@@ -3,10 +3,14 @@
  * URL (?q=react&difficulty=beginner) so every view can be shared.
  */
 import {
+  AUDIENCE_LABELS,
   AUDIENCES,
   CATEGORIES,
+  CATEGORY_LABELS,
   DIFFICULTIES,
+  DIFFICULTY_LABELS,
   DIFFICULTY_RANK,
+  PROJECT_TYPE_LABELS,
   PROJECT_TYPES,
   type Audience,
   type Category,
@@ -95,6 +99,12 @@ function searchableText(project: ProjectManifest): string {
       ...project.tags.flatMap((tag) => [tag, tag.replace(/-/g, ' ')]),
       ...project.languages,
       ...project.frameworks,
+      ...project.features,
+      ...project.learningObjectives,
+      CATEGORY_LABELS[project.category],
+      PROJECT_TYPE_LABELS[project.projectType],
+      DIFFICULTY_LABELS[project.difficulty],
+      ...project.audience.map((audience) => AUDIENCE_LABELS[audience]),
     ].join(' '),
   );
 }

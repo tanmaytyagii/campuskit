@@ -26,7 +26,7 @@ export function PageHeader({
     <div className={cn('container-page pt-8 pb-8 md:pt-12 md:pb-10', className)}>
       {children}
       <div className="flex flex-wrap items-end justify-between gap-6">
-        <div className="max-w-3xl space-y-3">
+        <div className="max-w-3xl min-w-0 space-y-3">
           {eyebrow ? <p className="type-eyebrow text-violet">{eyebrow}</p> : null}
           <h1 className="type-title text-ink">{title}</h1>
           {description ? <p className="type-lead max-w-[62ch]">{description}</p> : null}

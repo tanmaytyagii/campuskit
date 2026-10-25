@@ -5,10 +5,17 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
-import type { Browser } from 'playwright-core';
+import type { Browser, Locator } from 'playwright-core';
 
 import { capture } from './capture.ts';
 import { serveStatic } from './static-server.ts';
+
+/** Scrolls so the element starts just below the sticky site header. */
+async function scrollBelowHeader(element: Locator): Promise<void> {
+  await element.evaluate((node) =>
+    window.scrollTo(0, node.getBoundingClientRect().top + window.scrollY - 88),
+  );
+}
 
 export async function captureWebApp(
   browser: Browser,
@@ -74,17 +81,60 @@ export async function captureWebApp(
             .fill('Amounts are whole numbers of paise, so adding them never rounds.');
           await page.getByRole('button', { name: 'Compare with the model answer' }).click();
           await page.getByRole('heading', { name: 'Model answer' }).waitFor();
-          // Start the picture at the session's progress line, below the sticky header.
-          await page
-            .getByText(/· Question \d+ of \d+/)
-            .evaluate((element) =>
-              window.scrollTo(0, element.getBoundingClientRect().top + window.scrollY - 88),
-            );
+          // Start the picture at the session's progress line.
+          await scrollBelowHeader(page.getByText(/· Question \d+ of \d+/));
         },
       },
       {
         file: 'compare.png',
         path: 'compare?ids=attendance-system,student-result-analyzer&goal=first-project',
+      },
+      {
+        file: 'demo-studio.png',
+        path: 'projects/expense-tracker/demo?feature=overview',
+        prepare: async (page) => {
+          await page.getByRole('heading', { name: 'Monthly budget' }).waitFor();
+          await scrollBelowHeader(page.locator('[data-demo-frame]'));
+        },
+      },
+      {
+        file: 'guided-demo.png',
+        path: 'projects/attendance-system/demo',
+        prepare: async (page) => {
+          await page.getByRole('button', { name: 'Practise the demo' }).click();
+          await page.getByRole('button', { name: 'Start the guided demo' }).click();
+          await page.getByRole('button', { name: 'Next step' }).click();
+          await page.getByRole('button', { name: 'Next step' }).click();
+          await page.getByRole('button', { name: 'Add student' }).click();
+          const dialog = page.getByRole('dialog', { name: 'Add student' });
+          await dialog.getByRole('textbox', { name: 'Full name' }).fill('Kavya Rao');
+          await dialog.getByRole('textbox', { name: 'Roll number' }).fill('10A-07');
+          await dialog.getByRole('button', { name: 'Add student' }).click();
+          await page.getByText(/^Done in the demo:/).waitFor();
+          await scrollBelowHeader(
+            page.getByRole('region', { name: 'Add a student' }).filter({ hasText: 'Guided demo' }),
+          );
+          await page.mouse.move(0, 0);
+        },
+      },
+      {
+        file: 'presentation.png',
+        path: 'projects/attendance-system/present?slide=architecture',
+      },
+      {
+        file: 'readiness.png',
+        path: 'projects/attendance-system/ready',
+        prepare: async (page) => {
+          // Two confirmations ticked, so the picture shows each kind of status.
+          for (const item of ['Install the prerequisites', 'Run the project on your computer'])
+            await page
+              .getByRole('listitem')
+              .filter({ has: page.getByRole('heading', { name: item }) })
+              .getByRole('checkbox', { name: 'I’ve done this on my computer' })
+              .check();
+          await page.evaluate(() => window.scrollTo(0, 0));
+          await page.mouse.move(0, 0);
+        },
       },
       { file: 'mobile-home.png', viewport: { width: 390, height: 844 } },
     ]);

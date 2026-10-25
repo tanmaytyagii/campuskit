@@ -7,15 +7,21 @@ import type { ProjectManifest } from '@campuskit/project-catalog';
 
 import type { LoadedDemo } from './define.ts';
 import { attendanceDemo } from './demos/attendance/definition.ts';
+import { expenseDemo } from './demos/expenses/definition.ts';
+import { resultsDemo } from './demos/results/definition.ts';
 import type { DemoDefinition } from './types.ts';
 
-export const DEMOS: readonly DemoDefinition[] = [attendanceDemo];
+export const DEMOS: readonly DemoDefinition[] = [attendanceDemo, expenseDemo, resultsDemo];
 
 export const DEMO_LOADERS: Readonly<Record<string, () => Promise<LoadedDemo>>> = {
   'attendance-system': () =>
     import('./demos/attendance/AttendanceDemo.tsx').then(
       (module) => module.attendanceImplementation,
     ),
+  'expense-tracker': () =>
+    import('./demos/expenses/ExpenseDemo.tsx').then((module) => module.expenseImplementation),
+  'student-result-analyzer': () =>
+    import('./demos/results/ResultsDemo.tsx').then((module) => module.resultsImplementation),
 };
 
 export function getDemo(projectId: string): DemoDefinition | undefined {

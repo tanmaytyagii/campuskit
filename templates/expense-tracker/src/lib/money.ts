@@ -62,10 +62,11 @@ export function parseAmount(input: string, currency: CurrencyCode): ParsedAmount
           : `Use at most ${digits} decimal places.`,
     };
   }
-  const wholeNumber = Number(whole);
-  if (wholeNumber > MAX_AMOUNT)
+  const amountMinor = Number(whole) * 10 ** digits + Number(fraction.padEnd(digits, '0') || '0');
+  // The whole amount counts, decimals included: 100,000,000.01 is above the limit too, and
+  // saved data with a larger amount would not load again (see storage.ts).
+  if (amountMinor > MAX_AMOUNT * 10 ** digits)
     return { ok: false, error: `Amounts above ${MAX_AMOUNT.toLocaleString()} are not supported.` };
-  const amountMinor = wholeNumber * 10 ** digits + Number(fraction.padEnd(digits, '0') || '0');
   if (amountMinor <= 0) return { ok: false, error: 'The amount must be greater than zero.' };
   return { ok: true, amountMinor };
 }

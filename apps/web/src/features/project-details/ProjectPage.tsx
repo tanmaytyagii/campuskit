@@ -16,6 +16,7 @@ import {
   FileText,
   GraduationCap,
   Info,
+  MonitorPlay,
   Wand,
 } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
@@ -36,13 +37,23 @@ import { formatIsoDate } from '../../lib/format.ts';
 import { siteConfig } from '../../site.config.ts';
 import { NotFoundPage } from '../../pages/NotFoundPage.tsx';
 import { relatedProjects } from '../gallery/filtering.ts';
-import { reportHref, studioHref, vivaHref } from '../learning/links.ts';
+import {
+  demoHref,
+  presentationHref,
+  readinessHref,
+  reportHref,
+  studioHref,
+  vivaHref,
+} from '../learning/links.ts';
+import { getDemo } from '../demo/registry.ts';
+import { DemoSummary, ProjectJourney } from './ProjectJourney.tsx';
 import { ScreenshotGallery } from './ScreenshotGallery.tsx';
 import { useQuickDownload } from './useQuickDownload.ts';
 import { VerificationPanel } from './VerificationPanel.tsx';
 
 const SECTIONS = [
   { id: 'overview', label: 'Overview' },
+  { id: 'demo', label: 'Interactive demo' },
   { id: 'setup', label: 'Setup' },
   { id: 'customization', label: 'Customization' },
   { id: 'testing', label: 'Testing' },
@@ -166,6 +177,7 @@ function ProjectDetails({ project }: { project: ProjectManifest }) {
   const steps = setupSteps(project);
   const programmingLanguages = project.languages;
   const related = relatedProjects(project, catalog);
+  const demo = getDemo(project.id);
 
   return (
     <article className="pb-8">
@@ -208,30 +220,44 @@ function ProjectDetails({ project }: { project: ProjectManifest }) {
                 </dd>
               </div>
             </dl>
-            <div className="flex flex-wrap items-center gap-3">
-              <ButtonLink
-                to={`/generate?template=${project.id}`}
-                size="lg"
-                icon={<Wand aria-hidden="true" className="size-5" />}
-              >
-                Customize and download
-              </ButtonLink>
-              <Button
-                size="lg"
-                variant="secondary"
-                onClick={() => void quick.download()}
-                disabled={quick.state.status === 'working'}
-                icon={<Download aria-hidden="true" className="size-5" />}
-              >
-                {quick.state.status === 'working' ? 'Preparing ZIP…' : 'Download with defaults'}
-              </Button>
-              <Link
-                to={`/projects/${project.slug}/source`}
-                className="link inline-flex items-center gap-1.5 px-1 text-[0.9375rem]"
-              >
-                <CodeXml aria-hidden="true" className="size-4" />
-                Browse source
-              </Link>
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <ButtonLink
+                  to={`/generate?template=${project.id}`}
+                  size="lg"
+                  icon={<Wand aria-hidden="true" className="size-5" />}
+                >
+                  Customize and download
+                </ButtonLink>
+                {demo ? (
+                  <ButtonLink
+                    to={demoHref(project)}
+                    size="lg"
+                    variant="secondary"
+                    icon={<MonitorPlay aria-hidden="true" className="size-5" />}
+                  >
+                    Try the interactive demo
+                  </ButtonLink>
+                ) : null}
+              </div>
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => void quick.download()}
+                  disabled={quick.state.status === 'working'}
+                  icon={<Download aria-hidden="true" className="size-4" />}
+                >
+                  {quick.state.status === 'working' ? 'Preparing ZIP…' : 'Download with defaults'}
+                </Button>
+                <Link
+                  to={`/projects/${project.slug}/source`}
+                  className="link inline-flex items-center gap-1.5 px-2 text-sm"
+                >
+                  <CodeXml aria-hidden="true" className="size-4" />
+                  Browse source
+                </Link>
+              </div>
             </div>
             <div aria-live="polite">
               {quick.state.status === 'done' ? (
@@ -250,6 +276,8 @@ function ProjectDetails({ project }: { project: ProjectManifest }) {
           <ScreenshotGallery project={project} />
         </div>
       </div>
+
+      <ProjectJourney project={project} hasDemo={Boolean(demo)} />
 
       <div className="container-page mt-14 grid gap-12 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="min-w-0 space-y-12">
@@ -292,6 +320,12 @@ function ProjectDetails({ project }: { project: ProjectManifest }) {
               </div>
             </div>
           </Section>
+
+          {demo ? (
+            <Section id="demo" title="Interactive demo">
+              <DemoSummary project={project} demo={demo} />
+            </Section>
+          ) : null}
 
           <Section id="setup" title="Setup">
             <div className="rounded-xl bg-raised p-5">
@@ -433,6 +467,12 @@ function ProjectDetails({ project }: { project: ProjectManifest }) {
                 </ButtonLink>
                 <ButtonLink to={reportHref(project)} size="sm" variant="secondary">
                   Prepare your report
+                </ButtonLink>
+                <ButtonLink to={presentationHref(project)} size="sm" variant="secondary">
+                  Present the project
+                </ButtonLink>
+                <ButtonLink to={readinessHref(project)} size="sm" variant="secondary">
+                  Check your readiness
                 </ButtonLink>
                 <ButtonLink to={studioHref(project, 'troubleshooting')} size="sm" variant="ghost">
                   Troubleshooting

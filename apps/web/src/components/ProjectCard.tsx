@@ -1,6 +1,9 @@
 import { CATEGORY_LABELS, type ProjectManifest } from '@campuskit/project-catalog';
+import { MonitorPlay } from 'lucide-react';
 import { Link } from 'react-router';
 
+import { hasDemo } from '../features/demo/registry.ts';
+import { demoHref } from '../features/learning/links.ts';
 import { cn } from '../lib/cn.ts';
 import { DifficultyMeter } from './DifficultyMeter.tsx';
 import { PreviewImage } from './PreviewImage.tsx';
@@ -67,6 +70,22 @@ export function ProjectCard({ project, headingLevel = 'h3', className }: Project
                 {cardTechnologies(project).join(' · ')}
               </dd>
             </div>
+            {hasDemo(project) ? (
+              <div>
+                <dt className="sr-only">Interactive demo</dt>
+                <dd>
+                  {/* Above the card's stretched link, so it can be clicked on its own. */}
+                  <Link
+                    to={demoHref(project)}
+                    aria-label={`Try the demo: ${project.name}`}
+                    className="relative z-10 inline-flex items-center gap-1 rounded text-sm font-semibold text-violet hover:underline"
+                  >
+                    <MonitorPlay aria-hidden="true" className="size-4" />
+                    Try the demo
+                  </Link>
+                </dd>
+              </div>
+            ) : null}
           </dl>
         </div>
       </div>

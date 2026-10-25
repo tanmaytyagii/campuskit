@@ -52,7 +52,7 @@ export function ChartCard({
   const [showTable, setShowTable] = useState(false);
   return (
     <figure className={cn('min-w-0 rounded-xl border border-line bg-surface p-4', className)}>
-      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
         <figcaption className="min-w-0">
           <h3 className="text-[0.9375rem] font-semibold text-ink">{title}</h3>
           {description ? <p className="type-meta mt-0.5">{description}</p> : null}
@@ -64,6 +64,8 @@ export function ChartCard({
           className="rounded-md px-2 py-1 text-sm font-semibold text-violet transition-colors hover:bg-raised"
         >
           Table view
+          {/* Screens with several charts would otherwise have several identical buttons. */}
+          <span className="sr-only"> of {title}</span>
         </button>
       </div>
       <div className="mt-4">
@@ -99,9 +101,14 @@ export function BarList({ data, max }: { data: readonly BarDatum[]; max?: number
         return (
           <li
             key={item.id}
-            className="group grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 text-sm sm:grid-cols-[minmax(0,9.5rem)_minmax(0,1fr)_auto]"
+            className="group grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 text-sm sm:grid-cols-[minmax(0,8.5rem)_minmax(0,1fr)_auto]"
           >
-            <span className="truncate text-ink-2">{item.label}</span>
+            <span className="min-w-0">
+              <span className="block truncate text-ink-2">{item.label}</span>
+              {item.note ? (
+                <span className="block truncate text-xs text-ink-3">{item.note}</span>
+              ) : null}
+            </span>
             <span className="order-last col-span-2 h-3 border-l border-line-strong sm:order-none sm:col-span-1">
               <span
                 className="block h-full rounded-r-[4px] bg-chart-1 transition-[width,opacity] duration-300 group-hover:opacity-75 motion-reduce:transition-none"
@@ -110,9 +117,6 @@ export function BarList({ data, max }: { data: readonly BarDatum[]; max?: number
             </span>
             <span className="text-right font-semibold whitespace-nowrap text-ink tabular-nums">
               {item.display}
-              {item.note ? (
-                <span className="ml-1.5 font-normal text-ink-3">{item.note}</span>
-              ) : null}
             </span>
           </li>
         );
@@ -164,14 +168,26 @@ export function ColumnChart({
 
   return (
     <div className="space-y-3">
-      {series.length > 1 ? (
+      {/* The key names the series and the reference line, so no label sits on a column. */}
+      {series.length > 1 || reference ? (
         <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-2">
-          {series.map((item) => (
-            <li key={item.id} className="inline-flex items-center gap-2">
-              <span aria-hidden="true" className={cn('size-3 rounded-[3px]', TONES[item.tone])} />
-              {item.label}
+          {series.length > 1
+            ? series.map((item) => (
+                <li key={item.id} className="inline-flex items-center gap-2">
+                  <span
+                    aria-hidden="true"
+                    className={cn('size-3 rounded-[3px]', TONES[item.tone])}
+                  />
+                  {item.label}
+                </li>
+              ))
+            : null}
+          {reference ? (
+            <li className="inline-flex items-center gap-2">
+              <span aria-hidden="true" className="w-5 border-t-2 border-dashed border-ink-2" />
+              {reference.label}
             </li>
-          ))}
+          ) : null}
         </ul>
       ) : null}
       <div className="flex gap-2" style={{ height }}>
@@ -204,13 +220,10 @@ export function ColumnChart({
             ))}
             {reference ? (
               <span
+                aria-hidden="true"
                 className="absolute inset-x-0 z-[1] border-t-2 border-dashed border-ink-2"
                 style={{ bottom: position(reference.value) }}
-              >
-                <span className="absolute right-0 bottom-1 rounded bg-surface/90 px-1 text-[0.6875rem] font-semibold text-ink-2">
-                  {reference.label}
-                </span>
-              </span>
+              />
             ) : null}
             <div className="absolute inset-0 flex items-end gap-1 sm:gap-2">
               {categories.map((category, index) => (
@@ -218,7 +231,9 @@ export function ColumnChart({
                   key={category}
                   className="relative flex h-full min-w-0 flex-1 items-end justify-center gap-0.5"
                   onPointerEnter={() => setActive(index)}
-                  onPointerLeave={() => setActive((current) => (current === index ? null : current))}
+                  onPointerLeave={() =>
+                    setActive((current) => (current === index ? null : current))
+                  }
                 >
                   {series.map((item) => {
                     const value = item.values[index] ?? 0;

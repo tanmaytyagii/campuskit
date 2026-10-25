@@ -3,7 +3,7 @@
  * trapping, the Escape key and the inert background.
  */
 import { X } from 'lucide-react';
-import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { useId, useLayoutEffect, useRef, type ReactNode } from 'react';
 
 import { cn } from '../../lib/cn.ts';
 
@@ -15,6 +15,11 @@ interface DialogProps {
   footer?: ReactNode;
   /** "sheet" slides in from the side on small screens (used for filters). */
   variant?: 'centered' | 'sheet' | 'wide';
+  /**
+   * A question to answer before going on, such as confirming a deletion. The dialog is then an
+   * alert dialog, and screen readers read its text together with the title when it opens.
+   */
+  confirmation?: boolean;
 }
 
 export function Dialog({
@@ -24,16 +29,32 @@ export function Dialog({
   children,
   footer,
   variant = 'centered',
+  confirmation = false,
 }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
+  const bodyId = useId();
 
-  useEffect(() => {
+  // Opened and closed in a layout effect, in the same commit as the change: a page that moves
+  // focus in its own layout effect after closing a dialog (see useFocusAfterDelete) finds the
+  // rest of the page no longer inert. Child layout effects run before their parent's.
+  useLayoutEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
     if (open && !dialog.open) dialog.showModal();
     if (!open && dialog.open) dialog.close();
   }, [open]);
+
+  // Pages often remove a dialog instead of closing it (rendering it only while it is open). The
+  // browser returns focus to the control that opened a dialog only when the dialog is closed,
+  // so it is closed here, while still in the page: a layout effect's cleanup runs before React
+  // removes the element. Removing an open dialog would leave focus on the page body.
+  useLayoutEffect(() => {
+    const dialog = ref.current;
+    return () => {
+      if (dialog?.open) dialog.close();
+    };
+  }, []);
 
   return (
     // Clicking the backdrop is a mouse shortcut; keyboard users close the dialog with
@@ -41,7 +62,9 @@ export function Dialog({
     // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
     <dialog
       ref={ref}
+      role={confirmation ? 'alertdialog' : undefined}
       aria-labelledby={titleId}
+      aria-describedby={confirmation ? bodyId : undefined}
       onCancel={(event) => {
         event.preventDefault();
         onClose();
@@ -73,7 +96,9 @@ export function Dialog({
             <X aria-hidden="true" className="size-5" />
           </button>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{children}</div>
+        <div id={bodyId} className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+          {children}
+        </div>
         {footer ? <div className="border-t border-line px-5 py-4">{footer}</div> : null}
       </div>
     </dialog>

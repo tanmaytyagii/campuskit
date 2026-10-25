@@ -13,9 +13,9 @@
   "difficulty": "intermediate",
   "languages": ["TypeScript", "CSS"],
   "frameworks": ["React", "Vite", "Recharts"],
-  "version": "1.0.0",
+  "version": "1.0.2",
   "addedOn": "2026-10-21",
-  "updatedOn": "2026-10-21",
+  "updatedOn": "2026-10-24",
   "featured": true,
   "features": [
     "Add, edit and delete income and expense transactions with an amount, category, date and optional note.",

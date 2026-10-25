@@ -177,9 +177,10 @@
         "name": "localStorage and backups",
         "layer": "storage",
         "kind": "storage",
-        "responsibility": "Loads and saves the data under campuskit-expenses:v1. validateData checks every transaction (type, positive whole amount, a category of the right type, a real date) and the budget, so corrupted data and bad backups are refused with a reason.",
+        "responsibility": "Loads and saves the data under campuskit-expenses:v1. Every transaction is checked (type, positive whole amount, a category of the right type, a real date), and so is the budget. On load, recoverData leaves out what fails and keeps the rest, after copying the saved value to a backup key. Imported backups must pass validateData in full.",
         "files": ["src/lib/storage.ts"],
         "symbols": [
+          { "file": "src/lib/storage.ts", "name": "recoverData" },
           { "file": "src/lib/storage.ts", "name": "validateData" },
           { "file": "src/lib/storage.ts", "name": "loadData" },
           { "file": "src/lib/storage.ts", "name": "parseBackup" }
@@ -451,7 +452,7 @@
       "title": "Saving, loading and backups",
       "file": "src/lib/storage.ts",
       "role": "Reads and writes localStorage and validates backups.",
-      "explanation": "loadData parses the saved JSON and runs validateData. transactionProblem checks one transaction at a time and returns a readable reason such as “transaction 3 has an unknown category”. Unreadable data is kept under a backup key and the app starts fresh; imported files go through parseBackup and the same checks.",
+      "explanation": "loadData parses the saved JSON and runs recoverData. transactionProblem checks one transaction at a time and returns a readable reason such as “transaction 3 has an unknown category”. A transaction that fails is left out and the others are loaded; if nothing can be used, the app starts fresh. Either way, keepCopy first saves the old value under a backup key and never replaces an earlier copy. If the browser refuses that copy, the app doesn’t save at all. Imported files go through parseBackup and validateData, which refuses the whole file on any problem.",
       "symbols": [
         { "name": "STORAGE_KEY", "explanation": "campuskit-expenses:v1." },
         {
@@ -459,12 +460,20 @@
           "explanation": "Returns the first problem with one transaction, or null."
         },
         {
+          "name": "recoverData",
+          "explanation": "Keeps every transaction that passes the checks and lists what was wrong with the rest; refuses data with the wrong version or no transaction list."
+        },
+        {
           "name": "validateData",
-          "explanation": "Checks the version, every transaction, unique ids and the budget setting."
+          "explanation": "The strict check for imported backups: the first problem, or the data if every part passes."
+        },
+        {
+          "name": "keepCopy",
+          "explanation": "Copies saved data that couldn’t be fully read to a backup key, never replacing an earlier copy. Returns the key, or null if the browser refused."
         },
         {
           "name": "loadData",
-          "explanation": "empty, loaded, invalid (with a reason) or unavailable."
+          "explanation": "empty, loaded, partial (some data left out), invalid or unavailable, with the backup key when a copy was kept."
         },
         {
           "name": "parseBackup",
@@ -838,15 +847,25 @@
       "category": "security",
       "difficulty": "medium",
       "question": "Where is the data stored, and how is it protected from corruption?",
-      "answer": "In localStorage under campuskit-expenses:v1. On load, validateData checks every transaction — type, positive whole amount, a known category for that type and a valid date. If anything is wrong the app starts fresh and keeps the unreadable value under a backup key. Imported backups go through the same checks.",
+      "answer": "In localStorage under campuskit-expenses:v1. On load, recoverData checks every transaction — type, positive whole amount, a known category for that type and a valid date. A transaction that fails is left out, so one damaged record doesn’t cost the others. The saved value is first copied to a backup key, and an earlier copy is never replaced. If the browser refuses the copy, nothing is saved, so nothing is lost. Imported backups must pass validateData in full, because an import replaces all the data.",
       "keyConcepts": [
         { "label": "localStorage", "terms": ["localstorage", "local storage"] },
-        { "label": "Validation of every field", "terms": ["validatedata", "valid", "check"] },
+        {
+          "label": "Validation of every field",
+          "terms": ["recoverdata", "validatedata", "valid", "check"]
+        },
+        {
+          "label": "Bad records left out, the rest kept",
+          "terms": ["left out", "skip", "rest", "others"]
+        },
         { "label": "Backup key", "terms": ["backup"] },
         { "label": "Imports checked too", "terms": ["import"] }
       ],
       "files": ["src/lib/storage.ts"],
-      "symbols": [{ "file": "src/lib/storage.ts", "name": "validateData" }]
+      "symbols": [
+        { "file": "src/lib/storage.ts", "name": "recoverData" },
+        { "file": "src/lib/storage.ts", "name": "validateData" }
+      ]
     },
     {
       "id": "reducer-context",
@@ -1151,21 +1170,24 @@
       {
         "id": "saved-data-unreadable",
         "stage": "data",
-        "title": "“Saved data couldn’t be read … so the app started fresh”",
-        "symptom": "A banner says the saved data couldn't be read, with a reason in brackets, and the app shows fresh data.",
+        "title": "“Some saved data couldn’t be read” or “… so the app started fresh”",
+        "symptom": "A banner says saved data couldn't be read, with a reason in brackets. Either some transactions are missing, or the app shows fresh data.",
         "causes": [
-          "The value under campuskit-expenses:v1 was edited by hand or damaged, so validateData rejected it."
+          "The value under campuskit-expenses:v1 was edited by hand or damaged. recoverData leaves out each transaction that fails its checks, or everything if the data as a whole is unreadable."
         ],
         "diagnose": [
-          { "text": "The reason in brackets names the first problem.", "commands": [] },
           {
-            "text": "In the developer tools, the old value is kept under campuskit-expenses:v1:unreadable-backup.",
+            "text": "The reason in brackets names the first problem, and how many more there are.",
+            "commands": []
+          },
+          {
+            "text": "In the developer tools, the old value is kept under the key the banner names: campuskit-expenses:v1:unreadable-backup, or that key with a time added if an earlier copy was already there.",
             "commands": []
           }
         ],
         "fix": [
           {
-            "text": "If you need the old data, copy the backup value into a .json file, fix the problem the banner named and use Budget & data → Import backup.",
+            "text": "If you need the old data, copy the backup value into a .json file and fix the problem the banner named. Then use Budget & data → Import backup. An import replaces all the current data, so export a backup first if you added transactions since.",
             "commands": []
           }
         ],

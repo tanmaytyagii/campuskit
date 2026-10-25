@@ -21,7 +21,7 @@ import {
 } from '../../lib/progress.ts';
 import { getTemplateStatus } from '../../lib/verification.ts';
 import { setupFacts } from '../generator/logic.ts';
-import { studioHref, vivaHref } from './links.ts';
+import { readinessHref, studioHref, vivaHref } from './links.ts';
 
 /** A titled block of reading content, without a box around it. */
 function Block({ title, children }: { title: string; children: ReactNode }) {
@@ -60,7 +60,7 @@ export function OverviewSection({
     setSummary(readSummary(project, guide));
     setConfirming(false);
     setNotice(
-      'Your checklist, demonstration steps and viva ratings for this project were cleared.',
+      'Your checklist, demonstration steps, viva ratings and readiness progress for this project were cleared.',
     );
   }
 
@@ -172,6 +172,9 @@ export function OverviewSection({
             <ButtonLink to={vivaHref(project)} variant="secondary" size="sm">
               Practise viva questions
             </ButtonLink>
+            <ButtonLink to={readinessHref(project)} variant="secondary" size="sm">
+              Check your readiness
+            </ButtonLink>
             <Button
               variant="ghost"
               size="sm"
@@ -250,6 +253,7 @@ export function OverviewSection({
         open={confirming}
         onClose={() => setConfirming(false)}
         title="Reset all progress for this project?"
+        confirmation
         footer={
           <div className="flex flex-wrap justify-end gap-3">
             <Button variant="secondary" onClick={() => setConfirming(false)}>
@@ -262,9 +266,9 @@ export function OverviewSection({
         }
       >
         <p className="text-ink-2">
-          This clears your checklist ticks, demonstration checklist and viva ratings for{' '}
-          {project.name} in this browser. Your report draft is kept; clear it in the report
-          workspace if you want to.
+          This clears your checklist ticks, demonstration checklist, viva ratings, readiness
+          confirmations and guided demo record for {project.name} in this browser. Your report draft
+          is kept; clear it in the report workspace if you want to.
         </p>
       </Dialog>
     </div>

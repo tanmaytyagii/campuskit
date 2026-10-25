@@ -57,7 +57,10 @@ export function architectureHref(project: ProjectManifest, componentId: string):
 }
 
 /** Viva practice offering a session with just these questions. */
-export function vivaQuestionsHref(project: ProjectManifest, questionIds: readonly string[]): string {
+export function vivaQuestionsHref(
+  project: ProjectManifest,
+  questionIds: readonly string[],
+): string {
   return `${vivaHref(project)}?questions=${questionIds.map(encodeURIComponent).join(',')}`;
 }
 
@@ -67,7 +70,7 @@ export function demoHref(project: ProjectManifest, feature?: string): string {
 }
 
 export function presentationHref(project: ProjectManifest): string {
-  return `/projects/${project.slug}/demo/present`;
+  return `/projects/${project.slug}/present`;
 }
 
 export function readinessHref(project: ProjectManifest): string {

@@ -13,9 +13,9 @@
   "difficulty": "intermediate",
   "languages": ["Python"],
   "frameworks": ["pandas", "Streamlit", "Altair"],
-  "version": "1.0.0",
+  "version": "1.0.2",
   "addedOn": "2026-10-21",
-  "updatedOn": "2026-10-21",
+  "updatedOn": "2026-10-25",
   "featured": true,
   "features": [
     "A fictional sample dataset of 40 students, and a second file with deliberate mistakes to demonstrate validation.",

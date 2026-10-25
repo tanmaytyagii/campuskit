@@ -8,6 +8,8 @@ import {
   FileText,
   Globe,
   MessageCircleQuestion,
+  MonitorPlay,
+  Presentation,
   Scale,
   Terminal,
 } from 'lucide-react';
@@ -162,6 +164,12 @@ const STEPS = [
 
 const LEARNING = [
   {
+    title: 'Interactive demos',
+    text: 'Try each project in your browser with fictional sample data, with a short tour and a guided demo that checks your actions.',
+    icon: <MonitorPlay aria-hidden="true" className="size-5" />,
+    to: '/demos',
+  },
+  {
     title: 'Learning studio',
     text: 'Architecture explorer, a guided walkthrough of the important files, a checklist and troubleshooting for each project.',
     icon: <BookOpen aria-hidden="true" className="size-5" />,
@@ -178,6 +186,12 @@ const LEARNING = [
     text: 'Report drafts built from the project’s real features and limitations, with CampusKit’s facts kept apart from your writing.',
     icon: <FileText aria-hidden="true" className="size-5" />,
     to: '/learn/report',
+  },
+  {
+    title: 'Presentation and readiness',
+    text: 'Slides built from the project’s own details with speaking notes, and a readiness check that shows what is verified and what is left.',
+    icon: <Presentation aria-hidden="true" className="size-5" />,
+    to: '/demos',
   },
   {
     title: 'Compare projects',
@@ -207,8 +221,9 @@ export function HomePage() {
               Free and open source for school and college students
             </p>
             <h1 id="hero-title" className="type-display mt-6 text-ink">
-              <span className="block">Build it.</span> <span className="block">Understand it.</span>{' '}
-              <span className="block">Present it.</span>
+              <span className="block">Explore it.</span> <span className="block">Build it.</span>{' '}
+              <span className="block">Understand it.</span>{' '}
+              <span className="block">Demonstrate it.</span>
             </h1>
             <p className="type-lead mt-6 max-w-[52ch]">
               Pick a complete project, make it yours, download a ZIP that runs on your own computer,

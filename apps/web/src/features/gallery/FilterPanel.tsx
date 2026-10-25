@@ -10,6 +10,7 @@ import {
   type ProjectManifest,
 } from '@campuskit/project-catalog';
 import { X } from 'lucide-react';
+import { useLayoutEffect, useRef } from 'react';
 
 import { cn } from '../../lib/cn.ts';
 import { facetCount, type FacetKey, type GalleryFilters } from './filtering.ts';
@@ -121,10 +122,31 @@ interface ActiveFiltersProps {
   facets: FacetDefinition[];
   onRemove: (facet: FacetKey | 'query', value: string) => void;
   onReset: () => void;
+  /** Called after the last chip was removed, so the page can move focus somewhere useful. */
+  onEmptied: () => void;
 }
 
 /** The filters currently applied, each removable, plus a reset button. */
-export function ActiveFilters({ filters, facets, onRemove, onReset }: ActiveFiltersProps) {
+export function ActiveFilters({
+  filters,
+  facets,
+  onRemove,
+  onReset,
+  onEmptied,
+}: ActiveFiltersProps) {
+  const groupRef = useRef<HTMLDivElement>(null);
+  const removed = useRef<number | null>(null);
+  // A removed chip takes its focused button with it: focus moves to the chip that took its
+  // place (or the one before), or the page decides when no chip is left.
+  useLayoutEffect(() => {
+    const index = removed.current;
+    if (index === null) return;
+    removed.current = null;
+    const remaining = groupRef.current?.querySelectorAll<HTMLElement>('[data-chip]') ?? [];
+    const target = remaining[Math.min(index, remaining.length - 1)];
+    if (target) target.focus();
+    else onEmptied();
+  });
   const chips: Array<{ facet: FacetKey | 'query'; value: string; label: string }> = [];
   if (filters.query.trim())
     chips.push({ facet: 'query', value: filters.query, label: `“${filters.query.trim()}”` });
@@ -139,12 +161,21 @@ export function ActiveFilters({ filters, facets, onRemove, onReset }: ActiveFilt
   }
   if (chips.length === 0) return null;
   return (
-    <div role="group" className="flex flex-wrap items-center gap-2" aria-label="Active filters">
-      {chips.map((chip) => (
+    <div
+      ref={groupRef}
+      role="group"
+      className="flex flex-wrap items-center gap-2"
+      aria-label="Active filters"
+    >
+      {chips.map((chip, index) => (
         <button
           key={`${chip.facet}-${chip.value}`}
           type="button"
-          onClick={() => onRemove(chip.facet, chip.value)}
+          data-chip=""
+          onClick={() => {
+            removed.current = index;
+            onRemove(chip.facet, chip.value);
+          }}
           className="inline-flex items-center gap-1.5 rounded-md border border-violet/40 bg-violet-soft px-2.5 py-1 text-sm font-medium text-violet hover:border-violet"
           aria-label={`Remove filter ${chip.label}`}
         >

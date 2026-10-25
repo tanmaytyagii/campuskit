@@ -3,6 +3,7 @@ import { useId, useRef, useState, type KeyboardEvent } from 'react';
 import { Link } from 'react-router';
 
 import compareShot from '../../../../../docs/screenshots/compare.png';
+import demoShot from '../../../../../docs/screenshots/demo-studio.png';
 import galleryShot from '../../../../../docs/screenshots/gallery.png';
 import generatorShot from '../../../../../docs/screenshots/generator.png';
 import studioShot from '../../../../../docs/screenshots/learning-studio.png';
@@ -56,6 +57,15 @@ const STOPS: Stop[] = [
     image: vivaShot,
     alt: 'A viva practice question with the student’s answer, key ideas and the model answer',
     link: { to: '/viva', label: 'Practise viva questions' },
+  },
+  {
+    id: 'demonstrate',
+    tab: 'Demonstrate',
+    title: 'Try it, then present it',
+    text: 'Each project has an interactive demo with fictional sample data, a guided demo that checks your actions, slides built from the project and a readiness check.',
+    image: demoShot,
+    alt: 'The expense tracker demo with its monthly totals, budget and charts beside notes on the code behind the screen',
+    link: { to: '/demos', label: 'See the interactive demos' },
   },
   {
     id: 'compare',

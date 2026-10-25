@@ -1,7 +1,7 @@
-import { expect, hasHorizontalOverflow, isMobile, test } from './fixtures.ts';
+import { expect, hasHorizontalOverflow, isMobile, nextKey, test } from './fixtures.ts';
 
 const PAGES = [
-  { path: '/', heading: 'Build it. Understand it. Present it.' },
+  { path: '/', heading: 'Explore it. Build it. Understand it. Demonstrate it.' },
   { path: '/projects', heading: 'Projects' },
   { path: '/projects/attendance-system', heading: 'Student Attendance System' },
   { path: '/projects/expense-tracker/docs/architecture', heading: 'Architecture' },
@@ -21,6 +21,22 @@ const PAGES = [
   },
   { path: '/docs', heading: 'Documentation' },
   { path: '/docs/run-a-python-project', heading: 'Run a Python project' },
+  { path: '/demos', heading: 'Interactive demos' },
+  { path: '/projects/attendance-system/demo', heading: 'Student Attendance System' },
+  {
+    path: '/projects/expense-tracker/demo?feature=transactions',
+    heading: 'Personal Expense Tracker',
+  },
+  {
+    path: '/projects/student-result-analyzer/demo?feature=students',
+    heading: 'Student Result Analyzer',
+  },
+  {
+    path: '/projects/attendance-system/present?slide=demo-mark-attendance',
+    heading: 'Mark attendance for today',
+  },
+  { path: '/projects/student-result-analyzer/present?slide=architecture', heading: 'Architecture' },
+  { path: '/projects/expense-tracker/ready', heading: 'Getting Personal Expense Tracker ready' },
 ];
 
 test.describe('every page', () => {
@@ -74,6 +90,7 @@ test.describe('site navigation', () => {
     await page.goto('/');
     for (const [label, heading] of [
       ['Projects', 'Projects'],
+      ['Demos', 'Interactive demos'],
       ['Generator', 'Generate a project'],
       ['Learn', 'Learning center'],
       ['Viva practice', 'Viva practice'],
@@ -116,15 +133,15 @@ test.describe('site navigation', () => {
     await expect(page.getByRole('navigation', { name: 'All documents' })).toBeHidden();
   });
 
-  test('the skip link moves focus to the page content', async ({ page }, testInfo) => {
+  test('the skip link moves focus to the page content', async ({ page, browserName }, testInfo) => {
     test.skip(isMobile(testInfo.project.name), 'keyboard navigation is tested on desktop');
     await page.goto('/projects');
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(nextKey(browserName));
     const skip = page.getByRole('link', { name: 'Skip to content' });
     await expect(skip).toBeFocused();
     await expect(skip).toBeVisible();
     await page.keyboard.press('Enter');
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(nextKey(browserName));
     // The next focusable element is inside <main>, not the header.
     expect(await page.evaluate(() => document.activeElement?.closest('main') !== null)).toBe(true);
   });

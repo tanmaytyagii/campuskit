@@ -13,7 +13,10 @@ describe('site shell and navigation', () => {
   it('renders the home page with its main actions and real catalog content', () => {
     renderRoute('/');
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Build it. Understand it. Present it.' }),
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'Explore it. Build it. Understand it. Demonstrate it.',
+      }),
     ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Generate a project' })).toHaveAttribute(
       'href',
@@ -48,7 +51,7 @@ describe('site shell and navigation', () => {
 
     // The product tour shows labelled screenshots of the real pages, one tab per feature.
     const tour = screen.getByRole('tablist', { name: 'CampusKit features' });
-    expect(within(tour).getAllByRole('tab')).toHaveLength(5);
+    expect(within(tour).getAllByRole('tab')).toHaveLength(6);
     expect(within(tour).getByRole('tab', { name: 'Discover' })).toHaveAttribute(
       'aria-selected',
       'true',
@@ -104,8 +107,9 @@ describe('site shell and navigation', () => {
       within(nav)
         .getAllByRole('link')
         .map((link) => link.textContent),
-    ).toEqual(['Projects', 'Generator', 'Learn', 'Viva practice', 'Compare', 'Docs']);
+    ).toEqual(['Projects', 'Demos', 'Generator', 'Learn', 'Viva practice', 'Compare', 'Docs']);
     expect(within(nav).getByRole('link', { name: 'Compare' })).toHaveAttribute('href', '/compare');
+    expect(within(nav).getByRole('link', { name: 'Demos' })).toHaveAttribute('href', '/demos');
   });
 
   it('searches the gallery from the header search field', async () => {
@@ -196,7 +200,9 @@ describe('links', () => {
     expect(missingRepoDocs()).toEqual([]);
   });
 
-  it('has no internal links to missing pages', async () => {
+  // This renders every page the site links to, so it takes longer as the site grows (about 10 s
+  // on a fast laptop, and it went past the usual 20 s in a Linux container and can on CI).
+  it('has no internal links to missing pages', { timeout: 120_000 }, async () => {
     const pages = [
       '/',
       '/projects',

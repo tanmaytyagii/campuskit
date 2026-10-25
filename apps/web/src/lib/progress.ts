@@ -1,6 +1,7 @@
 /**
  * Learning progress saved in this browser only: which checklist items and
- * demonstration steps are done, and how the student rated each viva answer.
+ * demonstration steps are done, how the student rated each viva answer, which
+ * readiness items they confirmed and when they last completed the guided demo.
  * Nothing here is sent anywhere, and answers the student types are never
  * saved, only their own ratings. Every value is checked when it is read, so
  * an edited or outdated entry is ignored instead of breaking the page.
@@ -9,8 +10,13 @@ import { readStored, removeStored, writeStored } from './storage.ts';
 
 const KEYS = {
   checklist: (projectId: string) => `campuskit:checklist:v1:${projectId}`,
+  /** The demonstration checklist in the submission workspace (ticked steps). */
   demo: (projectId: string) => `campuskit:demo:v1:${projectId}`,
   viva: (projectId: string) => `campuskit:viva:v1:${projectId}`,
+  /** Readiness items the student confirmed themselves. */
+  readiness: (projectId: string) => `campuskit:readiness:v1:${projectId}`,
+  /** When the student last finished the Demo Studio's guided demo with every action done. */
+  rehearsal: (projectId: string) => `campuskit:rehearsal:v1:${projectId}`,
 } as const;
 
 export type ProgressKind = keyof typeof KEYS;
@@ -36,7 +42,7 @@ function isTickedList(value: unknown): value is TickedList {
 
 /** The ids that are ticked, limited to ids that still exist. */
 export function readTicked(
-  kind: 'checklist' | 'demo',
+  kind: 'checklist' | 'demo' | 'readiness',
   projectId: string,
   validIds: readonly string[],
 ): Set<string> {
@@ -46,7 +52,7 @@ export function readTicked(
 }
 
 export function writeTicked(
-  kind: 'checklist' | 'demo',
+  kind: 'checklist' | 'demo' | 'readiness',
   projectId: string,
   done: Set<string>,
 ): void {
@@ -215,6 +221,39 @@ export function summarizeViva(progress: VivaProgress, questionIds: readonly stri
 }
 
 // ---------------------------------------------------------------------------
+// Guided demo rehearsals
+// ---------------------------------------------------------------------------
+
+export interface Rehearsal {
+  version: 1;
+  /** Local date, YYYY-MM-DD. */
+  completedOn: string;
+  /** How many steps had an action the demo checked; all of them were done. */
+  checkedSteps: number;
+}
+
+function isRehearsal(value: unknown): value is Rehearsal {
+  if (typeof value !== 'object' || value === null) return false;
+  const candidate = value as Partial<Rehearsal>;
+  return (
+    candidate.version === 1 &&
+    typeof candidate.completedOn === 'string' &&
+    /^\d{4}-\d{2}-\d{2}$/.test(candidate.completedOn) &&
+    typeof candidate.checkedSteps === 'number' &&
+    Number.isInteger(candidate.checkedSteps) &&
+    candidate.checkedSteps >= 0
+  );
+}
+
+export function readRehearsal(projectId: string): Rehearsal | null {
+  return readStored(KEYS.rehearsal(projectId), isRehearsal);
+}
+
+export function writeRehearsal(projectId: string, rehearsal: Rehearsal): void {
+  writeStored(KEYS.rehearsal(projectId), rehearsal);
+}
+
+// ---------------------------------------------------------------------------
 // Resetting
 // ---------------------------------------------------------------------------
 
@@ -222,7 +261,7 @@ export function resetProgress(kind: ProgressKind, projectId: string): void {
   removeStored(KEYS[kind](projectId));
 }
 
-/** Clears the checklist, demonstration steps and viva ratings for one project. */
+/** Clears every kind of progress above for one project. Report drafts are kept separately. */
 export function resetAllProgress(projectId: string): void {
   for (const kind of Object.keys(KEYS) as ProgressKind[]) resetProgress(kind, projectId);
 }

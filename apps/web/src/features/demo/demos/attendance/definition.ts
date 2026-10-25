@@ -28,7 +28,7 @@ export const attendanceDemo: DemoDefinition = {
       'The template’s fictional sample class: twelve students in Class 10-A and 10-B, with attendance for the ten school days before today.',
     editable: true,
     persistence: 'session',
-    reset: 'Reset brings back the sample class. Until then your changes stay in this browser tab.',
+    reset: '“Reset to the example” brings back the sample class.',
   },
   features: [
     {
@@ -183,7 +183,8 @@ export const attendanceDemo: DemoDefinition = {
       title: 'Find students',
       say: 'Search and the class filter are plain functions over the student list, so they are easy to test.',
       action: 'Type “Diya” in Search, clear it, then choose Class 10-B.',
-      expect: 'The list narrows to the matching students and comes back when the search is cleared.',
+      expect:
+        'The list narrows to the matching students and comes back when the search is cleared.',
       concept: 'Pure functions: matchesSearch and sortStudents',
       learn: { walkthrough: ['calculations'] },
     },
@@ -204,8 +205,10 @@ export const attendanceDemo: DemoDefinition = {
       feature: 'mark',
       title: 'Mark attendance for today',
       say: 'Attendance is saved per date, then per student id, so one day can be edited without touching the others.',
-      action: 'Open Mark attendance, choose “Mark all present”, change one student to Late, then save.',
-      expect: 'A message confirms the date was saved, and the counts above the list show your marks.',
+      action:
+        'Open Mark attendance, choose “Mark all present”, change one student to Late, then save.',
+      expect:
+        'A message confirms the date was saved, and the counts above the list show your marks.',
       concept: 'The attendance/save action and data stored by date',
       learn: { walkthrough: ['mark-attendance'], viva: ['by-date'] },
     },

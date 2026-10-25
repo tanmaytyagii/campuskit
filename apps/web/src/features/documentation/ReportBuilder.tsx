@@ -29,31 +29,12 @@ import { cn } from '../../lib/cn.ts';
 import { downloadFile } from '../../lib/download.ts';
 import { formatIsoDate, todayIso } from '../../lib/format.ts';
 import { readTicked, readVivaProgress, summarizeViva, writeTicked } from '../../lib/progress.ts';
+import { isStoredReport, REPORT_STORAGE_PREFIX } from '../../lib/report-drafts.ts';
 import { readStored, removeStored, writeStored } from '../../lib/storage.ts';
 import { verificationLines } from '../../lib/verification.ts';
 import { studioHref, vivaHref } from '../learning/links.ts';
 
 const CUSTOM = 'custom';
-const STORAGE_PREFIX = 'campuskit:report:v1:';
-
-interface StoredReport {
-  info: ReportInfo;
-  sections: Partial<Record<SectionId, string>>;
-}
-
-/**
- * Accepts drafts saved before sections were added (they only lack the new
- * sections, which are then filled with fresh drafts) but never a value with a
- * section that isn't text.
- */
-function isStoredReport(value: unknown): value is StoredReport {
-  if (typeof value !== 'object' || value === null) return false;
-  const candidate = value as Partial<StoredReport>;
-  if (typeof candidate.info !== 'object' || candidate.info === null) return false;
-  if (typeof candidate.sections !== 'object' || candidate.sections === null) return false;
-  const sections = candidate.sections as Record<string, unknown>;
-  return SECTION_IDS.every((id) => sections[id] === undefined || typeof sections[id] === 'string');
-}
 
 function draftAll(
   project: ProjectManifest | null,
@@ -140,7 +121,7 @@ function ReportEditor({
   questionIds: string[] | null;
   onChangeProject: (id: string) => void;
 }) {
-  const storageKey = `${STORAGE_PREFIX}${projectId}`;
+  const storageKey = `${REPORT_STORAGE_PREFIX}${projectId}`;
   const [saved] = useState(() => readStored(storageKey, isStoredReport));
   const [info, setInfo] = useState<ReportInfo>(() => ({
     ...emptyInfo(project),

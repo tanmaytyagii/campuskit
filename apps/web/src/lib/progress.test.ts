@@ -5,7 +5,9 @@ import {
   readTicked,
   readVivaProgress,
   recordRatings,
+  readRehearsal,
   resetAllProgress,
+  writeRehearsal,
   resetProgress,
   summarizeViva,
   writeTicked,
@@ -89,11 +91,30 @@ describe('learning progress', () => {
     writeTicked('checklist', 'one', new Set(['a']));
     writeTicked('demo', 'one', new Set(['step-1']));
     writeVivaProgress('one', recordRatings(EMPTY_VIVA_PROGRESS, 'q', confident, '2026-10-23'));
+    writeTicked('readiness', 'one', new Set(['run']));
+    writeRehearsal('one', { version: 1, completedOn: '2026-10-24', checkedSteps: 3 });
     writeTicked('checklist', 'two', new Set(['a']));
     resetAllProgress('one');
     expect(readTicked('checklist', 'one', ['a']).size).toBe(0);
     expect(readTicked('demo', 'one', ['step-1']).size).toBe(0);
     expect(readVivaProgress('one', ['q']).questions).toEqual({});
+    expect(readTicked('readiness', 'one', ['run']).size).toBe(0);
+    expect(readRehearsal('one')).toBeNull();
     expect(readTicked('checklist', 'two', ['a']).size).toBe(1);
+  });
+
+  it('keeps readiness confirmations and rehearsals apart from older progress keys', () => {
+    writeTicked('readiness', 'one', new Set(['run', 'gone']));
+    expect([...readTicked('readiness', 'one', ['run'])]).toEqual(['run']);
+    // The submission workspace's demonstration checklist keeps its own key.
+    expect(window.localStorage.getItem('campuskit:demo:v1:one')).toBeNull();
+    writeRehearsal('one', { version: 1, completedOn: '2026-10-24', checkedSteps: 3 });
+    expect(readRehearsal('one')).toEqual({
+      version: 1,
+      completedOn: '2026-10-24',
+      checkedSteps: 3,
+    });
+    window.localStorage.setItem('campuskit:rehearsal:v1:one', '{"version":1,"completedOn":"soon"}');
+    expect(readRehearsal('one')).toBeNull();
   });
 });

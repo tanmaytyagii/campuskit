@@ -29,11 +29,15 @@ def _fmt(value: float, digits: int = 1) -> str:
 
 
 def explain_overview(summary: Overview, pass_mark: int) -> list[str]:
-    lines = [
-        f"The file contains {summary.students} students and {summary.subjects} subjects.",
-        f"The average overall percentage is {_fmt(summary.average_percentage)}% and the median is "
-        f"{_fmt(summary.median_percentage)}%.",
-    ]
+    lines = [f"The file contains {summary.students} students and {summary.subjects} subjects."]
+    if pd.isna(summary.average_percentage):
+        # Every score is missing, so there is nothing to average (and no "nan%" to show).
+        lines.append("No student has a score yet, so there is no average or median percentage.")
+    else:
+        lines.append(
+            f"The average overall percentage is {_fmt(summary.average_percentage)}% and the median is "
+            f"{_fmt(summary.median_percentage)}%."
+        )
     if summary.average_percentage - summary.median_percentage > 3:
         lines.append(
             "The average is noticeably higher than the median, so a few high scorers are lifting the average."

@@ -23,7 +23,12 @@ export function useDemoStore(projectId: string, demo: LoadedDemo) {
   }, [key, state]);
 
   const update = useCallback((change: (current: unknown) => unknown) => setState(change), []);
-  const reset = useCallback(() => setState(demo.createState()), [demo]);
+  /** Puts the sample data back and returns it. */
+  const reset = useCallback(() => {
+    const fresh = demo.createState();
+    setState(fresh);
+    return fresh;
+  }, [demo]);
   const startEmpty = useCallback(() => {
     if (demo.createEmptyState) setState(demo.createEmptyState());
   }, [demo]);

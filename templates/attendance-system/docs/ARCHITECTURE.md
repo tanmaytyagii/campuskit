@@ -69,7 +69,12 @@ This app has no database, so there are no tables. If you moved it to a database,
 4. An effect in `AttendanceProvider` notices the new data and calls `saveData`, which writes JSON to localStorage.
 5. A notice (“Attendance saved for …”) is announced through an `aria-live` region.
 
-When the app starts, `loadData` reads localStorage and `validateData` checks every field. Invalid data is never used: the app starts fresh and keeps the unreadable value under a backup key.
+When the app starts, `loadData` reads localStorage and `recoverData` checks every field. Invalid data is never used:
+
+- A student, date or mark that fails is left out, and the rest is loaded.
+- If nothing can be used, the app starts fresh.
+- Either way, the saved value is first copied to a backup key, and an earlier copy is never replaced.
+- If the browser refuses that copy, nothing is saved.
 
 ## Navigation
 

@@ -38,6 +38,12 @@ If you use a custom domain at the root of the domain, change `CAMPUSKIT_BASE` in
 
 GitHub Pages answers deep links through `404.html` with an HTTP 404 status. Browsers show the page normally, but search engines may skip those addresses.
 
+### If the deployment fails
+
+- **It stops at the `actions/configure-pages` step,** saying the Pages site can't be found: Pages isn't enabled for the repository yet. Do step 2, then run the workflow again. The checks and the build run before this step and don't depend on the setting.
+- **It fails at `pnpm validate` or `pnpm test`:** the workflow refuses to publish a site whose checks fail. Run the same command locally; `pnpm validate` names the template file and the problem.
+- **The site loads but its links lead to a blank page:** the base path is wrong. The workflow sets `CAMPUSKIT_BASE` from the repository name, so check that the site address matches it.
+
 ## Netlify
 
 `netlify.toml` in the repository root configures the build command, the output folder and the single-page app fallback. Create a new site from the repository and keep the settings it detects. The build command runs `pnpm validate` before `pnpm build`, like the GitHub Pages workflow, so a template that fails the catalog checks is never published.

@@ -19,7 +19,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useParams, useSearchParams } from 'react-router';
 
 import { Breadcrumbs } from '../../components/layout/Breadcrumbs.tsx';
 import { StatusBadge } from '../../components/StatusBadge.tsx';
@@ -59,6 +59,7 @@ import {
   checkConcepts,
   QUICK_PRACTICE_SIZE,
   reviewQuestions,
+  selectedQuestionIds,
   selectQuestions,
   type PracticeMode,
 } from './logic.ts';
@@ -81,6 +82,7 @@ const MODE_LABELS: Record<PracticeMode['kind'], string> = {
   topic: 'Practice by topic',
   mixed: 'Mixed practice',
   review: 'Review',
+  selected: 'Selected questions',
 };
 
 const OUTCOME_TONES: Record<Outcome | 'skipped', 'lime' | 'warn' | 'outline' | 'neutral'> = {
@@ -161,6 +163,8 @@ function Practice({ project, guide }: { project: ProjectManifest; guide: Learnin
     readVivaProgress(project.id, questionIds),
   );
   const [phase, setPhase] = useState<Phase>({ kind: 'setup' });
+  const [params] = useSearchParams();
+  const selectedIds = selectedQuestionIds(params.get('questions'), guide.viva);
 
   function start(mode: PracticeMode) {
     const questions = selectQuestions(guide.viva, progress, mode);
@@ -250,6 +254,7 @@ function Practice({ project, guide }: { project: ProjectManifest; guide: Learnin
       project={project}
       guide={guide}
       progress={progress}
+      selectedIds={selectedIds}
       onStart={start}
       onReset={reset}
     />
@@ -272,12 +277,14 @@ function ModeChooser({
   project,
   guide,
   progress,
+  selectedIds,
   onStart,
   onReset,
 }: {
   project: ProjectManifest;
   guide: LearningGuide;
   progress: VivaProgress;
+  selectedIds: readonly string[];
   onStart: (mode: PracticeMode) => void;
   onReset: () => void;
 }) {
@@ -299,8 +306,38 @@ function ModeChooser({
     { label: OUTCOME_LABELS.partly, value: summary.partly },
     { label: OUTCOME_LABELS.missed, value: summary.missed },
   ];
+  const selected = selectedIds
+    .map((id) => guide.viva.find((question) => question.id === id))
+    .filter((question) => question !== undefined);
   return (
     <div className="space-y-8">
+      {selected.length > 0 ? (
+        <section
+          aria-labelledby="viva-selected"
+          className="space-y-3 rounded-2xl border border-violet/40 bg-violet-soft/50 p-5 sm:p-6"
+        >
+          <h2 id="viva-selected" className="type-h3 text-ink">
+            {selected.length} {selected.length === 1 ? 'question' : 'questions'} picked for you
+          </h2>
+          <p className="text-sm text-ink-2">
+            These questions are about the part of the project you were looking at. They work like
+            any other practice: write your answer, compare and rate yourself.
+          </p>
+          <ol className="list-decimal space-y-1 pl-5 text-sm text-ink">
+            {selected.map((question) => (
+              <li key={question.id}>{question.question}</li>
+            ))}
+          </ol>
+          <Button
+            onClick={() =>
+              onStart({ kind: 'selected', ids: selected.map((question) => question.id) })
+            }
+          >
+            Practise{' '}
+            {selected.length === 1 ? 'this question' : `these ${selected.length} questions`}
+          </Button>
+        </section>
+      ) : null}
       <section
         aria-labelledby="viva-progress"
         className="rounded-2xl border border-line bg-surface p-5 shadow-card sm:p-6"
@@ -465,6 +502,7 @@ function ModeChooser({
         open={confirming}
         onClose={() => setConfirming(false)}
         title="Reset viva progress?"
+        confirmation
         footer={
           <div className="flex flex-wrap justify-end gap-3">
             <Button variant="secondary" onClick={() => setConfirming(false)}>

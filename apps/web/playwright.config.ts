@@ -15,8 +15,10 @@ export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
+  // One retry in CI keeps an unlucky runner from failing the build, and the github reporter
+  // still writes every flaky test (and its failed attempt) as an annotation on the run.
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
+  reporter: process.env.CI ? [['list'], ['github'], ['html', { open: 'never' }]] : 'list',
   timeout: 45_000,
   use: {
     baseURL: `http://127.0.0.1:${PORT}`,

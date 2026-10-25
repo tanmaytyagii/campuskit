@@ -3,7 +3,7 @@
  * browser, in both colour themes.
  */
 import AxeBuilder from '@axe-core/playwright';
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
 import { expect, test } from './fixtures.ts';
 
@@ -24,8 +24,28 @@ const PAGES = [
   '/projects/attendance-system/learn/checklist',
   '/projects/expense-tracker/viva',
   '/docs/template-engine',
+  '/demos',
+  '/projects/attendance-system/demo?feature=summary',
+  '/projects/attendance-system/demo?feature=mark',
+  '/projects/expense-tracker/demo?feature=overview',
+  '/projects/expense-tracker/demo?feature=transactions',
+  '/projects/student-result-analyzer/demo?feature=dataset',
+  '/projects/student-result-analyzer/demo?feature=subjects',
+  '/projects/attendance-system/present?slide=demo-add-student',
+  '/projects/expense-tracker/present?slide=workflow',
+  '/projects/student-result-analyzer/ready',
   '/no-such-page',
 ];
+
+/**
+ * Dialogs fade in, and Playwright counts them as visible from the first frame,
+ * so axe would measure half-faded colours. Wait until the dialog has settled.
+ */
+async function settled(dialog: Locator) {
+  await dialog.evaluate((element) =>
+    Promise.all(element.getAnimations({ subtree: true }).map((animation) => animation.finished)),
+  );
+}
 
 async function violations(page: Page) {
   const results = await new AxeBuilder({ page })
@@ -68,6 +88,34 @@ for (const scheme of ['light', 'dark'] as const) {
         .fill('It saves data in localStorage.');
       await page.getByRole('button', { name: 'Compare with the model answer' }).click();
       await expect(page.getByRole('heading', { name: 'Model answer' })).toBeVisible();
+      expect(await violations(page)).toEqual([]);
+    });
+
+    test('a demo with its tour, guided demo and dialogs has no accessibility violations', async ({
+      page,
+    }) => {
+      await page.goto('/projects/attendance-system/demo');
+      await page.getByRole('button', { name: 'Take the tour' }).click();
+      await expect(page.getByText('Tour · Step 1 of 5')).toBeVisible();
+      expect(await violations(page)).toEqual([]);
+      await page.getByRole('button', { name: 'End the tour' }).click();
+      await page.getByRole('button', { name: 'Practise the demo' }).click();
+      await page.getByRole('button', { name: 'Start the guided demo' }).click();
+      await expect(page.getByText('Guided demo · Step 1 of 6')).toBeVisible();
+      expect(await violations(page)).toEqual([]);
+      await page.getByRole('button', { name: 'Add student' }).click();
+      const dialog = page.getByRole('dialog', { name: 'Add student' });
+      await expect(dialog).toBeVisible();
+      await settled(dialog);
+      expect(await violations(page)).toEqual([]);
+    });
+
+    test('the analyzer demo showing validation errors has no accessibility violations', async ({
+      page,
+    }) => {
+      await page.goto('/projects/student-result-analyzer/demo');
+      await page.getByText('File with mistakes', { exact: true }).click();
+      await expect(page.getByText('Name is empty on line(s) 4.')).toBeVisible();
       expect(await violations(page)).toEqual([]);
     });
 

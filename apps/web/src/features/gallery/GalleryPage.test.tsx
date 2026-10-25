@@ -40,6 +40,21 @@ describe('project gallery', () => {
     expect(resultNames()).toEqual(['Personal Expense Tracker', 'Student Result Analyzer']);
   });
 
+  it('keeps focus on the filters, then the result count, as chips are removed', async () => {
+    const user = userEvent.setup();
+    renderRoute('/projects?q=pandas&difficulty=intermediate');
+    const chips = within(screen.getByRole('group', { name: 'Active filters' }));
+    // The first chip: focus moves to the chip that took its place.
+    await user.click(chips.getByRole('button', { name: 'Remove filter “pandas”' }));
+    expect(
+      chips.getByRole('button', { name: 'Remove filter Difficulty: Intermediate' }),
+    ).toHaveFocus();
+    // The last chip: the group goes, and focus moves to the result count.
+    await user.click(chips.getByRole('button', { name: 'Remove filter Difficulty: Intermediate' }));
+    expect(screen.getByRole('status')).toHaveTextContent('3 projects');
+    expect(screen.getByRole('status')).toHaveFocus();
+  });
+
   it('searches as you type, keeping spaces between words', async () => {
     const user = userEvent.setup();
     const { router } = renderRoute('/projects');
@@ -94,6 +109,8 @@ describe('project gallery', () => {
     await user.click(screen.getAllByRole('button', { name: 'Reset filters' })[0] as HTMLElement);
     expect(router.state.location.search).toBe('?sort=newest');
     expect(resultNames()).toHaveLength(3);
+    // The reset button went with the empty state: focus moves to the result count.
+    expect(screen.getByRole('status')).toHaveFocus();
   });
 
   it('opens the filter dialog on small screens', async () => {

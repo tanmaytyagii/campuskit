@@ -29,8 +29,9 @@ Surfaces are a warm, paper-like neutral in the light theme and navy in the dark 
 | `danger`, `warn` (with `-soft` fills) | `#c0263f` | `#ff8a9b` | Errors and warnings                                    |
 | `inverse` / `on-inverse`              | `#121935` | `#16224a` | The navy closing band on the home page, in both themes |
 | `code-bg` / `code-ink`                | `#10172f` | `#070d24` | Code blocks and terminal commands                      |
+| `chart-1` / `chart-2`                 | `#5434e6` | `#9085e9` | The first and second data series in demo charts        |
 
-The table lists the main value of each group; the full set, including `ink-2`, `ink-3`, `line-strong` and the soft fills, is in `index.css`.
+The table lists the main value of each group; the full set, including `ink-2`, `ink-3`, `line-strong`, the soft fills and `chart-2` (`#eb6834` light, `#d95926` dark), is in `index.css`.
 
 ## Type
 
@@ -64,9 +65,9 @@ Transitions last 160 ms with a soft ease-out curve (`--default-transition-durati
 
 | Component                              | File                                                            | Notes                                                                                  |
 | -------------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `Button`, `ButtonLink`                 | `components/ui/Button.tsx`                                      | Primary, secondary, ghost and danger variants in three sizes                           |
+| `Button`, `ButtonLink`                 | `components/ui/Button.tsx`                                      | Primary, secondary, ghost and danger variants in three sizes; `wrap` for long labels   |
 | `TextField`, `SelectField`, `Checkbox` | `components/ui/Field.tsx`                                       | Label, description and error wired up with `aria-describedby` and `aria-invalid`       |
-| `Dialog`                               | `components/ui/Dialog.tsx`                                      | The native `<dialog>`; used to confirm anything that deletes saved work                |
+| `Dialog`                               | `components/ui/Dialog.tsx`                                      | The native `<dialog>`; `confirmation` makes it an alert dialog described by its text   |
 | `Badge`, `StatusBadge`                 | `components/ui/Badge.tsx`, `components/StatusBadge.tsx`         | Status always has a text label                                                         |
 | `DifficultyMeter`                      | `components/DifficultyMeter.tsx`                                | One to three bars plus the difficulty's name                                           |
 | `Meter`                                | `components/ui/Meter.tsx`                                       | A labelled amount with a decorative bar, inside a `<dl>`                               |
@@ -74,16 +75,30 @@ Transitions last 160 ms with a soft ease-out curve (`--default-transition-durati
 | `ProjectCard`                          | `components/ProjectCard.tsx`                                    | Screenshot, verification status, title, tagline, difficulty and stack                  |
 | `CommandBlock`, `MarkdownView`         | `components/ui/CommandBlock.tsx`, `components/MarkdownView.tsx` | Code blocks with a copy button; code stays focusable so it can be scrolled by keyboard |
 | `Callout`, `EmptyState`, `Skeleton`    | `components/ui/`                                                | Notes, empty results and loading placeholders                                          |
+| `StatGrid`, `StatTile`, `TableRegion`  | `features/demo/ui.tsx`                                          | Figures in a hairline grid; tables that scroll sideways in their own focusable region  |
+| `ChartCard`, `BarList`, `ColumnChart`  | `features/demo/charts.tsx`                                      | Charts with a written summary and a table view; see Charts below                       |
+| `DemoFrame`                            | `features/demo/DemoFrame.tsx`                                   | The window a demo runs in: its screens as tabs, a status line and a feedback message   |
+
+## Charts
+
+The demos draw their charts with plain HTML and CSS; no chart library is bundled.
+
+- **Colour by series, in a fixed order.** `chart-1` is always the first series and `chart-2` the second. Both pairs were checked for lightness, colour-vision separation and contrast against their theme's surface.
+- **One value axis.** Two measures of different scale go in two charts.
+- **Never colour alone.** Two series always get a legend, a threshold line is named in the key rather than on top of the columns, and the figures beside the bars are in text colours.
+- **Every chart can be read without seeing it.** The chart has a written summary for screen readers and a **Table view** button that swaps the chart for a table with the exact figures.
 
 ## Accessibility rules
 
 These are checked by the unit tests (axe in jsdom) and the Playwright tests (axe in Chromium, both themes, desktop and phone):
 
 - Every page has one `<h1>` and headings in order. Landmarks are named when there is more than one of a kind.
-- Everything works with a keyboard. Focus is always visible (violet in the light theme, lime in the dark theme), and moves to the new page's content after navigation.
+- Everything works with a keyboard. Focus is always visible (violet in the light theme, lime in the dark theme), and moves to the new page's content after navigation. When the control that had focus disappears, focus moves to what took its place: the next row after a deletion (`useFocusAfterDelete` in `features/demo/ui.tsx`), the next filter chip, or the result count.
 - Tabs, the stepper and the comboboxes follow the ARIA patterns: arrow keys move between tabs, the current step is marked with `aria-current="step"`, and a step with errors says so to screen readers.
 - Tap targets are at least 24 by 24 px (WCAG 2.2). Buttons and inputs are 32 px tall in compact places such as cards and 40 to 48 px elsewhere.
-- Nothing scrolls sideways at 320 px except tables and code, which scroll inside their own focusable region.
+- Nothing scrolls sideways at 320 px except tables and code, which scroll inside their own focusable region. A scrolling region is positioned (`relative`), so screen-reader-only text inside it can't widen the page.
+- That stays true with the larger letter, word and line spacing a reader may set (WCAG 1.4.12): long words break (`overflow-wrap: break-word` on the body), fieldsets may shrink, and a button whose label can be long uses `wrap`. Flex items that hold text get `min-w-0`.
+- Presentation mode keeps its Previous and Next buttons on screen, and scroll padding keeps focused elements clear of the pinned bars.
 
 ## Changing the design
 

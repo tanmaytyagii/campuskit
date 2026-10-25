@@ -12,6 +12,7 @@ import {
   mentions,
   QUICK_PRACTICE_SIZE,
   reviewQuestions,
+  selectedQuestionIds,
   selectQuestions,
   shuffle,
 } from './logic.ts';
@@ -95,6 +96,20 @@ describe('selectQuestions', () => {
     expect(selectQuestions(questions, progress, { kind: 'review' }).map((item) => item.id)).toEqual(
       ['c', 'a'],
     );
+  });
+
+  it('selected practice keeps the chosen questions in the order given', () => {
+    const picked = selectQuestions(questions, EMPTY_VIVA_PROGRESS, {
+      kind: 'selected',
+      ids: ['e', 'b'],
+    });
+    expect(picked.map((item) => item.id)).toEqual(['e', 'b']);
+  });
+
+  it('reads only known, distinct question ids from a link', () => {
+    expect(selectedQuestionIds('e, b,zz,e', questions)).toEqual(['e', 'b']);
+    expect(selectedQuestionIds(null, questions)).toEqual([]);
+    expect(selectedQuestionIds('', questions)).toEqual([]);
   });
 
   it('shuffle keeps every item exactly once', () => {

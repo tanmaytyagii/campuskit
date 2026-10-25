@@ -24,7 +24,13 @@ Each period is converted to a `from`/`to` pair of `YYYY-MM-DD` strings (`periodR
 
 ## 6. Where is the data stored and how is it protected from corruption?
 
-In localStorage under `campuskit-expenses:v1`. On load, `validateData` checks every transaction (type, positive integer amount, known category for that type, valid date). If anything is wrong the app starts fresh and keeps the unreadable value under a backup key. Imported backups go through the same validation.
+In localStorage under `campuskit-expenses:v1`. On load, `recoverData` checks every transaction (type, positive integer amount, known category for that type, valid date):
+
+- A transaction that fails is left out, so one damaged record doesn't cost the others, and a banner says what was wrong.
+- Before anything is left out, the saved value is copied to a backup key, and an earlier copy is never replaced.
+- If the browser refuses that copy, the app doesn't save at all, so the saved value isn't lost.
+
+Imported backups must pass `validateData`, which refuses the whole file on any problem, because an import replaces all the data.
 
 ## 7. Why use a reducer and context?
 

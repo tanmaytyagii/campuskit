@@ -34,6 +34,13 @@ describe('product tour', () => {
       'href',
       '/viva',
     );
+
+    await user.click(screen.getByRole('tab', { name: 'Demonstrate' }));
+    expect(screen.getByRole('heading', { name: 'Try it, then present it' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'See the interactive demos' })).toHaveAttribute(
+      'href',
+      '/demos',
+    );
   });
 
   it('moves between tabs with the arrow, Home and End keys', async () => {

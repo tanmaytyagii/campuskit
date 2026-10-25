@@ -13,14 +13,24 @@ import { StudentsView } from './views/StudentsView';
 function StorageBanner() {
   const { storageState } = useAttendance();
   if (storageState.kind === 'ok') return null;
-  const messages = {
-    recovered: `Saved data couldn’t be read (${storageState.reason}), so the app started fresh. A copy of the old data was kept in localStorage.`,
-    unavailable: `Changes can’t be saved because ${storageState.reason}. Data will be lost when you close this tab.`,
-    'save-failed': `The latest change couldn’t be saved (${storageState.reason}).`,
-  } as const;
+  let message: string;
+  switch (storageState.kind) {
+    case 'partial':
+      message = `Some saved data couldn’t be read (${storageState.reason}) and was left out. A copy of the saved data was kept in localStorage under ${storageState.backupKey}.`;
+      break;
+    case 'recovered':
+      message = `Saved data couldn’t be read (${storageState.reason}), so the app started fresh. A copy of the old data was kept in localStorage under ${storageState.backupKey}.`;
+      break;
+    case 'unavailable':
+      message = `Changes can’t be saved because ${storageState.reason}. Data will be lost when you close this tab.`;
+      break;
+    case 'save-failed':
+      message = `The latest change couldn’t be saved (${storageState.reason}).`;
+      break;
+  }
   return (
     <div className="banner" role="alert">
-      {messages[storageState.kind]}
+      {message}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import type { ButtonHTMLAttributes, ReactNode, Ref } from 'react';
 import { Link, type LinkProps } from 'react-router';
 
 import { cn } from '../../lib/cn.ts';
@@ -20,39 +20,52 @@ const SIZES: Record<ButtonSize, string> = {
   lg: 'h-12 gap-2 px-5 text-base',
 };
 
+/** The same sizes for a label that may need a second line: the button grows instead. */
+const WRAPPING_SIZES: Record<ButtonSize, string> = {
+  sm: 'min-h-8 gap-1.5 px-3 py-1 text-sm',
+  md: 'min-h-10 gap-2 px-4 py-2 text-[0.9375rem]',
+  lg: 'min-h-12 gap-2 px-5 py-2.5 text-base',
+};
+
 export function buttonClasses(
   variant: ButtonVariant = 'primary',
   size: ButtonSize = 'md',
   className?: string,
+  wrap = false,
 ): string {
   return cn(
-    'inline-flex items-center justify-center rounded-lg font-semibold whitespace-nowrap select-none',
+    'inline-flex items-center justify-center rounded-lg font-semibold select-none',
+    wrap ? 'text-center' : 'whitespace-nowrap',
     // A one-pixel press confirms the click; reduced motion keeps it still.
     'transition-[color,background-color,border-color,box-shadow,translate] active:translate-y-px motion-reduce:active:translate-y-0',
     'disabled:cursor-not-allowed disabled:opacity-50 disabled:active:translate-y-0',
     VARIANTS[variant],
-    SIZES[size],
+    wrap ? WRAPPING_SIZES[size] : SIZES[size],
     className,
   );
 }
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  ref?: Ref<HTMLButtonElement>;
   variant?: ButtonVariant;
   size?: ButtonSize;
   icon?: ReactNode;
+  /** Lets a long label wrap onto a second line on narrow screens or with larger text. */
+  wrap?: boolean;
 }
 
 export function Button({
   variant,
   size,
   icon,
+  wrap,
   className,
   children,
   type = 'button',
   ...props
 }: ButtonProps) {
   return (
-    <button type={type} className={buttonClasses(variant, size, className)} {...props}>
+    <button type={type} className={buttonClasses(variant, size, className, wrap)} {...props}>
       {icon}
       {children}
     </button>

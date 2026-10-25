@@ -139,7 +139,8 @@ with overview_tab:
     columns = st.columns(4)
     columns[0].metric("Students", summary.students)
     columns[1].metric("Subjects", summary.subjects)
-    columns[2].metric("Average percentage", f"{summary.average_percentage:.1f}%")
+    average = summary.average_percentage
+    columns[2].metric("Average percentage", "—" if pd.isna(average) else f"{average:.1f}%")
     columns[3].metric("Passed every subject", f"{summary.passed} of {summary.students}")
     st.subheader("What the numbers say")
     bullet_list(explanations["overview"] + explanations["subjects"][:1])

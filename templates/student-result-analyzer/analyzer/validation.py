@@ -135,6 +135,9 @@ def validate_results(raw: bytes, max_marks: int) -> ValidationResult:
     normalized = [normalize_header(name) for name in header]
     seen: dict[str, str] = {}
     for original, key in zip(header, normalized):
+        # A name without ASCII letters or digits (such as "गणित") normalizes to "", so it is
+        # compared as written: two identical names would otherwise share one column of data.
+        key = key or original
         if key and key in seen:
             result.errors.append(Issue("error", f"The columns “{seen[key]}” and “{original}” have the same name."))
         seen.setdefault(key, original)

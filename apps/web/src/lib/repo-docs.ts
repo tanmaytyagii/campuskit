@@ -53,6 +53,13 @@ export const REPO_DOCS: readonly RepoDoc[] = [
     group: 'guides',
   },
   {
+    slug: 'present-your-project',
+    title: 'Present your project',
+    description: 'Practise with the interactive demo, present with slides and check you are ready.',
+    path: 'docs/guides/present-your-project.md',
+    group: 'guides',
+  },
+  {
     slug: 'using-templates-honestly',
     title: 'Using templates honestly',
     description: 'What to disclose, what to change and how to keep your work your own.',
@@ -85,6 +92,14 @@ export const REPO_DOCS: readonly RepoDoc[] = [
     title: 'Architecture',
     description: 'How the web app, the catalog and the template engine fit together.',
     path: 'docs/architecture.md',
+    group: 'contributing',
+  },
+  {
+    slug: 'demo-studio',
+    title: 'Demo Studio',
+    description:
+      'How the interactive demos, presentation mode and readiness check work, and how to add a demo.',
+    path: 'docs/demo-studio.md',
     group: 'contributing',
   },
   {

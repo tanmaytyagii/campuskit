@@ -13,9 +13,9 @@
   "difficulty": "beginner",
   "languages": ["TypeScript", "CSS"],
   "frameworks": ["React", "Vite"],
-  "version": "1.0.0",
+  "version": "1.0.1",
   "addedOn": "2026-10-21",
-  "updatedOn": "2026-10-21",
+  "updatedOn": "2026-10-24",
   "featured": true,
   "features": [
     "Add, edit and delete students with a roll number and class; duplicate roll numbers within a class are rejected.",

@@ -135,6 +135,7 @@ export function ChecklistSection({
         open={confirming}
         onClose={() => setConfirming(false)}
         title="Reset the checklist?"
+        confirmation
         footer={
           <div className="flex flex-wrap justify-end gap-3">
             <Button variant="secondary" onClick={() => setConfirming(false)}>

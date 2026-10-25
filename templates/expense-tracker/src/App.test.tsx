@@ -4,7 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { App } from './App';
 import type { AppConfig } from './config';
-import { STORAGE_KEY } from './lib/storage';
+import { createDemoData } from './lib/demo-data';
+import { BACKUP_KEY, STORAGE_KEY } from './lib/storage';
 
 const config: AppConfig = {
   appName: 'Spend Smart',
@@ -146,6 +147,45 @@ describe('Expense tracker', () => {
     expect(
       within(screen.getByRole('dialog', { name: 'Add transaction' })).getByLabelText(/Amount/),
     ).toHaveValue('');
+  });
+
+  it('keeps the readable transactions when one saved transaction is malformed', async () => {
+    const data = createDemoData('INR', new Date());
+    const broken = data.transactions.map((item, index) =>
+      index === 2 ? { ...item, amountMinor: 'lots' } : item,
+    );
+    const raw = JSON.stringify({ ...data, transactions: broken });
+    window.localStorage.setItem(STORAGE_KEY, raw);
+    render(<App config={config} />);
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      `Some saved data couldn’t be read (transaction 3 has an invalid amount) and was left out. A copy of the saved data was kept in localStorage under ${BACKUP_KEY}.`,
+    );
+    expect(screen.queryByText('No transactions yet')).toBeNull();
+    const saved = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? '{}') as {
+      transactions: unknown[];
+    };
+    expect(saved.transactions).toHaveLength(data.transactions.length - 1);
+    expect(window.localStorage.getItem(BACKUP_KEY)).toBe(raw);
+  });
+
+  it('saves nothing over data it couldn’t read when the browser refuses to keep a copy', async () => {
+    const raw = JSON.stringify({ version: 1, transactions: [{ id: 'x' }], settings: {} });
+    const items = new Map([[STORAGE_KEY, raw]]);
+    const storage = {
+      getItem: (key: string) => items.get(key) ?? null,
+      setItem: () => {
+        throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+      },
+      removeItem: (key: string) => items.delete(key),
+    } as unknown as Storage;
+    render(<App config={config} storage={storage} />);
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      /^Changes can’t be saved because some saved data couldn’t be read \(transaction 1 has an unknown type, and 1 more problem\) and the browser refused to keep a copy, so saving would lose it\./,
+    );
+    const user = userEvent.setup();
+    await addTransaction(user, { amount: '120', note: 'Lunch' });
+    expect(screen.getByText('Lunch')).toBeInTheDocument();
+    expect(items.get(STORAGE_KEY)).toBe(raw);
   });
 
   it('shows an empty state when no transactions match', async () => {

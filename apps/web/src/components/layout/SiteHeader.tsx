@@ -8,6 +8,7 @@ import { Wordmark } from './Wordmark.tsx';
 
 export const NAV_ITEMS = [
   { to: '/projects', label: 'Projects' },
+  { to: '/demos', label: 'Demos' },
   { to: '/generate', label: 'Generator' },
   { to: '/learn', label: 'Learn' },
   { to: '/viva', label: 'Viva practice' },

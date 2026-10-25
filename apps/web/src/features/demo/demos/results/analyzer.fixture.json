@@ -1,0 +1,4694 @@
+{
+  "description": "Results of the Student Result Analyzer's Python code, for the Demo Studio's parity tests. Regenerate with `pnpm demo:fixtures`.",
+  "python": "3.11.7",
+  "pandas": "3.1.0",
+  "pyarrow": "26.0.0",
+  "passMark": 40,
+  "maxMarks": 100,
+  "sources": {
+    "analyzer/validation.py": "608f58ccba59a1957ef52dfcf9379cf8e27a46caa05d70eb6decd5a7be26c357",
+    "analyzer/analysis.py": "67d05d32ce732e3f2b6fdb669c420082ddbc000f5926f21624addb027d52dd12",
+    "analyzer/grading.py": "bd0fbed7453b9542b371677bd4138d91ccff95ec4e34cbc0954893b471cd65cf",
+    "analyzer/explain.py": "97f5ba32827f23843b86fbc073dc493c820b3568956b4033e7c204598504388c",
+    "app_config.json": "27f2bef08d4807c3c6013340edd8abf1fba62cf7f601b5a6569b5be328e3ed1b",
+    "data/sample_results.csv": "14c1503fc8e840fcdcbb246512708c119be60a6d94c2fbb7f4e5d8797ec00725",
+    "data/sample_with_errors.csv": "cde45894a109ba05bd95ee3332508c13ee5b02d98a3b7310ef17cc3570e34ed1"
+  },
+  "cases": [
+    {
+      "name": "sample_results.csv",
+      "csv": "Student ID,Name,Class,Mathematics,Science,English,Social Studies,Computer Science\nS2026001,Aarav Sharma,10-A,51,57,60,54,67\nS2026002,Vivaan Gupta,10-A,49,45,73,73,67\nS2026003,Aditya Thomas,10-A,59,60,68,60,84\nS2026004,Vihaan Verma,10-A,69,79,88,66,69\nS2026005,Arjun Patel,10-A,92,96,99,99,97\nS2026006,Sai Fernandes,10-A,62,62,68,45,68\nS2026007,Reyansh Iyer,10-A,73,70,79,83,78\nS2026008,Ayaan Singh,10-A,31,62,82,68,86\nS2026009,Krishna Chatterjee,10-A,61,71,72,68,82\nS2026010,Ishaan Reddy,10-A,71,80,89,81,80\nS2026011,Ananya Menon,10-A,63,63,63,63,65\nS2026012,Diya Mishra,10-A,64,63,73,76,81\nS2026013,Aadhya Nair,10-A,80,81,89,,99\nS2026014,Saanvi Joshi,10-A,65,66,72,66,54\nS2026015,Myra Rao,10-A,74,71,80,62,82\nS2026016,Kiara Khan,10-A,77,57,79,63,74\nS2026017,Ira Kulkarni,10-A,45,58,77,63,55\nS2026018,Anika Pillai,10-A,60,62,61,71,79\nS2026019,Navya Das,10-A,46,AB,51,54,43\nS2026020,Riya Bose,10-A,40,60,51,46,53\nS2026021,Kabir Sharma,10-B,81,70,55,68,74\nS2026022,Rohan Gupta,10-B,61,63,58,59,63\nS2026023,Dev Thomas,10-B,51,63,65,66,65\nS2026024,Arnav Verma,10-B,56,56,61,50,68\nS2026025,Yash Patel,10-B,74,76,84,78,73\nS2026026,Meera Fernandes,10-B,79,63,68,80,83\nS2026027,Tara Iyer,10-B,58,36,55,56,58\nS2026028,Zara Singh,10-B,56,60,58,50,64\nS2026029,Nisha Chatterjee,10-B,38,57,60,57,62\nS2026030,Pooja Reddy,10-B,53,63,53,64,\nS2026031,Farhan Menon,10-B,81,60,74,70,75\nS2026032,Imran Mishra,10-B,57,72,76,67,81\nS2026033,Joseph Nair,10-B,34,53,49,42,63\nS2026034,Neha Joshi,10-B,79,73,38,86,86\nS2026035,Lakshmi Rao,10-B,69,63,43,50,56\nS2026036,Harpreet Khan,10-B,48,54,65,58,63\nS2026037,Gurleen Kulkarni,10-B,65,76,82,75,69\nS2026038,Tenzin Pillai,10-B,77,65,80,74,92\nS2026039,Mehak Das,10-B,87,76,79,73,78\nS2026040,Siddharth Bose,10-B,33,51,55,61,59\n",
+      "validation": {
+        "ok": true,
+        "errors": [],
+        "warnings": [
+          "1 score(s) marked as absent (for example “AB”) are treated as missing.",
+          "3 score(s) are missing. Averages for those subjects use only the students who have a score; see the Missing data tab for details."
+        ],
+        "subjects": ["Mathematics", "Science", "English", "Social Studies", "Computer Science"],
+        "rows": [
+          {
+            "Student ID": "S2026001",
+            "Name": "Aarav Sharma",
+            "Class": "10-A",
+            "Mathematics": 51.0,
+            "Science": 57.0,
+            "English": 60.0,
+            "Social Studies": 54.0,
+            "Computer Science": 67.0
+          },
+          {
+            "Student ID": "S2026002",
+            "Name": "Vivaan Gupta",
+            "Class": "10-A",
+            "Mathematics": 49.0,
+            "Science": 45.0,
+            "English": 73.0,
+            "Social Studies": 73.0,
+            "Computer Science": 67.0
+          },
+          {
+            "Student ID": "S2026003",
+            "Name": "Aditya Thomas",
+            "Class": "10-A",
+            "Mathematics": 59.0,
+            "Science": 60.0,
+            "English": 68.0,
+            "Social Studies": 60.0,
+            "Computer Science": 84.0
+          },
+          {
+            "Student ID": "S2026004",
+            "Name": "Vihaan Verma",
+            "Class": "10-A",
+            "Mathematics": 69.0,
+            "Science": 79.0,
+            "English": 88.0,
+            "Social Studies": 66.0,
+            "Computer Science": 69.0
+          },
+          {
+            "Student ID": "S2026005",
+            "Name": "Arjun Patel",
+            "Class": "10-A",
+            "Mathematics": 92.0,
+            "Science": 96.0,
+            "English": 99.0,
+            "Social Studies": 99.0,
+            "Computer Science": 97.0
+          },
+          {
+            "Student ID": "S2026006",
+            "Name": "Sai Fernandes",
+            "Class": "10-A",
+            "Mathematics": 62.0,
+            "Science": 62.0,
+            "English": 68.0,
+            "Social Studies": 45.0,
+            "Computer Science": 68.0
+          },
+          {
+            "Student ID": "S2026007",
+            "Name": "Reyansh Iyer",
+            "Class": "10-A",
+            "Mathematics": 73.0,
+            "Science": 70.0,
+            "English": 79.0,
+            "Social Studies": 83.0,
+            "Computer Science": 78.0
+          },
+          {
+            "Student ID": "S2026008",
+            "Name": "Ayaan Singh",
+            "Class": "10-A",
+            "Mathematics": 31.0,
+            "Science": 62.0,
+            "English": 82.0,
+            "Social Studies": 68.0,
+            "Computer Science": 86.0
+          },
+          {
+            "Student ID": "S2026009",
+            "Name": "Krishna Chatterjee",
+            "Class": "10-A",
+            "Mathematics": 61.0,
+            "Science": 71.0,
+            "English": 72.0,
+            "Social Studies": 68.0,
+            "Computer Science": 82.0
+          },
+          {
+            "Student ID": "S2026010",
+            "Name": "Ishaan Reddy",
+            "Class": "10-A",
+            "Mathematics": 71.0,
+            "Science": 80.0,
+            "English": 89.0,
+            "Social Studies": 81.0,
+            "Computer Science": 80.0
+          },
+          {
+            "Student ID": "S2026011",
+            "Name": "Ananya Menon",
+            "Class": "10-A",
+            "Mathematics": 63.0,
+            "Science": 63.0,
+            "English": 63.0,
+            "Social Studies": 63.0,
+            "Computer Science": 65.0
+          },
+          {
+            "Student ID": "S2026012",
+            "Name": "Diya Mishra",
+            "Class": "10-A",
+            "Mathematics": 64.0,
+            "Science": 63.0,
+            "English": 73.0,
+            "Social Studies": 76.0,
+            "Computer Science": 81.0
+          },
+          {
+            "Student ID": "S2026013",
+            "Name": "Aadhya Nair",
+            "Class": "10-A",
+            "Mathematics": 80.0,
+            "Science": 81.0,
+            "English": 89.0,
+            "Social Studies": null,
+            "Computer Science": 99.0
+          },
+          {
+            "Student ID": "S2026014",
+            "Name": "Saanvi Joshi",
+            "Class": "10-A",
+            "Mathematics": 65.0,
+            "Science": 66.0,
+            "English": 72.0,
+            "Social Studies": 66.0,
+            "Computer Science": 54.0
+          },
+          {
+            "Student ID": "S2026015",
+            "Name": "Myra Rao",
+            "Class": "10-A",
+            "Mathematics": 74.0,
+            "Science": 71.0,
+            "English": 80.0,
+            "Social Studies": 62.0,
+            "Computer Science": 82.0
+          },
+          {
+            "Student ID": "S2026016",
+            "Name": "Kiara Khan",
+            "Class": "10-A",
+            "Mathematics": 77.0,
+            "Science": 57.0,
+            "English": 79.0,
+            "Social Studies": 63.0,
+            "Computer Science": 74.0
+          },
+          {
+            "Student ID": "S2026017",
+            "Name": "Ira Kulkarni",
+            "Class": "10-A",
+            "Mathematics": 45.0,
+            "Science": 58.0,
+            "English": 77.0,
+            "Social Studies": 63.0,
+            "Computer Science": 55.0
+          },
+          {
+            "Student ID": "S2026018",
+            "Name": "Anika Pillai",
+            "Class": "10-A",
+            "Mathematics": 60.0,
+            "Science": 62.0,
+            "English": 61.0,
+            "Social Studies": 71.0,
+            "Computer Science": 79.0
+          },
+          {
+            "Student ID": "S2026019",
+            "Name": "Navya Das",
+            "Class": "10-A",
+            "Mathematics": 46.0,
+            "Science": null,
+            "English": 51.0,
+            "Social Studies": 54.0,
+            "Computer Science": 43.0
+          },
+          {
+            "Student ID": "S2026020",
+            "Name": "Riya Bose",
+            "Class": "10-A",
+            "Mathematics": 40.0,
+            "Science": 60.0,
+            "English": 51.0,
+            "Social Studies": 46.0,
+            "Computer Science": 53.0
+          },
+          {
+            "Student ID": "S2026021",
+            "Name": "Kabir Sharma",
+            "Class": "10-B",
+            "Mathematics": 81.0,
+            "Science": 70.0,
+            "English": 55.0,
+            "Social Studies": 68.0,
+            "Computer Science": 74.0
+          },
+          {
+            "Student ID": "S2026022",
+            "Name": "Rohan Gupta",
+            "Class": "10-B",
+            "Mathematics": 61.0,
+            "Science": 63.0,
+            "English": 58.0,
+            "Social Studies": 59.0,
+            "Computer Science": 63.0
+          },
+          {
+            "Student ID": "S2026023",
+            "Name": "Dev Thomas",
+            "Class": "10-B",
+            "Mathematics": 51.0,
+            "Science": 63.0,
+            "English": 65.0,
+            "Social Studies": 66.0,
+            "Computer Science": 65.0
+          },
+          {
+            "Student ID": "S2026024",
+            "Name": "Arnav Verma",
+            "Class": "10-B",
+            "Mathematics": 56.0,
+            "Science": 56.0,
+            "English": 61.0,
+            "Social Studies": 50.0,
+            "Computer Science": 68.0
+          },
+          {
+            "Student ID": "S2026025",
+            "Name": "Yash Patel",
+            "Class": "10-B",
+            "Mathematics": 74.0,
+            "Science": 76.0,
+            "English": 84.0,
+            "Social Studies": 78.0,
+            "Computer Science": 73.0
+          },
+          {
+            "Student ID": "S2026026",
+            "Name": "Meera Fernandes",
+            "Class": "10-B",
+            "Mathematics": 79.0,
+            "Science": 63.0,
+            "English": 68.0,
+            "Social Studies": 80.0,
+            "Computer Science": 83.0
+          },
+          {
+            "Student ID": "S2026027",
+            "Name": "Tara Iyer",
+            "Class": "10-B",
+            "Mathematics": 58.0,
+            "Science": 36.0,
+            "English": 55.0,
+            "Social Studies": 56.0,
+            "Computer Science": 58.0
+          },
+          {
+            "Student ID": "S2026028",
+            "Name": "Zara Singh",
+            "Class": "10-B",
+            "Mathematics": 56.0,
+            "Science": 60.0,
+            "English": 58.0,
+            "Social Studies": 50.0,
+            "Computer Science": 64.0
+          },
+          {
+            "Student ID": "S2026029",
+            "Name": "Nisha Chatterjee",
+            "Class": "10-B",
+            "Mathematics": 38.0,
+            "Science": 57.0,
+            "English": 60.0,
+            "Social Studies": 57.0,
+            "Computer Science": 62.0
+          },
+          {
+            "Student ID": "S2026030",
+            "Name": "Pooja Reddy",
+            "Class": "10-B",
+            "Mathematics": 53.0,
+            "Science": 63.0,
+            "English": 53.0,
+            "Social Studies": 64.0,
+            "Computer Science": null
+          },
+          {
+            "Student ID": "S2026031",
+            "Name": "Farhan Menon",
+            "Class": "10-B",
+            "Mathematics": 81.0,
+            "Science": 60.0,
+            "English": 74.0,
+            "Social Studies": 70.0,
+            "Computer Science": 75.0
+          },
+          {
+            "Student ID": "S2026032",
+            "Name": "Imran Mishra",
+            "Class": "10-B",
+            "Mathematics": 57.0,
+            "Science": 72.0,
+            "English": 76.0,
+            "Social Studies": 67.0,
+            "Computer Science": 81.0
+          },
+          {
+            "Student ID": "S2026033",
+            "Name": "Joseph Nair",
+            "Class": "10-B",
+            "Mathematics": 34.0,
+            "Science": 53.0,
+            "English": 49.0,
+            "Social Studies": 42.0,
+            "Computer Science": 63.0
+          },
+          {
+            "Student ID": "S2026034",
+            "Name": "Neha Joshi",
+            "Class": "10-B",
+            "Mathematics": 79.0,
+            "Science": 73.0,
+            "English": 38.0,
+            "Social Studies": 86.0,
+            "Computer Science": 86.0
+          },
+          {
+            "Student ID": "S2026035",
+            "Name": "Lakshmi Rao",
+            "Class": "10-B",
+            "Mathematics": 69.0,
+            "Science": 63.0,
+            "English": 43.0,
+            "Social Studies": 50.0,
+            "Computer Science": 56.0
+          },
+          {
+            "Student ID": "S2026036",
+            "Name": "Harpreet Khan",
+            "Class": "10-B",
+            "Mathematics": 48.0,
+            "Science": 54.0,
+            "English": 65.0,
+            "Social Studies": 58.0,
+            "Computer Science": 63.0
+          },
+          {
+            "Student ID": "S2026037",
+            "Name": "Gurleen Kulkarni",
+            "Class": "10-B",
+            "Mathematics": 65.0,
+            "Science": 76.0,
+            "English": 82.0,
+            "Social Studies": 75.0,
+            "Computer Science": 69.0
+          },
+          {
+            "Student ID": "S2026038",
+            "Name": "Tenzin Pillai",
+            "Class": "10-B",
+            "Mathematics": 77.0,
+            "Science": 65.0,
+            "English": 80.0,
+            "Social Studies": 74.0,
+            "Computer Science": 92.0
+          },
+          {
+            "Student ID": "S2026039",
+            "Name": "Mehak Das",
+            "Class": "10-B",
+            "Mathematics": 87.0,
+            "Science": 76.0,
+            "English": 79.0,
+            "Social Studies": 73.0,
+            "Computer Science": 78.0
+          },
+          {
+            "Student ID": "S2026040",
+            "Name": "Siddharth Bose",
+            "Class": "10-B",
+            "Mathematics": 33.0,
+            "Science": 51.0,
+            "English": 55.0,
+            "Social Studies": 61.0,
+            "Computer Science": 59.0
+          }
+        ]
+      },
+      "analysis": {
+        "statistics": [
+          {
+            "Subject": "Mathematics",
+            "Count": 40,
+            "Missing": 0,
+            "Mean": 61.725,
+            "Median": 61.5,
+            "Std dev": 15.370613820884618,
+            "Min": 31.0,
+            "Q1": 51.0,
+            "Q3": 74.0,
+            "Max": 92.0,
+            "Passed": 36,
+            "Pass rate %": 90.0
+          },
+          {
+            "Subject": "Science",
+            "Count": 39,
+            "Missing": 1,
+            "Mean": 64.43589743589743,
+            "Median": 63.0,
+            "Std dev": 10.764940344506455,
+            "Min": 36.0,
+            "Q1": 59.0,
+            "Q3": 71.0,
+            "Max": 96.0,
+            "Passed": 38,
+            "Pass rate %": 97.43589743589743
+          },
+          {
+            "Subject": "English",
+            "Count": 40,
+            "Missing": 0,
+            "Mean": 68.3,
+            "Median": 68.0,
+            "Std dev": 13.83640682569553,
+            "Min": 38.0,
+            "Q1": 58.0,
+            "Q3": 79.0,
+            "Max": 99.0,
+            "Passed": 39,
+            "Pass rate %": 97.5
+          },
+          {
+            "Subject": "Social Studies",
+            "Count": 39,
+            "Missing": 1,
+            "Mean": 65.25641025641026,
+            "Median": 66.0,
+            "Std dev": 12.132422738738994,
+            "Min": 42.0,
+            "Q1": 57.5,
+            "Q3": 73.0,
+            "Max": 99.0,
+            "Passed": 39,
+            "Pass rate %": 100.0
+          },
+          {
+            "Subject": "Computer Science",
+            "Count": 39,
+            "Missing": 1,
+            "Mean": 71.66666666666667,
+            "Median": 69.0,
+            "Std dev": 12.578873962936372,
+            "Min": 43.0,
+            "Q1": 63.0,
+            "Q3": 81.0,
+            "Max": 99.0,
+            "Passed": 39,
+            "Pass rate %": 100.0
+          }
+        ],
+        "results": [
+          {
+            "Student ID": "S2026005",
+            "Name": "Arjun Patel",
+            "Class": "10-A",
+            "Total": 483.0,
+            "Subjects scored": 5,
+            "Percentage": 96.6,
+            "Grade": "A+",
+            "Result": "Pass",
+            "Rank": 1,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026013",
+            "Name": "Aadhya Nair",
+            "Class": "10-A",
+            "Total": 349.0,
+            "Subjects scored": 4,
+            "Percentage": 87.25,
+            "Grade": "A",
+            "Result": "Incomplete",
+            "Rank": 2,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026010",
+            "Name": "Ishaan Reddy",
+            "Class": "10-A",
+            "Total": 401.0,
+            "Subjects scored": 5,
+            "Percentage": 80.2,
+            "Grade": "A",
+            "Result": "Pass",
+            "Rank": 3,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026039",
+            "Name": "Mehak Das",
+            "Class": "10-B",
+            "Total": 393.0,
+            "Subjects scored": 5,
+            "Percentage": 78.6,
+            "Grade": "B",
+            "Result": "Pass",
+            "Rank": 4,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026038",
+            "Name": "Tenzin Pillai",
+            "Class": "10-B",
+            "Total": 388.0,
+            "Subjects scored": 5,
+            "Percentage": 77.6,
+            "Grade": "B",
+            "Result": "Pass",
+            "Rank": 5,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026025",
+            "Name": "Yash Patel",
+            "Class": "10-B",
+            "Total": 385.0,
+            "Subjects scored": 5,
+            "Percentage": 77.0,
+            "Grade": "B",
+            "Result": "Pass",
+            "Rank": 6,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026007",
+            "Name": "Reyansh Iyer",
+            "Class": "10-A",
+            "Total": 383.0,
+            "Subjects scored": 5,
+            "Percentage": 76.6,
+            "Grade": "B",
+            "Result": "Pass",
+            "Rank": 7,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026026",
+            "Name": "Meera Fernandes",
+            "Class": "10-B",
+            "Total": 373.0,
+            "Subjects scored": 5,
+            "Percentage": 74.6,
+            "Grade": "B",
+            "Result": "Pass",
+            "Rank": 8,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026004",
+            "Name": "Vihaan Verma",
+            "Class": "10-A",
+            "Total": 371.0,
+            "Subjects scored": 5,
+            "Percentage": 74.2,
+            "Grade": "B",
+            "Result": "Pass",
+            "Rank": 9,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026015",
+            "Name": "Myra Rao",
+            "Class": "10-A",
+            "Total": 369.0,
+            "Subjects scored": 5,
+            "Percentage": 73.8,
+            "Grade": "B",
+            "Result": "Pass",
+            "Rank": 10,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026037",
+            "Name": "Gurleen Kulkarni",
+            "Class": "10-B",
+            "Total": 367.0,
+            "Subjects scored": 5,
+            "Percentage": 73.4,
+            "Grade": "B",
+            "Result": "Pass",
+            "Rank": 11,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026034",
+            "Name": "Neha Joshi",
+            "Class": "10-B",
+            "Total": 362.0,
+            "Subjects scored": 5,
+            "Percentage": 72.4,
+            "Grade": "B",
+            "Result": "Fail",
+            "Rank": 12,
+            "Below pass mark in": "English"
+          },
+          {
+            "Student ID": "S2026031",
+            "Name": "Farhan Menon",
+            "Class": "10-B",
+            "Total": 360.0,
+            "Subjects scored": 5,
+            "Percentage": 72.0,
+            "Grade": "B",
+            "Result": "Pass",
+            "Rank": 13,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026012",
+            "Name": "Diya Mishra",
+            "Class": "10-A",
+            "Total": 357.0,
+            "Subjects scored": 5,
+            "Percentage": 71.4,
+            "Grade": "B",
+            "Result": "Pass",
+            "Rank": 14,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026009",
+            "Name": "Krishna Chatterjee",
+            "Class": "10-A",
+            "Total": 354.0,
+            "Subjects scored": 5,
+            "Percentage": 70.8,
+            "Grade": "B",
+            "Result": "Pass",
+            "Rank": 15,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026032",
+            "Name": "Imran Mishra",
+            "Class": "10-B",
+            "Total": 353.0,
+            "Subjects scored": 5,
+            "Percentage": 70.6,
+            "Grade": "B",
+            "Result": "Pass",
+            "Rank": 16,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026016",
+            "Name": "Kiara Khan",
+            "Class": "10-A",
+            "Total": 350.0,
+            "Subjects scored": 5,
+            "Percentage": 70.0,
+            "Grade": "B",
+            "Result": "Pass",
+            "Rank": 17,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026021",
+            "Name": "Kabir Sharma",
+            "Class": "10-B",
+            "Total": 348.0,
+            "Subjects scored": 5,
+            "Percentage": 69.6,
+            "Grade": "C",
+            "Result": "Pass",
+            "Rank": 18,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026018",
+            "Name": "Anika Pillai",
+            "Class": "10-A",
+            "Total": 333.0,
+            "Subjects scored": 5,
+            "Percentage": 66.6,
+            "Grade": "C",
+            "Result": "Pass",
+            "Rank": 19,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026003",
+            "Name": "Aditya Thomas",
+            "Class": "10-A",
+            "Total": 331.0,
+            "Subjects scored": 5,
+            "Percentage": 66.2,
+            "Grade": "C",
+            "Result": "Pass",
+            "Rank": 20,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026008",
+            "Name": "Ayaan Singh",
+            "Class": "10-A",
+            "Total": 329.0,
+            "Subjects scored": 5,
+            "Percentage": 65.8,
+            "Grade": "C",
+            "Result": "Fail",
+            "Rank": 21,
+            "Below pass mark in": "Mathematics"
+          },
+          {
+            "Student ID": "S2026014",
+            "Name": "Saanvi Joshi",
+            "Class": "10-A",
+            "Total": 323.0,
+            "Subjects scored": 5,
+            "Percentage": 64.6,
+            "Grade": "C",
+            "Result": "Pass",
+            "Rank": 22,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026011",
+            "Name": "Ananya Menon",
+            "Class": "10-A",
+            "Total": 317.0,
+            "Subjects scored": 5,
+            "Percentage": 63.4,
+            "Grade": "C",
+            "Result": "Pass",
+            "Rank": 23,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026023",
+            "Name": "Dev Thomas",
+            "Class": "10-B",
+            "Total": 310.0,
+            "Subjects scored": 5,
+            "Percentage": 62.0,
+            "Grade": "C",
+            "Result": "Pass",
+            "Rank": 24,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026002",
+            "Name": "Vivaan Gupta",
+            "Class": "10-A",
+            "Total": 307.0,
+            "Subjects scored": 5,
+            "Percentage": 61.4,
+            "Grade": "C",
+            "Result": "Pass",
+            "Rank": 25,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026006",
+            "Name": "Sai Fernandes",
+            "Class": "10-A",
+            "Total": 305.0,
+            "Subjects scored": 5,
+            "Percentage": 61.0,
+            "Grade": "C",
+            "Result": "Pass",
+            "Rank": 26,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026022",
+            "Name": "Rohan Gupta",
+            "Class": "10-B",
+            "Total": 304.0,
+            "Subjects scored": 5,
+            "Percentage": 60.8,
+            "Grade": "C",
+            "Result": "Pass",
+            "Rank": 27,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026017",
+            "Name": "Ira Kulkarni",
+            "Class": "10-A",
+            "Total": 298.0,
+            "Subjects scored": 5,
+            "Percentage": 59.6,
+            "Grade": "D",
+            "Result": "Pass",
+            "Rank": 28,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026030",
+            "Name": "Pooja Reddy",
+            "Class": "10-B",
+            "Total": 233.0,
+            "Subjects scored": 4,
+            "Percentage": 58.25,
+            "Grade": "D",
+            "Result": "Incomplete",
+            "Rank": 29,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026024",
+            "Name": "Arnav Verma",
+            "Class": "10-B",
+            "Total": 291.0,
+            "Subjects scored": 5,
+            "Percentage": 58.2,
+            "Grade": "D",
+            "Result": "Pass",
+            "Rank": 30,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026001",
+            "Name": "Aarav Sharma",
+            "Class": "10-A",
+            "Total": 289.0,
+            "Subjects scored": 5,
+            "Percentage": 57.8,
+            "Grade": "D",
+            "Result": "Pass",
+            "Rank": 31,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026036",
+            "Name": "Harpreet Khan",
+            "Class": "10-B",
+            "Total": 288.0,
+            "Subjects scored": 5,
+            "Percentage": 57.6,
+            "Grade": "D",
+            "Result": "Pass",
+            "Rank": 32,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026028",
+            "Name": "Zara Singh",
+            "Class": "10-B",
+            "Total": 288.0,
+            "Subjects scored": 5,
+            "Percentage": 57.6,
+            "Grade": "D",
+            "Result": "Pass",
+            "Rank": 32,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026035",
+            "Name": "Lakshmi Rao",
+            "Class": "10-B",
+            "Total": 281.0,
+            "Subjects scored": 5,
+            "Percentage": 56.2,
+            "Grade": "D",
+            "Result": "Pass",
+            "Rank": 34,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026029",
+            "Name": "Nisha Chatterjee",
+            "Class": "10-B",
+            "Total": 274.0,
+            "Subjects scored": 5,
+            "Percentage": 54.8,
+            "Grade": "D",
+            "Result": "Fail",
+            "Rank": 35,
+            "Below pass mark in": "Mathematics"
+          },
+          {
+            "Student ID": "S2026027",
+            "Name": "Tara Iyer",
+            "Class": "10-B",
+            "Total": 263.0,
+            "Subjects scored": 5,
+            "Percentage": 52.6,
+            "Grade": "D",
+            "Result": "Fail",
+            "Rank": 36,
+            "Below pass mark in": "Science"
+          },
+          {
+            "Student ID": "S2026040",
+            "Name": "Siddharth Bose",
+            "Class": "10-B",
+            "Total": 259.0,
+            "Subjects scored": 5,
+            "Percentage": 51.8,
+            "Grade": "D",
+            "Result": "Fail",
+            "Rank": 37,
+            "Below pass mark in": "Mathematics"
+          },
+          {
+            "Student ID": "S2026020",
+            "Name": "Riya Bose",
+            "Class": "10-A",
+            "Total": 250.0,
+            "Subjects scored": 5,
+            "Percentage": 50.0,
+            "Grade": "D",
+            "Result": "Pass",
+            "Rank": 38,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026019",
+            "Name": "Navya Das",
+            "Class": "10-A",
+            "Total": 194.0,
+            "Subjects scored": 4,
+            "Percentage": 48.5,
+            "Grade": "D",
+            "Result": "Incomplete",
+            "Rank": 39,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "S2026033",
+            "Name": "Joseph Nair",
+            "Class": "10-B",
+            "Total": 241.0,
+            "Subjects scored": 5,
+            "Percentage": 48.2,
+            "Grade": "D",
+            "Result": "Fail",
+            "Rank": 40,
+            "Below pass mark in": "Mathematics"
+          }
+        ],
+        "overview": {
+          "students": 40,
+          "subjects": 5,
+          "average_percentage": 66.24,
+          "median_percentage": 66.0,
+          "passed": 31,
+          "failed": 6,
+          "incomplete": 3,
+          "highest_subject": "Computer Science",
+          "lowest_subject": "Mathematics"
+        },
+        "gradeDistribution": [
+          {
+            "Grade": "A+",
+            "Students": 1,
+            "Share %": 2.5
+          },
+          {
+            "Grade": "A",
+            "Students": 2,
+            "Share %": 5.0
+          },
+          {
+            "Grade": "B",
+            "Students": 14,
+            "Share %": 35.0
+          },
+          {
+            "Grade": "C",
+            "Students": 10,
+            "Share %": 25.0
+          },
+          {
+            "Grade": "D",
+            "Students": 13,
+            "Share %": 32.5
+          },
+          {
+            "Grade": "F",
+            "Students": 0,
+            "Share %": 0.0
+          }
+        ],
+        "subjectGrades": {
+          "Mathematics": [
+            {
+              "Grade": "A+",
+              "Students": 1,
+              "Share %": 2.5
+            },
+            {
+              "Grade": "A",
+              "Students": 4,
+              "Share %": 10.0
+            },
+            {
+              "Grade": "B",
+              "Students": 8,
+              "Share %": 20.0
+            },
+            {
+              "Grade": "C",
+              "Students": 10,
+              "Share %": 25.0
+            },
+            {
+              "Grade": "D",
+              "Students": 13,
+              "Share %": 32.5
+            },
+            {
+              "Grade": "F",
+              "Students": 4,
+              "Share %": 10.0
+            }
+          ],
+          "Science": [
+            {
+              "Grade": "A+",
+              "Students": 1,
+              "Share %": 2.564102564102564
+            },
+            {
+              "Grade": "A",
+              "Students": 2,
+              "Share %": 5.128205128205128
+            },
+            {
+              "Grade": "B",
+              "Students": 10,
+              "Share %": 25.64102564102564
+            },
+            {
+              "Grade": "C",
+              "Students": 16,
+              "Share %": 41.02564102564102
+            },
+            {
+              "Grade": "D",
+              "Students": 9,
+              "Share %": 23.076923076923077
+            },
+            {
+              "Grade": "F",
+              "Students": 1,
+              "Share %": 2.564102564102564
+            }
+          ],
+          "English": [
+            {
+              "Grade": "A+",
+              "Students": 1,
+              "Share %": 2.5
+            },
+            {
+              "Grade": "A",
+              "Students": 8,
+              "Share %": 20.0
+            },
+            {
+              "Grade": "B",
+              "Students": 10,
+              "Share %": 25.0
+            },
+            {
+              "Grade": "C",
+              "Students": 10,
+              "Share %": 25.0
+            },
+            {
+              "Grade": "D",
+              "Students": 10,
+              "Share %": 25.0
+            },
+            {
+              "Grade": "F",
+              "Students": 1,
+              "Share %": 2.5
+            }
+          ],
+          "Social Studies": [
+            {
+              "Grade": "A+",
+              "Students": 1,
+              "Share %": 2.564102564102564
+            },
+            {
+              "Grade": "A",
+              "Students": 4,
+              "Share %": 10.256410256410255
+            },
+            {
+              "Grade": "B",
+              "Students": 8,
+              "Share %": 20.51282051282051
+            },
+            {
+              "Grade": "C",
+              "Students": 14,
+              "Share %": 35.8974358974359
+            },
+            {
+              "Grade": "D",
+              "Students": 12,
+              "Share %": 30.76923076923077
+            },
+            {
+              "Grade": "F",
+              "Students": 0,
+              "Share %": 0.0
+            }
+          ],
+          "Computer Science": [
+            {
+              "Grade": "A+",
+              "Students": 3,
+              "Share %": 7.6923076923076925
+            },
+            {
+              "Grade": "A",
+              "Students": 9,
+              "Share %": 23.076923076923077
+            },
+            {
+              "Grade": "B",
+              "Students": 7,
+              "Share %": 17.94871794871795
+            },
+            {
+              "Grade": "C",
+              "Students": 13,
+              "Share %": 33.33333333333333
+            },
+            {
+              "Grade": "D",
+              "Students": 7,
+              "Share %": 17.94871794871795
+            },
+            {
+              "Grade": "F",
+              "Students": 0,
+              "Share %": 0.0
+            }
+          ]
+        },
+        "missing": [
+          {
+            "Subject": "Mathematics",
+            "Missing": 0,
+            "Missing %": 0.0
+          },
+          {
+            "Subject": "Science",
+            "Missing": 1,
+            "Missing %": 2.5
+          },
+          {
+            "Subject": "English",
+            "Missing": 0,
+            "Missing %": 0.0
+          },
+          {
+            "Subject": "Social Studies",
+            "Missing": 1,
+            "Missing %": 2.5
+          },
+          {
+            "Subject": "Computer Science",
+            "Missing": 1,
+            "Missing %": 2.5
+          }
+        ],
+        "studentsWithMissing": [
+          {
+            "Student ID": "S2026013",
+            "Name": "Aadhya Nair",
+            "Missing subjects": "Social Studies"
+          },
+          {
+            "Student ID": "S2026019",
+            "Name": "Navya Das",
+            "Missing subjects": "Science"
+          },
+          {
+            "Student ID": "S2026030",
+            "Name": "Pooja Reddy",
+            "Missing subjects": "Computer Science"
+          }
+        ],
+        "classes": [
+          {
+            "Class": "10-A",
+            "Students": 20,
+            "Average %": 68.2875,
+            "Passed": 17,
+            "Pass rate %": 85.0
+          },
+          {
+            "Class": "10-B",
+            "Students": 20,
+            "Average %": 64.1925,
+            "Passed": 14,
+            "Pass rate %": 70.0
+          }
+        ],
+        "explanations": {
+          "overview": [
+            "The file contains 40 students and 5 subjects.",
+            "The average overall percentage is 66.2% and the median is 66.0%.",
+            "31 students passed every subject (pass mark 40%), 6 scored below the pass mark in at least one subject, and 3 have a missing score with no failed subject."
+          ],
+          "subjects": [
+            "Computer Science has the highest average (71.7) and Mathematics the lowest (61.7).",
+            "Scores vary most in Mathematics (standard deviation 15.4) and least in Science (10.8).",
+            "Mathematics has the lowest pass rate: 36 of 40 students (90.0%) reached the pass mark."
+          ],
+          "grades": [
+            "The most common overall grade is B (14 of 40 students).",
+            "3 students (7.5%) earned A or A+, and 0 (0.0%) have an overall F."
+          ],
+          "missing": [
+            "3 score(s) are missing across 3 subject(s): Science (1), Social Studies (1), Computer Science (1).",
+            "Missing scores are left out of averages and other statistics rather than counted as zero, so those figures describe only the students who have a score.",
+            "Students with a missing score are marked “Incomplete” unless they already scored below the pass mark in another subject. Check the records of these 3 student(s) before publishing results."
+          ]
+        }
+      }
+    },
+    {
+      "name": "sample_with_errors.csv",
+      "csv": "Student ID,Name,Class,Mathematics,Science,English\nS1001,Asha Kumar,10-A,78,82,91\nS1002,Rahul Mehta,10-A,105,67,72\nS1003,,10-A,55,61,58\nS1002,Kavya Rao,10-B,64,seventy,69\nS1005,Omar Siddiqui,10-B,-4,73,80\n",
+      "validation": {
+        "ok": false,
+        "errors": [
+          "Name is empty on line(s) 4.",
+          "Student ID “S1002” appears more than once (lines 3, 5).",
+          "Mathematics: scores must be between 0 and 100, but found 105 (line 3), -4 (line 6).",
+          "Science: scores must be numbers, but found “seventy” (line 5)."
+        ],
+        "warnings": [],
+        "subjects": [],
+        "rows": null
+      },
+      "analysis": null
+    },
+    {
+      "name": "aliases-absent-and-blank-lines",
+      "csv": "Roll No, Student Name ,Section,Maths,Physics,Chemistry\nR-01,  Neha   Kapoor ,B,78,AB,64.5\n\nR-02,Omar Farooq,A,,absent,59\nR-03,Lena Fischer,A,91,88,-\nR-04,Ravi Teja,B,39,41,40\n,,,,,\nR-05,Zoya Ali,A,40,40,39.5\n",
+      "validation": {
+        "ok": true,
+        "errors": [],
+        "warnings": [
+          "3 score(s) marked as absent (for example “AB”) are treated as missing.",
+          "4 score(s) are missing. Averages for those subjects use only the students who have a score; see the Missing data tab for details."
+        ],
+        "subjects": ["Maths", "Physics", "Chemistry"],
+        "rows": [
+          {
+            "Student ID": "R-01",
+            "Name": "Neha Kapoor",
+            "Class": "B",
+            "Maths": 78.0,
+            "Physics": null,
+            "Chemistry": 64.5
+          },
+          {
+            "Student ID": "R-02",
+            "Name": "Omar Farooq",
+            "Class": "A",
+            "Maths": null,
+            "Physics": null,
+            "Chemistry": 59.0
+          },
+          {
+            "Student ID": "R-03",
+            "Name": "Lena Fischer",
+            "Class": "A",
+            "Maths": 91.0,
+            "Physics": 88.0,
+            "Chemistry": null
+          },
+          {
+            "Student ID": "R-04",
+            "Name": "Ravi Teja",
+            "Class": "B",
+            "Maths": 39.0,
+            "Physics": 41.0,
+            "Chemistry": 40.0
+          },
+          {
+            "Student ID": "R-05",
+            "Name": "Zoya Ali",
+            "Class": "A",
+            "Maths": 40.0,
+            "Physics": 40.0,
+            "Chemistry": 39.5
+          }
+        ]
+      },
+      "analysis": {
+        "statistics": [
+          {
+            "Subject": "Maths",
+            "Count": 4,
+            "Missing": 1,
+            "Mean": 62.0,
+            "Median": 59.0,
+            "Std dev": 26.520432374554783,
+            "Min": 39.0,
+            "Q1": 39.75,
+            "Q3": 81.25,
+            "Max": 91.0,
+            "Passed": 3,
+            "Pass rate %": 75.0
+          },
+          {
+            "Subject": "Physics",
+            "Count": 3,
+            "Missing": 2,
+            "Mean": 56.333333333333336,
+            "Median": 41.0,
+            "Std dev": 27.42869543622761,
+            "Min": 40.0,
+            "Q1": 40.5,
+            "Q3": 64.5,
+            "Max": 88.0,
+            "Passed": 3,
+            "Pass rate %": 100.0
+          },
+          {
+            "Subject": "Chemistry",
+            "Count": 4,
+            "Missing": 1,
+            "Mean": 50.75,
+            "Median": 49.5,
+            "Std dev": 12.900258395344903,
+            "Min": 39.5,
+            "Q1": 39.875,
+            "Q3": 60.375,
+            "Max": 64.5,
+            "Passed": 3,
+            "Pass rate %": 75.0
+          }
+        ],
+        "results": [
+          {
+            "Student ID": "R-03",
+            "Name": "Lena Fischer",
+            "Class": "A",
+            "Total": 179.0,
+            "Subjects scored": 2,
+            "Percentage": 89.5,
+            "Grade": "A",
+            "Result": "Incomplete",
+            "Rank": 1,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "R-01",
+            "Name": "Neha Kapoor",
+            "Class": "B",
+            "Total": 142.5,
+            "Subjects scored": 2,
+            "Percentage": 71.25,
+            "Grade": "B",
+            "Result": "Incomplete",
+            "Rank": 2,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "R-02",
+            "Name": "Omar Farooq",
+            "Class": "A",
+            "Total": 59.0,
+            "Subjects scored": 1,
+            "Percentage": 59.0,
+            "Grade": "D",
+            "Result": "Incomplete",
+            "Rank": 3,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "R-04",
+            "Name": "Ravi Teja",
+            "Class": "B",
+            "Total": 120.0,
+            "Subjects scored": 3,
+            "Percentage": 40.0,
+            "Grade": "D",
+            "Result": "Fail",
+            "Rank": 4,
+            "Below pass mark in": "Maths"
+          },
+          {
+            "Student ID": "R-05",
+            "Name": "Zoya Ali",
+            "Class": "A",
+            "Total": 119.5,
+            "Subjects scored": 3,
+            "Percentage": 39.83,
+            "Grade": "F",
+            "Result": "Fail",
+            "Rank": 5,
+            "Below pass mark in": "Chemistry"
+          }
+        ],
+        "overview": {
+          "students": 5,
+          "subjects": 3,
+          "average_percentage": 59.916,
+          "median_percentage": 59.0,
+          "passed": 0,
+          "failed": 2,
+          "incomplete": 3,
+          "highest_subject": "Maths",
+          "lowest_subject": "Chemistry"
+        },
+        "gradeDistribution": [
+          {
+            "Grade": "A+",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "A",
+            "Students": 1,
+            "Share %": 20.0
+          },
+          {
+            "Grade": "B",
+            "Students": 1,
+            "Share %": 20.0
+          },
+          {
+            "Grade": "C",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "D",
+            "Students": 2,
+            "Share %": 40.0
+          },
+          {
+            "Grade": "F",
+            "Students": 1,
+            "Share %": 20.0
+          }
+        ],
+        "subjectGrades": {
+          "Maths": [
+            {
+              "Grade": "A+",
+              "Students": 1,
+              "Share %": 25.0
+            },
+            {
+              "Grade": "A",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "B",
+              "Students": 1,
+              "Share %": 25.0
+            },
+            {
+              "Grade": "C",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "D",
+              "Students": 1,
+              "Share %": 25.0
+            },
+            {
+              "Grade": "F",
+              "Students": 1,
+              "Share %": 25.0
+            }
+          ],
+          "Physics": [
+            {
+              "Grade": "A+",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "A",
+              "Students": 1,
+              "Share %": 33.33333333333333
+            },
+            {
+              "Grade": "B",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "C",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "D",
+              "Students": 2,
+              "Share %": 66.66666666666666
+            },
+            {
+              "Grade": "F",
+              "Students": 0,
+              "Share %": 0.0
+            }
+          ],
+          "Chemistry": [
+            {
+              "Grade": "A+",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "A",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "B",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "C",
+              "Students": 1,
+              "Share %": 25.0
+            },
+            {
+              "Grade": "D",
+              "Students": 2,
+              "Share %": 50.0
+            },
+            {
+              "Grade": "F",
+              "Students": 1,
+              "Share %": 25.0
+            }
+          ]
+        },
+        "missing": [
+          {
+            "Subject": "Maths",
+            "Missing": 1,
+            "Missing %": 20.0
+          },
+          {
+            "Subject": "Physics",
+            "Missing": 2,
+            "Missing %": 40.0
+          },
+          {
+            "Subject": "Chemistry",
+            "Missing": 1,
+            "Missing %": 20.0
+          }
+        ],
+        "studentsWithMissing": [
+          {
+            "Student ID": "R-01",
+            "Name": "Neha Kapoor",
+            "Missing subjects": "Physics"
+          },
+          {
+            "Student ID": "R-02",
+            "Name": "Omar Farooq",
+            "Missing subjects": "Maths, Physics"
+          },
+          {
+            "Student ID": "R-03",
+            "Name": "Lena Fischer",
+            "Missing subjects": "Chemistry"
+          }
+        ],
+        "classes": [
+          {
+            "Class": "A",
+            "Students": 3,
+            "Average %": 62.776666666666664,
+            "Passed": 0,
+            "Pass rate %": 0.0
+          },
+          {
+            "Class": "B",
+            "Students": 2,
+            "Average %": 55.625,
+            "Passed": 0,
+            "Pass rate %": 0.0
+          }
+        ],
+        "explanations": {
+          "overview": [
+            "The file contains 5 students and 3 subjects.",
+            "The average overall percentage is 59.9% and the median is 59.0%.",
+            "0 students passed every subject (pass mark 40%), 2 scored below the pass mark in at least one subject, and 3 have a missing score with no failed subject."
+          ],
+          "subjects": [
+            "Maths has the highest average (62.0) and Chemistry the lowest (50.8).",
+            "Scores vary most in Physics (standard deviation 27.4) and least in Chemistry (12.9).",
+            "Maths has the lowest pass rate: 3 of 4 students (75.0%) reached the pass mark."
+          ],
+          "grades": [
+            "The most common overall grade is D (2 of 5 students).",
+            "1 students (20.0%) earned A or A+, and 1 (20.0%) have an overall F."
+          ],
+          "missing": [
+            "4 score(s) are missing across 3 subject(s): Maths (1), Physics (2), Chemistry (1).",
+            "Missing scores are left out of averages and other statistics rather than counted as zero, so those figures describe only the students who have a score.",
+            "Students with a missing score are marked “Incomplete” unless they already scored below the pass mark in another subject. Check the records of these 3 student(s) before publishing results."
+          ]
+        }
+      }
+    },
+    {
+      "name": "no-class-column-ties-and-no-scores",
+      "csv": "ID,Name,English,History\nA1,beta,70,80\nA2,Alpha,80,70\nA3,Gamma,75,75\nA4,Delta,,\nA5,Echo,60,61\nA6,Foxtrot,100,100\n",
+      "validation": {
+        "ok": true,
+        "errors": [],
+        "warnings": [
+          "2 score(s) are missing. Averages for those subjects use only the students who have a score; see the Missing data tab for details.",
+          "Line(s) 5 have no scores in any subject."
+        ],
+        "subjects": ["English", "History"],
+        "rows": [
+          {
+            "Student ID": "A1",
+            "Name": "beta",
+            "English": 70.0,
+            "History": 80.0
+          },
+          {
+            "Student ID": "A2",
+            "Name": "Alpha",
+            "English": 80.0,
+            "History": 70.0
+          },
+          {
+            "Student ID": "A3",
+            "Name": "Gamma",
+            "English": 75.0,
+            "History": 75.0
+          },
+          {
+            "Student ID": "A4",
+            "Name": "Delta",
+            "English": null,
+            "History": null
+          },
+          {
+            "Student ID": "A5",
+            "Name": "Echo",
+            "English": 60.0,
+            "History": 61.0
+          },
+          {
+            "Student ID": "A6",
+            "Name": "Foxtrot",
+            "English": 100.0,
+            "History": 100.0
+          }
+        ]
+      },
+      "analysis": {
+        "statistics": [
+          {
+            "Subject": "English",
+            "Count": 5,
+            "Missing": 1,
+            "Mean": 77.0,
+            "Median": 75.0,
+            "Std dev": 14.832396974191326,
+            "Min": 60.0,
+            "Q1": 70.0,
+            "Q3": 80.0,
+            "Max": 100.0,
+            "Passed": 5,
+            "Pass rate %": 100.0
+          },
+          {
+            "Subject": "History",
+            "Count": 5,
+            "Missing": 1,
+            "Mean": 77.2,
+            "Median": 75.0,
+            "Std dev": 14.549914089093448,
+            "Min": 61.0,
+            "Q1": 70.0,
+            "Q3": 80.0,
+            "Max": 100.0,
+            "Passed": 5,
+            "Pass rate %": 100.0
+          }
+        ],
+        "results": [
+          {
+            "Student ID": "A6",
+            "Name": "Foxtrot",
+            "Total": 200.0,
+            "Subjects scored": 2,
+            "Percentage": 100.0,
+            "Grade": "A+",
+            "Result": "Pass",
+            "Rank": 1,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "A2",
+            "Name": "Alpha",
+            "Total": 150.0,
+            "Subjects scored": 2,
+            "Percentage": 75.0,
+            "Grade": "B",
+            "Result": "Pass",
+            "Rank": 2,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "A3",
+            "Name": "Gamma",
+            "Total": 150.0,
+            "Subjects scored": 2,
+            "Percentage": 75.0,
+            "Grade": "B",
+            "Result": "Pass",
+            "Rank": 2,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "A1",
+            "Name": "beta",
+            "Total": 150.0,
+            "Subjects scored": 2,
+            "Percentage": 75.0,
+            "Grade": "B",
+            "Result": "Pass",
+            "Rank": 2,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "A5",
+            "Name": "Echo",
+            "Total": 121.0,
+            "Subjects scored": 2,
+            "Percentage": 60.5,
+            "Grade": "C",
+            "Result": "Pass",
+            "Rank": 5,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "A4",
+            "Name": "Delta",
+            "Total": null,
+            "Subjects scored": 0,
+            "Percentage": null,
+            "Grade": null,
+            "Result": "Incomplete",
+            "Rank": null,
+            "Below pass mark in": ""
+          }
+        ],
+        "overview": {
+          "students": 6,
+          "subjects": 2,
+          "average_percentage": 77.1,
+          "median_percentage": 75.0,
+          "passed": 5,
+          "failed": 0,
+          "incomplete": 1,
+          "highest_subject": "History",
+          "lowest_subject": "English"
+        },
+        "gradeDistribution": [
+          {
+            "Grade": "A+",
+            "Students": 1,
+            "Share %": 20.0
+          },
+          {
+            "Grade": "A",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "B",
+            "Students": 3,
+            "Share %": 60.0
+          },
+          {
+            "Grade": "C",
+            "Students": 1,
+            "Share %": 20.0
+          },
+          {
+            "Grade": "D",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "F",
+            "Students": 0,
+            "Share %": 0.0
+          }
+        ],
+        "subjectGrades": {
+          "English": [
+            {
+              "Grade": "A+",
+              "Students": 1,
+              "Share %": 20.0
+            },
+            {
+              "Grade": "A",
+              "Students": 1,
+              "Share %": 20.0
+            },
+            {
+              "Grade": "B",
+              "Students": 2,
+              "Share %": 40.0
+            },
+            {
+              "Grade": "C",
+              "Students": 1,
+              "Share %": 20.0
+            },
+            {
+              "Grade": "D",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "F",
+              "Students": 0,
+              "Share %": 0.0
+            }
+          ],
+          "History": [
+            {
+              "Grade": "A+",
+              "Students": 1,
+              "Share %": 20.0
+            },
+            {
+              "Grade": "A",
+              "Students": 1,
+              "Share %": 20.0
+            },
+            {
+              "Grade": "B",
+              "Students": 2,
+              "Share %": 40.0
+            },
+            {
+              "Grade": "C",
+              "Students": 1,
+              "Share %": 20.0
+            },
+            {
+              "Grade": "D",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "F",
+              "Students": 0,
+              "Share %": 0.0
+            }
+          ]
+        },
+        "missing": [
+          {
+            "Subject": "English",
+            "Missing": 1,
+            "Missing %": 16.666666666666664
+          },
+          {
+            "Subject": "History",
+            "Missing": 1,
+            "Missing %": 16.666666666666664
+          }
+        ],
+        "studentsWithMissing": [
+          {
+            "Student ID": "A4",
+            "Name": "Delta",
+            "Missing subjects": "English, History"
+          }
+        ],
+        "classes": null,
+        "explanations": {
+          "overview": [
+            "The file contains 6 students and 2 subjects.",
+            "The average overall percentage is 77.1% and the median is 75.0%.",
+            "5 students passed every subject (pass mark 40%), 0 scored below the pass mark in at least one subject, and 1 have a missing score with no failed subject."
+          ],
+          "subjects": [
+            "History has the highest average (77.2) and English the lowest (77.0).",
+            "Scores vary most in English (standard deviation 14.8) and least in History (14.5).",
+            "Every student with a score reached the pass mark in every subject."
+          ],
+          "grades": [
+            "The most common overall grade is B (3 of 5 students).",
+            "1 students (20.0%) earned A or A+, and 0 (0.0%) have an overall F."
+          ],
+          "missing": [
+            "2 score(s) are missing across 2 subject(s): English (1), History (1).",
+            "Missing scores are left out of averages and other statistics rather than counted as zero, so those figures describe only the students who have a score.",
+            "Students with a missing score are marked “Incomplete” unless they already scored below the pass mark in another subject. Check the records of these 1 student(s) before publishing results."
+          ]
+        }
+      }
+    },
+    {
+      "name": "exact-halves-in-statistics",
+      "csv": "Student ID,Name,Class,Art,Music\nH1,Asha,X,62,70\nH2,Bilal,X,62.5,71\nH3,Chen,Y,63,70.5\nH4,Dina,Y,61.5,69\n",
+      "validation": {
+        "ok": true,
+        "errors": [],
+        "warnings": [],
+        "subjects": ["Art", "Music"],
+        "rows": [
+          {
+            "Student ID": "H1",
+            "Name": "Asha",
+            "Class": "X",
+            "Art": 62.0,
+            "Music": 70.0
+          },
+          {
+            "Student ID": "H2",
+            "Name": "Bilal",
+            "Class": "X",
+            "Art": 62.5,
+            "Music": 71.0
+          },
+          {
+            "Student ID": "H3",
+            "Name": "Chen",
+            "Class": "Y",
+            "Art": 63.0,
+            "Music": 70.5
+          },
+          {
+            "Student ID": "H4",
+            "Name": "Dina",
+            "Class": "Y",
+            "Art": 61.5,
+            "Music": 69.0
+          }
+        ]
+      },
+      "analysis": {
+        "statistics": [
+          {
+            "Subject": "Art",
+            "Count": 4,
+            "Missing": 0,
+            "Mean": 62.25,
+            "Median": 62.25,
+            "Std dev": 0.6454972243679028,
+            "Min": 61.5,
+            "Q1": 61.875,
+            "Q3": 62.625,
+            "Max": 63.0,
+            "Passed": 4,
+            "Pass rate %": 100.0
+          },
+          {
+            "Subject": "Music",
+            "Count": 4,
+            "Missing": 0,
+            "Mean": 70.125,
+            "Median": 70.25,
+            "Std dev": 0.8539125638299665,
+            "Min": 69.0,
+            "Q1": 69.75,
+            "Q3": 70.625,
+            "Max": 71.0,
+            "Passed": 4,
+            "Pass rate %": 100.0
+          }
+        ],
+        "results": [
+          {
+            "Student ID": "H2",
+            "Name": "Bilal",
+            "Class": "X",
+            "Total": 133.5,
+            "Subjects scored": 2,
+            "Percentage": 66.75,
+            "Grade": "C",
+            "Result": "Pass",
+            "Rank": 1,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "H3",
+            "Name": "Chen",
+            "Class": "Y",
+            "Total": 133.5,
+            "Subjects scored": 2,
+            "Percentage": 66.75,
+            "Grade": "C",
+            "Result": "Pass",
+            "Rank": 1,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "H1",
+            "Name": "Asha",
+            "Class": "X",
+            "Total": 132.0,
+            "Subjects scored": 2,
+            "Percentage": 66.0,
+            "Grade": "C",
+            "Result": "Pass",
+            "Rank": 3,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "H4",
+            "Name": "Dina",
+            "Class": "Y",
+            "Total": 130.5,
+            "Subjects scored": 2,
+            "Percentage": 65.25,
+            "Grade": "C",
+            "Result": "Pass",
+            "Rank": 4,
+            "Below pass mark in": ""
+          }
+        ],
+        "overview": {
+          "students": 4,
+          "subjects": 2,
+          "average_percentage": 66.1875,
+          "median_percentage": 66.375,
+          "passed": 4,
+          "failed": 0,
+          "incomplete": 0,
+          "highest_subject": "Music",
+          "lowest_subject": "Art"
+        },
+        "gradeDistribution": [
+          {
+            "Grade": "A+",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "A",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "B",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "C",
+            "Students": 4,
+            "Share %": 100.0
+          },
+          {
+            "Grade": "D",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "F",
+            "Students": 0,
+            "Share %": 0.0
+          }
+        ],
+        "subjectGrades": {
+          "Art": [
+            {
+              "Grade": "A+",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "A",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "B",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "C",
+              "Students": 4,
+              "Share %": 100.0
+            },
+            {
+              "Grade": "D",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "F",
+              "Students": 0,
+              "Share %": 0.0
+            }
+          ],
+          "Music": [
+            {
+              "Grade": "A+",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "A",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "B",
+              "Students": 3,
+              "Share %": 75.0
+            },
+            {
+              "Grade": "C",
+              "Students": 1,
+              "Share %": 25.0
+            },
+            {
+              "Grade": "D",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "F",
+              "Students": 0,
+              "Share %": 0.0
+            }
+          ]
+        },
+        "missing": [
+          {
+            "Subject": "Art",
+            "Missing": 0,
+            "Missing %": 0.0
+          },
+          {
+            "Subject": "Music",
+            "Missing": 0,
+            "Missing %": 0.0
+          }
+        ],
+        "studentsWithMissing": [],
+        "classes": [
+          {
+            "Class": "X",
+            "Students": 2,
+            "Average %": 66.375,
+            "Passed": 2,
+            "Pass rate %": 100.0
+          },
+          {
+            "Class": "Y",
+            "Students": 2,
+            "Average %": 66.0,
+            "Passed": 2,
+            "Pass rate %": 100.0
+          }
+        ],
+        "explanations": {
+          "overview": [
+            "The file contains 4 students and 2 subjects.",
+            "The average overall percentage is 66.2% and the median is 66.4%.",
+            "4 students passed every subject (pass mark 40%), 0 scored below the pass mark in at least one subject."
+          ],
+          "subjects": [
+            "Music has the highest average (70.1) and Art the lowest (62.2).",
+            "Scores vary most in Music (standard deviation 0.9) and least in Art (0.6).",
+            "Every student with a score reached the pass mark in every subject."
+          ],
+          "grades": [
+            "The most common overall grade is C (4 of 4 students).",
+            "0 students (0.0%) earned A or A+, and 0 (0.0%) have an overall F."
+          ],
+          "missing": ["No scores are missing, so every statistic uses every student."]
+        }
+      }
+    },
+    {
+      "name": "header-problems",
+      "csv": "Student ID,Name,Maths,,maths\nS1,Ann,50,60,70\n",
+      "validation": {
+        "ok": false,
+        "errors": [
+          "Column(s) 4 have no name in the first row.",
+          "The columns “Maths” and “maths” have the same name."
+        ],
+        "warnings": [],
+        "subjects": [],
+        "rows": null
+      },
+      "analysis": null
+    },
+    {
+      "name": "missing-required-columns",
+      "csv": "Roll,Score A,Score B\n1,50,60\n",
+      "validation": {
+        "ok": false,
+        "errors": [
+          "Required column(s) missing: Name. The first row must name the columns, for example: Student ID, Name, Class, Mathematics, Science. Found: Roll, Score A, Score B."
+        ],
+        "warnings": [],
+        "subjects": [],
+        "rows": null
+      },
+      "analysis": null
+    },
+    {
+      "name": "no-subject-columns",
+      "csv": "Student ID,Name,Class\nS1,Ann,10-A\n",
+      "validation": {
+        "ok": false,
+        "errors": ["No subject columns were found. Add one column of scores per subject."],
+        "warnings": [],
+        "subjects": [],
+        "rows": null
+      },
+      "analysis": null
+    },
+    {
+      "name": "ragged-row",
+      "csv": "Student ID,Name,Maths\nS1,Ann,50\nS2,Ben,60,70\n",
+      "validation": {
+        "ok": false,
+        "errors": [
+          "The file could not be read as CSV: Error tokenizing data. C error: Expected 3 fields in line 3, saw 4. Check for extra commas on that line."
+        ],
+        "warnings": [],
+        "subjects": [],
+        "rows": null
+      },
+      "analysis": null
+    },
+    {
+      "name": "only-a-header",
+      "csv": "Student ID,Name,Maths\n",
+      "validation": {
+        "ok": false,
+        "errors": ["The file has column names but no student rows."],
+        "warnings": [],
+        "subjects": [],
+        "rows": null
+      },
+      "analysis": null
+    },
+    {
+      "name": "many-problems",
+      "csv": "Student ID,Name,Maths,Science\nS1,,abc,101\n,Bo,12x,-1\nS1,Cy,1e2,99\nS4,Di,inf,50\nS5,Ed,7,8\nS6,Fa,1,2\nS7,Gu,3,4\nS8,Ha,5,six\nS9,Io,seven,eight\nS10,Jo,nine,ten\nS11,Ka,x,y\nS12,Li,p,q\nS13,Mo,r,s\nS14,Ny,t,u\n",
+      "validation": {
+        "ok": false,
+        "errors": [
+          "Student ID is empty on line(s) 3.",
+          "Name is empty on line(s) 2.",
+          "Student ID “S1” appears more than once (lines 2, 4).",
+          "Maths: scores must be numbers, but found “abc” (line 2), “12x” (line 3), “seven” (line 10), “nine” (line 11), “x” (line 12), “p” (line 13), “r” (line 14), “t” (line 15).",
+          "Maths: scores must be between 0 and 100, but found inf (line 5).",
+          "Science: scores must be numbers, but found “six” (line 9), “eight” (line 10), “ten” (line 11), “y” (line 12), “q” (line 13), “s” (line 14), “u” (line 15).",
+          "Science: scores must be between 0 and 100, but found 101 (line 2), -1 (line 3)."
+        ],
+        "warnings": ["Line(s) 10, 11, 12, 13, 14, 15 have no scores in any subject."],
+        "subjects": [],
+        "rows": null
+      },
+      "analysis": null
+    },
+    {
+      "name": "valid-but-unusual-numbers",
+      "csv": "Student ID,Name,Maths,Science\nU1,Ann,1e1,+5\nU2,Ben,007,-0\nU3,Cy,.5,5.\nU4,Di,1e-400,40.00\n",
+      "validation": {
+        "ok": true,
+        "errors": [],
+        "warnings": [],
+        "subjects": ["Maths", "Science"],
+        "rows": [
+          {
+            "Student ID": "U1",
+            "Name": "Ann",
+            "Maths": 10.0,
+            "Science": 5.0
+          },
+          {
+            "Student ID": "U2",
+            "Name": "Ben",
+            "Maths": 7.0,
+            "Science": -0.0
+          },
+          {
+            "Student ID": "U3",
+            "Name": "Cy",
+            "Maths": 0.5,
+            "Science": 5.0
+          },
+          {
+            "Student ID": "U4",
+            "Name": "Di",
+            "Maths": 0.0,
+            "Science": 40.0
+          }
+        ]
+      },
+      "analysis": {
+        "statistics": [
+          {
+            "Subject": "Maths",
+            "Count": 4,
+            "Missing": 0,
+            "Mean": 4.375,
+            "Median": 3.75,
+            "Std dev": 4.9223131418741195,
+            "Min": 0.0,
+            "Q1": 0.375,
+            "Q3": 7.75,
+            "Max": 10.0,
+            "Passed": 0,
+            "Pass rate %": 0.0
+          },
+          {
+            "Subject": "Science",
+            "Count": 4,
+            "Missing": 0,
+            "Mean": 12.5,
+            "Median": 5.0,
+            "Std dev": 18.484227510682363,
+            "Min": -0.0,
+            "Q1": 3.75,
+            "Q3": 13.75,
+            "Max": 40.0,
+            "Passed": 1,
+            "Pass rate %": 25.0
+          }
+        ],
+        "results": [
+          {
+            "Student ID": "U4",
+            "Name": "Di",
+            "Total": 40.0,
+            "Subjects scored": 2,
+            "Percentage": 20.0,
+            "Grade": "F",
+            "Result": "Fail",
+            "Rank": 1,
+            "Below pass mark in": "Maths"
+          },
+          {
+            "Student ID": "U1",
+            "Name": "Ann",
+            "Total": 15.0,
+            "Subjects scored": 2,
+            "Percentage": 7.5,
+            "Grade": "F",
+            "Result": "Fail",
+            "Rank": 2,
+            "Below pass mark in": "Maths, Science"
+          },
+          {
+            "Student ID": "U2",
+            "Name": "Ben",
+            "Total": 7.0,
+            "Subjects scored": 2,
+            "Percentage": 3.5,
+            "Grade": "F",
+            "Result": "Fail",
+            "Rank": 3,
+            "Below pass mark in": "Maths, Science"
+          },
+          {
+            "Student ID": "U3",
+            "Name": "Cy",
+            "Total": 5.5,
+            "Subjects scored": 2,
+            "Percentage": 2.75,
+            "Grade": "F",
+            "Result": "Fail",
+            "Rank": 4,
+            "Below pass mark in": "Maths, Science"
+          }
+        ],
+        "overview": {
+          "students": 4,
+          "subjects": 2,
+          "average_percentage": 8.4375,
+          "median_percentage": 5.5,
+          "passed": 0,
+          "failed": 4,
+          "incomplete": 0,
+          "highest_subject": "Science",
+          "lowest_subject": "Maths"
+        },
+        "gradeDistribution": [
+          {
+            "Grade": "A+",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "A",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "B",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "C",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "D",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "F",
+            "Students": 4,
+            "Share %": 100.0
+          }
+        ],
+        "subjectGrades": {
+          "Maths": [
+            {
+              "Grade": "A+",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "A",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "B",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "C",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "D",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "F",
+              "Students": 4,
+              "Share %": 100.0
+            }
+          ],
+          "Science": [
+            {
+              "Grade": "A+",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "A",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "B",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "C",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "D",
+              "Students": 1,
+              "Share %": 25.0
+            },
+            {
+              "Grade": "F",
+              "Students": 3,
+              "Share %": 75.0
+            }
+          ]
+        },
+        "missing": [
+          {
+            "Subject": "Maths",
+            "Missing": 0,
+            "Missing %": 0.0
+          },
+          {
+            "Subject": "Science",
+            "Missing": 0,
+            "Missing %": 0.0
+          }
+        ],
+        "studentsWithMissing": [],
+        "classes": null,
+        "explanations": {
+          "overview": [
+            "The file contains 4 students and 2 subjects.",
+            "The average overall percentage is 8.4% and the median is 5.5%.",
+            "0 students passed every subject (pass mark 40%), 4 scored below the pass mark in at least one subject."
+          ],
+          "subjects": [
+            "Science has the highest average (12.5) and Maths the lowest (4.4).",
+            "Scores vary most in Science (standard deviation 18.5) and least in Maths (4.9).",
+            "Maths has the lowest pass rate: 0 of 4 students (0.0%) reached the pass mark."
+          ],
+          "grades": [
+            "The most common overall grade is F (4 of 4 students).",
+            "0 students (0.0%) earned A or A+, and 4 (100.0%) have an overall F."
+          ],
+          "missing": ["No scores are missing, so every statistic uses every student."]
+        }
+      }
+    },
+    {
+      "name": "overflowing-and-foreign-numbers",
+      "csv": "Student ID,Name,Maths\nN1,Ann,1e400\nN2,Ben,inf\nN3,Cy,1_000\nN4,Di,١٢\n",
+      "validation": {
+        "ok": false,
+        "errors": [
+          "Maths: scores must be numbers, but found “1_000” (line 4), “١٢” (line 5).",
+          "Maths: scores must be between 0 and 100, but found inf (line 2), inf (line 3)."
+        ],
+        "warnings": ["Line(s) 4, 5 have no scores in any subject."],
+        "subjects": [],
+        "rows": null
+      },
+      "analysis": null
+    },
+    {
+      "name": "python-whitespace",
+      "csv": "Student ID,Name,Class,Maths\n\u001fW1,Asha\u001fRao, 10-A,\u001f50\n﻿W2,Ravi﻿,10-A,60\n\u001f,Empty Id,10-B,70\n",
+      "validation": {
+        "ok": false,
+        "errors": ["Student ID is empty on line(s) 4."],
+        "warnings": [],
+        "subjects": [],
+        "rows": null
+      },
+      "analysis": null
+    },
+    {
+      "name": "whitespace-only-file",
+      "csv": "   ",
+      "validation": {
+        "ok": false,
+        "errors": [
+          "Column(s) 1 have no name in the first row.",
+          "Required column(s) missing: Student ID, Name. The first row must name the columns, for example: Student ID, Name, Class, Mathematics, Science. Found: no column names.",
+          "No subject columns were found. Add one column of scores per subject."
+        ],
+        "warnings": [],
+        "subjects": [],
+        "rows": null
+      },
+      "analysis": null
+    },
+    {
+      "name": "leading-blank-line",
+      "csv": "\nStudent ID,Name,Maths\nS1,Ann,50\n",
+      "validation": {
+        "ok": false,
+        "errors": ["The file is empty."],
+        "warnings": [],
+        "subjects": [],
+        "rows": null
+      },
+      "analysis": null
+    },
+    {
+      "name": "ragged-row-after-a-quoted-line-break",
+      "csv": "Student ID,Name,Maths\nS1,\"Ann\nLee\",50\nS2,Ben,60,70\n",
+      "validation": {
+        "ok": false,
+        "errors": [
+          "The file could not be read as CSV: Error tokenizing data. C error: Expected 3 fields in line 3, saw 4. Check for extra commas on that line."
+        ],
+        "warnings": [],
+        "subjects": [],
+        "rows": null
+      },
+      "analysis": null
+    },
+    {
+      "name": "duplicate-subject-name",
+      "csv": "Student ID,Name,Maths,Maths\nD1,Ann,50\nD2,Ben,,60\nD3,Cy,40,AB\n",
+      "validation": {
+        "ok": false,
+        "errors": ["The columns “Maths” and “Maths” have the same name."],
+        "warnings": [],
+        "subjects": [],
+        "rows": null
+      },
+      "analysis": null
+    },
+    {
+      "name": "negative-zero-in-integer-and-decimal-columns",
+      "csv": "Student ID,Name,Maths,Science\nZ1,Ann,-0,-0\nZ2,Ben,44,4.5\n",
+      "validation": {
+        "ok": true,
+        "errors": [],
+        "warnings": [],
+        "subjects": ["Maths", "Science"],
+        "rows": [
+          {
+            "Student ID": "Z1",
+            "Name": "Ann",
+            "Maths": 0.0,
+            "Science": -0.0
+          },
+          {
+            "Student ID": "Z2",
+            "Name": "Ben",
+            "Maths": 44.0,
+            "Science": 4.5
+          }
+        ]
+      },
+      "analysis": {
+        "statistics": [
+          {
+            "Subject": "Maths",
+            "Count": 2,
+            "Missing": 0,
+            "Mean": 22.0,
+            "Median": 22.0,
+            "Std dev": 31.11269837220809,
+            "Min": 0.0,
+            "Q1": 11.0,
+            "Q3": 33.0,
+            "Max": 44.0,
+            "Passed": 1,
+            "Pass rate %": 50.0
+          },
+          {
+            "Subject": "Science",
+            "Count": 2,
+            "Missing": 0,
+            "Mean": 2.25,
+            "Median": 2.25,
+            "Std dev": 3.181980515339464,
+            "Min": -0.0,
+            "Q1": 1.125,
+            "Q3": 3.375,
+            "Max": 4.5,
+            "Passed": 0,
+            "Pass rate %": 0.0
+          }
+        ],
+        "results": [
+          {
+            "Student ID": "Z2",
+            "Name": "Ben",
+            "Total": 48.5,
+            "Subjects scored": 2,
+            "Percentage": 24.25,
+            "Grade": "F",
+            "Result": "Fail",
+            "Rank": 1,
+            "Below pass mark in": "Science"
+          },
+          {
+            "Student ID": "Z1",
+            "Name": "Ann",
+            "Total": 0.0,
+            "Subjects scored": 2,
+            "Percentage": 0.0,
+            "Grade": "F",
+            "Result": "Fail",
+            "Rank": 2,
+            "Below pass mark in": "Maths, Science"
+          }
+        ],
+        "overview": {
+          "students": 2,
+          "subjects": 2,
+          "average_percentage": 12.125,
+          "median_percentage": 12.125,
+          "passed": 0,
+          "failed": 2,
+          "incomplete": 0,
+          "highest_subject": "Maths",
+          "lowest_subject": "Science"
+        },
+        "gradeDistribution": [
+          {
+            "Grade": "A+",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "A",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "B",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "C",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "D",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "F",
+            "Students": 2,
+            "Share %": 100.0
+          }
+        ],
+        "subjectGrades": {
+          "Maths": [
+            {
+              "Grade": "A+",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "A",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "B",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "C",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "D",
+              "Students": 1,
+              "Share %": 50.0
+            },
+            {
+              "Grade": "F",
+              "Students": 1,
+              "Share %": 50.0
+            }
+          ],
+          "Science": [
+            {
+              "Grade": "A+",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "A",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "B",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "C",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "D",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "F",
+              "Students": 2,
+              "Share %": 100.0
+            }
+          ]
+        },
+        "missing": [
+          {
+            "Subject": "Maths",
+            "Missing": 0,
+            "Missing %": 0.0
+          },
+          {
+            "Subject": "Science",
+            "Missing": 0,
+            "Missing %": 0.0
+          }
+        ],
+        "studentsWithMissing": [],
+        "classes": null,
+        "explanations": {
+          "overview": [
+            "The file contains 2 students and 2 subjects.",
+            "The average overall percentage is 12.1% and the median is 12.1%.",
+            "0 students passed every subject (pass mark 40%), 2 scored below the pass mark in at least one subject."
+          ],
+          "subjects": [
+            "Maths has the highest average (22.0) and Science the lowest (2.2).",
+            "Scores vary most in Maths (standard deviation 31.1) and least in Science (3.2).",
+            "Science has the lowest pass rate: 0 of 2 students (0.0%) reached the pass mark."
+          ],
+          "grades": [
+            "The most common overall grade is F (2 of 2 students).",
+            "0 students (0.0%) earned A or A+, and 2 (100.0%) have an overall F."
+          ],
+          "missing": ["No scores are missing, so every statistic uses every student."]
+        }
+      }
+    },
+    {
+      "name": "zero-medians-and-single-value-quartiles",
+      "csv": "Student ID,Name,Maths,Science\nM1,Ann,0.0,-0\nM2,Ben,-0,\nM3,Cy,92,\n",
+      "validation": {
+        "ok": true,
+        "errors": [],
+        "warnings": [
+          "2 score(s) are missing. Averages for those subjects use only the students who have a score; see the Missing data tab for details."
+        ],
+        "subjects": ["Maths", "Science"],
+        "rows": [
+          {
+            "Student ID": "M1",
+            "Name": "Ann",
+            "Maths": 0.0,
+            "Science": -0.0
+          },
+          {
+            "Student ID": "M2",
+            "Name": "Ben",
+            "Maths": -0.0,
+            "Science": null
+          },
+          {
+            "Student ID": "M3",
+            "Name": "Cy",
+            "Maths": 92.0,
+            "Science": null
+          }
+        ]
+      },
+      "analysis": {
+        "statistics": [
+          {
+            "Subject": "Maths",
+            "Count": 3,
+            "Missing": 0,
+            "Mean": 30.666666666666668,
+            "Median": 0.0,
+            "Std dev": 53.116224765445565,
+            "Min": -0.0,
+            "Q1": 0.0,
+            "Q3": 46.0,
+            "Max": 92.0,
+            "Passed": 1,
+            "Pass rate %": 33.33333333333333
+          },
+          {
+            "Subject": "Science",
+            "Count": 1,
+            "Missing": 2,
+            "Mean": 0.0,
+            "Median": 0.0,
+            "Std dev": null,
+            "Min": -0.0,
+            "Q1": -0.0,
+            "Q3": -0.0,
+            "Max": -0.0,
+            "Passed": 0,
+            "Pass rate %": 0.0
+          }
+        ],
+        "results": [
+          {
+            "Student ID": "M3",
+            "Name": "Cy",
+            "Total": 92.0,
+            "Subjects scored": 1,
+            "Percentage": 92.0,
+            "Grade": "A+",
+            "Result": "Incomplete",
+            "Rank": 1,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "M1",
+            "Name": "Ann",
+            "Total": 0.0,
+            "Subjects scored": 2,
+            "Percentage": 0.0,
+            "Grade": "F",
+            "Result": "Fail",
+            "Rank": 2,
+            "Below pass mark in": "Maths, Science"
+          },
+          {
+            "Student ID": "M2",
+            "Name": "Ben",
+            "Total": 0.0,
+            "Subjects scored": 1,
+            "Percentage": 0.0,
+            "Grade": "F",
+            "Result": "Fail",
+            "Rank": 2,
+            "Below pass mark in": "Maths"
+          }
+        ],
+        "overview": {
+          "students": 3,
+          "subjects": 2,
+          "average_percentage": 30.666666666666668,
+          "median_percentage": 0.0,
+          "passed": 0,
+          "failed": 2,
+          "incomplete": 1,
+          "highest_subject": "Maths",
+          "lowest_subject": "Science"
+        },
+        "gradeDistribution": [
+          {
+            "Grade": "A+",
+            "Students": 1,
+            "Share %": 33.33333333333333
+          },
+          {
+            "Grade": "A",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "B",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "C",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "D",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "F",
+            "Students": 2,
+            "Share %": 66.66666666666666
+          }
+        ],
+        "subjectGrades": {
+          "Maths": [
+            {
+              "Grade": "A+",
+              "Students": 1,
+              "Share %": 33.33333333333333
+            },
+            {
+              "Grade": "A",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "B",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "C",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "D",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "F",
+              "Students": 2,
+              "Share %": 66.66666666666666
+            }
+          ],
+          "Science": [
+            {
+              "Grade": "A+",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "A",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "B",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "C",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "D",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "F",
+              "Students": 1,
+              "Share %": 100.0
+            }
+          ]
+        },
+        "missing": [
+          {
+            "Subject": "Maths",
+            "Missing": 0,
+            "Missing %": 0.0
+          },
+          {
+            "Subject": "Science",
+            "Missing": 2,
+            "Missing %": 66.66666666666666
+          }
+        ],
+        "studentsWithMissing": [
+          {
+            "Student ID": "M2",
+            "Name": "Ben",
+            "Missing subjects": "Science"
+          },
+          {
+            "Student ID": "M3",
+            "Name": "Cy",
+            "Missing subjects": "Science"
+          }
+        ],
+        "classes": null,
+        "explanations": {
+          "overview": [
+            "The file contains 3 students and 2 subjects.",
+            "The average overall percentage is 30.7% and the median is 0.0%.",
+            "The average is noticeably higher than the median, so a few high scorers are lifting the average.",
+            "0 students passed every subject (pass mark 40%), 2 scored below the pass mark in at least one subject, and 1 have a missing score with no failed subject."
+          ],
+          "subjects": [
+            "Maths has the highest average (30.7) and Science the lowest (0.0).",
+            "Scores vary most in Maths (standard deviation 53.1) and least in Maths (53.1).",
+            "Science has the lowest pass rate: 0 of 1 students (0.0%) reached the pass mark."
+          ],
+          "grades": [
+            "The most common overall grade is F (2 of 3 students).",
+            "1 students (33.3%) earned A or A+, and 2 (66.7%) have an overall F."
+          ],
+          "missing": [
+            "2 score(s) are missing across 1 subject(s): Science (2).",
+            "Missing scores are left out of averages and other statistics rather than counted as zero, so those figures describe only the students who have a score.",
+            "Students with a missing score are marked “Incomplete” unless they already scored below the pass mark in another subject. Check the records of these 2 student(s) before publishing results."
+          ]
+        }
+      }
+    },
+    {
+      "name": "identical-names-without-ascii-letters",
+      "csv": "Student ID,Name,गणित,गणित\nS1,Ann,50,60\n",
+      "validation": {
+        "ok": false,
+        "errors": ["The columns “गणित” and “गणित” have the same name."],
+        "warnings": [],
+        "subjects": [],
+        "rows": null
+      },
+      "analysis": null
+    },
+    {
+      "name": "one-student",
+      "csv": "Student ID,Name,Class,Maths,Science\nO1,Ann,10-A,40,72.5\n",
+      "validation": {
+        "ok": true,
+        "errors": [],
+        "warnings": [],
+        "subjects": ["Maths", "Science"],
+        "rows": [
+          {
+            "Student ID": "O1",
+            "Name": "Ann",
+            "Class": "10-A",
+            "Maths": 40.0,
+            "Science": 72.5
+          }
+        ]
+      },
+      "analysis": {
+        "statistics": [
+          {
+            "Subject": "Maths",
+            "Count": 1,
+            "Missing": 0,
+            "Mean": 40.0,
+            "Median": 40.0,
+            "Std dev": null,
+            "Min": 40.0,
+            "Q1": 40.0,
+            "Q3": 40.0,
+            "Max": 40.0,
+            "Passed": 1,
+            "Pass rate %": 100.0
+          },
+          {
+            "Subject": "Science",
+            "Count": 1,
+            "Missing": 0,
+            "Mean": 72.5,
+            "Median": 72.5,
+            "Std dev": null,
+            "Min": 72.5,
+            "Q1": 72.5,
+            "Q3": 72.5,
+            "Max": 72.5,
+            "Passed": 1,
+            "Pass rate %": 100.0
+          }
+        ],
+        "results": [
+          {
+            "Student ID": "O1",
+            "Name": "Ann",
+            "Class": "10-A",
+            "Total": 112.5,
+            "Subjects scored": 2,
+            "Percentage": 56.25,
+            "Grade": "D",
+            "Result": "Pass",
+            "Rank": 1,
+            "Below pass mark in": ""
+          }
+        ],
+        "overview": {
+          "students": 1,
+          "subjects": 2,
+          "average_percentage": 56.25,
+          "median_percentage": 56.25,
+          "passed": 1,
+          "failed": 0,
+          "incomplete": 0,
+          "highest_subject": "Science",
+          "lowest_subject": "Maths"
+        },
+        "gradeDistribution": [
+          {
+            "Grade": "A+",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "A",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "B",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "C",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "D",
+            "Students": 1,
+            "Share %": 100.0
+          },
+          {
+            "Grade": "F",
+            "Students": 0,
+            "Share %": 0.0
+          }
+        ],
+        "subjectGrades": {
+          "Maths": [
+            {
+              "Grade": "A+",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "A",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "B",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "C",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "D",
+              "Students": 1,
+              "Share %": 100.0
+            },
+            {
+              "Grade": "F",
+              "Students": 0,
+              "Share %": 0.0
+            }
+          ],
+          "Science": [
+            {
+              "Grade": "A+",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "A",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "B",
+              "Students": 1,
+              "Share %": 100.0
+            },
+            {
+              "Grade": "C",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "D",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "F",
+              "Students": 0,
+              "Share %": 0.0
+            }
+          ]
+        },
+        "missing": [
+          {
+            "Subject": "Maths",
+            "Missing": 0,
+            "Missing %": 0.0
+          },
+          {
+            "Subject": "Science",
+            "Missing": 0,
+            "Missing %": 0.0
+          }
+        ],
+        "studentsWithMissing": [],
+        "classes": [
+          {
+            "Class": "10-A",
+            "Students": 1,
+            "Average %": 56.25,
+            "Passed": 1,
+            "Pass rate %": 100.0
+          }
+        ],
+        "explanations": {
+          "overview": [
+            "The file contains 1 students and 2 subjects.",
+            "The average overall percentage is 56.2% and the median is 56.2%.",
+            "1 students passed every subject (pass mark 40%), 0 scored below the pass mark in at least one subject."
+          ],
+          "subjects": [
+            "Science has the highest average (72.5) and Maths the lowest (40.0).",
+            "Every student with a score reached the pass mark in every subject."
+          ],
+          "grades": [
+            "The most common overall grade is D (1 of 1 students).",
+            "0 students (0.0%) earned A or A+, and 0 (0.0%) have an overall F."
+          ],
+          "missing": ["No scores are missing, so every statistic uses every student."]
+        }
+      }
+    },
+    {
+      "name": "everyone-absent",
+      "csv": "Student ID,Name,Class,Maths,Science\nA1,Ann,10-A,AB,-\nA2,Ben,10-B,NA,absent\n",
+      "validation": {
+        "ok": true,
+        "errors": [],
+        "warnings": [
+          "4 score(s) marked as absent (for example “AB”) are treated as missing.",
+          "4 score(s) are missing. Averages for those subjects use only the students who have a score; see the Missing data tab for details.",
+          "Line(s) 2, 3 have no scores in any subject."
+        ],
+        "subjects": ["Maths", "Science"],
+        "rows": [
+          {
+            "Student ID": "A1",
+            "Name": "Ann",
+            "Class": "10-A",
+            "Maths": null,
+            "Science": null
+          },
+          {
+            "Student ID": "A2",
+            "Name": "Ben",
+            "Class": "10-B",
+            "Maths": null,
+            "Science": null
+          }
+        ]
+      },
+      "analysis": {
+        "statistics": [
+          {
+            "Subject": "Maths",
+            "Count": 0,
+            "Missing": 2,
+            "Mean": null,
+            "Median": null,
+            "Std dev": null,
+            "Min": null,
+            "Q1": null,
+            "Q3": null,
+            "Max": null,
+            "Passed": 0,
+            "Pass rate %": null
+          },
+          {
+            "Subject": "Science",
+            "Count": 0,
+            "Missing": 2,
+            "Mean": null,
+            "Median": null,
+            "Std dev": null,
+            "Min": null,
+            "Q1": null,
+            "Q3": null,
+            "Max": null,
+            "Passed": 0,
+            "Pass rate %": null
+          }
+        ],
+        "results": [
+          {
+            "Student ID": "A1",
+            "Name": "Ann",
+            "Class": "10-A",
+            "Total": null,
+            "Subjects scored": 0,
+            "Percentage": null,
+            "Grade": null,
+            "Result": "Incomplete",
+            "Rank": null,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "A2",
+            "Name": "Ben",
+            "Class": "10-B",
+            "Total": null,
+            "Subjects scored": 0,
+            "Percentage": null,
+            "Grade": null,
+            "Result": "Incomplete",
+            "Rank": null,
+            "Below pass mark in": ""
+          }
+        ],
+        "overview": {
+          "students": 2,
+          "subjects": 2,
+          "average_percentage": null,
+          "median_percentage": null,
+          "passed": 0,
+          "failed": 0,
+          "incomplete": 2,
+          "highest_subject": null,
+          "lowest_subject": null
+        },
+        "gradeDistribution": [
+          {
+            "Grade": "A+",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "A",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "B",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "C",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "D",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "F",
+            "Students": 0,
+            "Share %": 0.0
+          }
+        ],
+        "subjectGrades": {
+          "Maths": [
+            {
+              "Grade": "A+",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "A",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "B",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "C",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "D",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "F",
+              "Students": 0,
+              "Share %": 0.0
+            }
+          ],
+          "Science": [
+            {
+              "Grade": "A+",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "A",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "B",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "C",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "D",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "F",
+              "Students": 0,
+              "Share %": 0.0
+            }
+          ]
+        },
+        "missing": [
+          {
+            "Subject": "Maths",
+            "Missing": 2,
+            "Missing %": 100.0
+          },
+          {
+            "Subject": "Science",
+            "Missing": 2,
+            "Missing %": 100.0
+          }
+        ],
+        "studentsWithMissing": [
+          {
+            "Student ID": "A1",
+            "Name": "Ann",
+            "Missing subjects": "Maths, Science"
+          },
+          {
+            "Student ID": "A2",
+            "Name": "Ben",
+            "Missing subjects": "Maths, Science"
+          }
+        ],
+        "classes": [
+          {
+            "Class": "10-A",
+            "Students": 1,
+            "Average %": null,
+            "Passed": 0,
+            "Pass rate %": 0.0
+          },
+          {
+            "Class": "10-B",
+            "Students": 1,
+            "Average %": null,
+            "Passed": 0,
+            "Pass rate %": 0.0
+          }
+        ],
+        "explanations": {
+          "overview": [
+            "The file contains 2 students and 2 subjects.",
+            "No student has a score yet, so there is no average or median percentage.",
+            "0 students passed every subject (pass mark 40%), 0 scored below the pass mark in at least one subject, and 2 have a missing score with no failed subject."
+          ],
+          "subjects": ["No subject has any scores yet."],
+          "grades": ["No grades could be calculated."],
+          "missing": [
+            "4 score(s) are missing across 2 subject(s): Maths (2), Science (2).",
+            "Missing scores are left out of averages and other statistics rather than counted as zero, so those figures describe only the students who have a score.",
+            "Students with a missing score are marked “Incomplete” unless they already scored below the pass mark in another subject. Check the records of these 2 student(s) before publishing results."
+          ]
+        }
+      }
+    },
+    {
+      "name": "identical-scores",
+      "csv": "Student ID,Name,Maths,Science\nT1,Ann,55,55\nT2,Ben,55,55\nT3,Cy,55,55\n",
+      "validation": {
+        "ok": true,
+        "errors": [],
+        "warnings": [],
+        "subjects": ["Maths", "Science"],
+        "rows": [
+          {
+            "Student ID": "T1",
+            "Name": "Ann",
+            "Maths": 55.0,
+            "Science": 55.0
+          },
+          {
+            "Student ID": "T2",
+            "Name": "Ben",
+            "Maths": 55.0,
+            "Science": 55.0
+          },
+          {
+            "Student ID": "T3",
+            "Name": "Cy",
+            "Maths": 55.0,
+            "Science": 55.0
+          }
+        ]
+      },
+      "analysis": {
+        "statistics": [
+          {
+            "Subject": "Maths",
+            "Count": 3,
+            "Missing": 0,
+            "Mean": 55.0,
+            "Median": 55.0,
+            "Std dev": 0.0,
+            "Min": 55.0,
+            "Q1": 55.0,
+            "Q3": 55.0,
+            "Max": 55.0,
+            "Passed": 3,
+            "Pass rate %": 100.0
+          },
+          {
+            "Subject": "Science",
+            "Count": 3,
+            "Missing": 0,
+            "Mean": 55.0,
+            "Median": 55.0,
+            "Std dev": 0.0,
+            "Min": 55.0,
+            "Q1": 55.0,
+            "Q3": 55.0,
+            "Max": 55.0,
+            "Passed": 3,
+            "Pass rate %": 100.0
+          }
+        ],
+        "results": [
+          {
+            "Student ID": "T1",
+            "Name": "Ann",
+            "Total": 110.0,
+            "Subjects scored": 2,
+            "Percentage": 55.0,
+            "Grade": "D",
+            "Result": "Pass",
+            "Rank": 1,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "T2",
+            "Name": "Ben",
+            "Total": 110.0,
+            "Subjects scored": 2,
+            "Percentage": 55.0,
+            "Grade": "D",
+            "Result": "Pass",
+            "Rank": 1,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "T3",
+            "Name": "Cy",
+            "Total": 110.0,
+            "Subjects scored": 2,
+            "Percentage": 55.0,
+            "Grade": "D",
+            "Result": "Pass",
+            "Rank": 1,
+            "Below pass mark in": ""
+          }
+        ],
+        "overview": {
+          "students": 3,
+          "subjects": 2,
+          "average_percentage": 55.0,
+          "median_percentage": 55.0,
+          "passed": 3,
+          "failed": 0,
+          "incomplete": 0,
+          "highest_subject": "Science",
+          "lowest_subject": "Maths"
+        },
+        "gradeDistribution": [
+          {
+            "Grade": "A+",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "A",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "B",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "C",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "D",
+            "Students": 3,
+            "Share %": 100.0
+          },
+          {
+            "Grade": "F",
+            "Students": 0,
+            "Share %": 0.0
+          }
+        ],
+        "subjectGrades": {
+          "Maths": [
+            {
+              "Grade": "A+",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "A",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "B",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "C",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "D",
+              "Students": 3,
+              "Share %": 100.0
+            },
+            {
+              "Grade": "F",
+              "Students": 0,
+              "Share %": 0.0
+            }
+          ],
+          "Science": [
+            {
+              "Grade": "A+",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "A",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "B",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "C",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "D",
+              "Students": 3,
+              "Share %": 100.0
+            },
+            {
+              "Grade": "F",
+              "Students": 0,
+              "Share %": 0.0
+            }
+          ]
+        },
+        "missing": [
+          {
+            "Subject": "Maths",
+            "Missing": 0,
+            "Missing %": 0.0
+          },
+          {
+            "Subject": "Science",
+            "Missing": 0,
+            "Missing %": 0.0
+          }
+        ],
+        "studentsWithMissing": [],
+        "classes": null,
+        "explanations": {
+          "overview": [
+            "The file contains 3 students and 2 subjects.",
+            "The average overall percentage is 55.0% and the median is 55.0%.",
+            "3 students passed every subject (pass mark 40%), 0 scored below the pass mark in at least one subject."
+          ],
+          "subjects": [
+            "Science has the highest average (55.0) and Maths the lowest (55.0).",
+            "Scores vary most in Science (standard deviation 0.0) and least in Maths (0.0).",
+            "Every student with a score reached the pass mark in every subject."
+          ],
+          "grades": [
+            "The most common overall grade is D (3 of 3 students).",
+            "0 students (0.0%) earned A or A+, and 0 (0.0%) have an overall F."
+          ],
+          "missing": ["No scores are missing, so every statistic uses every student."]
+        }
+      }
+    },
+    {
+      "name": "averages-that-round",
+      "csv": "Student ID,Name,Maths,Science\nR1,Ann,42.125,61.375\nR2,Ben,57.625,38.875\nR3,Cy,40.005,70.015\n",
+      "validation": {
+        "ok": true,
+        "errors": [],
+        "warnings": [],
+        "subjects": ["Maths", "Science"],
+        "rows": [
+          {
+            "Student ID": "R1",
+            "Name": "Ann",
+            "Maths": 42.125,
+            "Science": 61.375
+          },
+          {
+            "Student ID": "R2",
+            "Name": "Ben",
+            "Maths": 57.625,
+            "Science": 38.875
+          },
+          {
+            "Student ID": "R3",
+            "Name": "Cy",
+            "Maths": 40.005,
+            "Science": 70.015
+          }
+        ]
+      },
+      "analysis": {
+        "statistics": [
+          {
+            "Subject": "Maths",
+            "Count": 3,
+            "Missing": 0,
+            "Mean": 46.585,
+            "Median": 42.125,
+            "Std dev": 9.619501026560576,
+            "Min": 40.005,
+            "Q1": 41.065,
+            "Q3": 49.875,
+            "Max": 57.625,
+            "Passed": 3,
+            "Pass rate %": 100.0
+          },
+          {
+            "Subject": "Science",
+            "Count": 3,
+            "Missing": 0,
+            "Mean": 56.754999999999995,
+            "Median": 61.375,
+            "Std dev": 16.075857675408802,
+            "Min": 38.875,
+            "Q1": 50.125,
+            "Q3": 65.695,
+            "Max": 70.015,
+            "Passed": 2,
+            "Pass rate %": 66.66666666666666
+          }
+        ],
+        "results": [
+          {
+            "Student ID": "R3",
+            "Name": "Cy",
+            "Total": 110.02000000000001,
+            "Subjects scored": 2,
+            "Percentage": 55.01,
+            "Grade": "D",
+            "Result": "Pass",
+            "Rank": 1,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "R1",
+            "Name": "Ann",
+            "Total": 103.5,
+            "Subjects scored": 2,
+            "Percentage": 51.75,
+            "Grade": "D",
+            "Result": "Pass",
+            "Rank": 2,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "R2",
+            "Name": "Ben",
+            "Total": 96.5,
+            "Subjects scored": 2,
+            "Percentage": 48.25,
+            "Grade": "D",
+            "Result": "Fail",
+            "Rank": 3,
+            "Below pass mark in": "Science"
+          }
+        ],
+        "overview": {
+          "students": 3,
+          "subjects": 2,
+          "average_percentage": 51.669999999999995,
+          "median_percentage": 51.75,
+          "passed": 2,
+          "failed": 1,
+          "incomplete": 0,
+          "highest_subject": "Science",
+          "lowest_subject": "Maths"
+        },
+        "gradeDistribution": [
+          {
+            "Grade": "A+",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "A",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "B",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "C",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "D",
+            "Students": 3,
+            "Share %": 100.0
+          },
+          {
+            "Grade": "F",
+            "Students": 0,
+            "Share %": 0.0
+          }
+        ],
+        "subjectGrades": {
+          "Maths": [
+            {
+              "Grade": "A+",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "A",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "B",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "C",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "D",
+              "Students": 3,
+              "Share %": 100.0
+            },
+            {
+              "Grade": "F",
+              "Students": 0,
+              "Share %": 0.0
+            }
+          ],
+          "Science": [
+            {
+              "Grade": "A+",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "A",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "B",
+              "Students": 1,
+              "Share %": 33.33333333333333
+            },
+            {
+              "Grade": "C",
+              "Students": 1,
+              "Share %": 33.33333333333333
+            },
+            {
+              "Grade": "D",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "F",
+              "Students": 1,
+              "Share %": 33.33333333333333
+            }
+          ]
+        },
+        "missing": [
+          {
+            "Subject": "Maths",
+            "Missing": 0,
+            "Missing %": 0.0
+          },
+          {
+            "Subject": "Science",
+            "Missing": 0,
+            "Missing %": 0.0
+          }
+        ],
+        "studentsWithMissing": [],
+        "classes": null,
+        "explanations": {
+          "overview": [
+            "The file contains 3 students and 2 subjects.",
+            "The average overall percentage is 51.7% and the median is 51.8%.",
+            "2 students passed every subject (pass mark 40%), 1 scored below the pass mark in at least one subject."
+          ],
+          "subjects": [
+            "Science has the highest average (56.8) and Maths the lowest (46.6).",
+            "Scores vary most in Science (standard deviation 16.1) and least in Maths (9.6).",
+            "Science has the lowest pass rate: 2 of 3 students (66.7%) reached the pass mark."
+          ],
+          "grades": [
+            "The most common overall grade is D (3 of 3 students).",
+            "0 students (0.0%) earned A or A+, and 0 (0.0%) have an overall F."
+          ],
+          "missing": ["No scores are missing, so every statistic uses every student."]
+        }
+      }
+    },
+    {
+      "name": "control-characters-in-ascii-names",
+      "csv": "Student ID,Name,Maths\nC1,Asha\u001fRao,50\nC2,Ravi\u000bTeja,60\nC3,  Lena\u001c  Fischer ,70\n",
+      "validation": {
+        "ok": true,
+        "errors": [],
+        "warnings": [],
+        "subjects": ["Maths"],
+        "rows": [
+          {
+            "Student ID": "C1",
+            "Name": "Asha\u001fRao",
+            "Maths": 50.0
+          },
+          {
+            "Student ID": "C2",
+            "Name": "Ravi\u000bTeja",
+            "Maths": 60.0
+          },
+          {
+            "Student ID": "C3",
+            "Name": "Lena\u001c Fischer",
+            "Maths": 70.0
+          }
+        ]
+      },
+      "analysis": {
+        "statistics": [
+          {
+            "Subject": "Maths",
+            "Count": 3,
+            "Missing": 0,
+            "Mean": 60.0,
+            "Median": 60.0,
+            "Std dev": 10.0,
+            "Min": 50.0,
+            "Q1": 55.0,
+            "Q3": 65.0,
+            "Max": 70.0,
+            "Passed": 3,
+            "Pass rate %": 100.0
+          }
+        ],
+        "results": [
+          {
+            "Student ID": "C3",
+            "Name": "Lena\u001c Fischer",
+            "Total": 70.0,
+            "Subjects scored": 1,
+            "Percentage": 70.0,
+            "Grade": "B",
+            "Result": "Pass",
+            "Rank": 1,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "C2",
+            "Name": "Ravi\u000bTeja",
+            "Total": 60.0,
+            "Subjects scored": 1,
+            "Percentage": 60.0,
+            "Grade": "C",
+            "Result": "Pass",
+            "Rank": 2,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "C1",
+            "Name": "Asha\u001fRao",
+            "Total": 50.0,
+            "Subjects scored": 1,
+            "Percentage": 50.0,
+            "Grade": "D",
+            "Result": "Pass",
+            "Rank": 3,
+            "Below pass mark in": ""
+          }
+        ],
+        "overview": {
+          "students": 3,
+          "subjects": 1,
+          "average_percentage": 60.0,
+          "median_percentage": 60.0,
+          "passed": 3,
+          "failed": 0,
+          "incomplete": 0,
+          "highest_subject": "Maths",
+          "lowest_subject": "Maths"
+        },
+        "gradeDistribution": [
+          {
+            "Grade": "A+",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "A",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "B",
+            "Students": 1,
+            "Share %": 33.33333333333333
+          },
+          {
+            "Grade": "C",
+            "Students": 1,
+            "Share %": 33.33333333333333
+          },
+          {
+            "Grade": "D",
+            "Students": 1,
+            "Share %": 33.33333333333333
+          },
+          {
+            "Grade": "F",
+            "Students": 0,
+            "Share %": 0.0
+          }
+        ],
+        "subjectGrades": {
+          "Maths": [
+            {
+              "Grade": "A+",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "A",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "B",
+              "Students": 1,
+              "Share %": 33.33333333333333
+            },
+            {
+              "Grade": "C",
+              "Students": 1,
+              "Share %": 33.33333333333333
+            },
+            {
+              "Grade": "D",
+              "Students": 1,
+              "Share %": 33.33333333333333
+            },
+            {
+              "Grade": "F",
+              "Students": 0,
+              "Share %": 0.0
+            }
+          ]
+        },
+        "missing": [
+          {
+            "Subject": "Maths",
+            "Missing": 0,
+            "Missing %": 0.0
+          }
+        ],
+        "studentsWithMissing": [],
+        "classes": null,
+        "explanations": {
+          "overview": [
+            "The file contains 3 students and 1 subjects.",
+            "The average overall percentage is 60.0% and the median is 60.0%.",
+            "3 students passed every subject (pass mark 40%), 0 scored below the pass mark in at least one subject."
+          ],
+          "subjects": [
+            "Maths has the highest average (60.0) and Maths the lowest (60.0).",
+            "Scores vary most in Maths (standard deviation 10.0) and least in Maths (10.0).",
+            "Every student with a score reached the pass mark in every subject."
+          ],
+          "grades": [
+            "The most common overall grade is B (1 of 3 students).",
+            "0 students (0.0%) earned A or A+, and 0 (0.0%) have an overall F."
+          ],
+          "missing": ["No scores are missing, so every statistic uses every student."]
+        }
+      }
+    },
+    {
+      "name": "control-characters-beside-non-ascii-names",
+      "csv": "Student ID,Name,Maths\nC1,Asha\u001fRao,50\nC2,Omar  Farooq,80\n",
+      "validation": {
+        "ok": true,
+        "errors": [],
+        "warnings": [],
+        "subjects": ["Maths"],
+        "rows": [
+          {
+            "Student ID": "C1",
+            "Name": "Asha Rao",
+            "Maths": 50.0
+          },
+          {
+            "Student ID": "C2",
+            "Name": "Omar Farooq",
+            "Maths": 80.0
+          }
+        ]
+      },
+      "analysis": {
+        "statistics": [
+          {
+            "Subject": "Maths",
+            "Count": 2,
+            "Missing": 0,
+            "Mean": 65.0,
+            "Median": 65.0,
+            "Std dev": 21.213203435596427,
+            "Min": 50.0,
+            "Q1": 57.5,
+            "Q3": 72.5,
+            "Max": 80.0,
+            "Passed": 2,
+            "Pass rate %": 100.0
+          }
+        ],
+        "results": [
+          {
+            "Student ID": "C2",
+            "Name": "Omar Farooq",
+            "Total": 80.0,
+            "Subjects scored": 1,
+            "Percentage": 80.0,
+            "Grade": "A",
+            "Result": "Pass",
+            "Rank": 1,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "C1",
+            "Name": "Asha Rao",
+            "Total": 50.0,
+            "Subjects scored": 1,
+            "Percentage": 50.0,
+            "Grade": "D",
+            "Result": "Pass",
+            "Rank": 2,
+            "Below pass mark in": ""
+          }
+        ],
+        "overview": {
+          "students": 2,
+          "subjects": 1,
+          "average_percentage": 65.0,
+          "median_percentage": 65.0,
+          "passed": 2,
+          "failed": 0,
+          "incomplete": 0,
+          "highest_subject": "Maths",
+          "lowest_subject": "Maths"
+        },
+        "gradeDistribution": [
+          {
+            "Grade": "A+",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "A",
+            "Students": 1,
+            "Share %": 50.0
+          },
+          {
+            "Grade": "B",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "C",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "D",
+            "Students": 1,
+            "Share %": 50.0
+          },
+          {
+            "Grade": "F",
+            "Students": 0,
+            "Share %": 0.0
+          }
+        ],
+        "subjectGrades": {
+          "Maths": [
+            {
+              "Grade": "A+",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "A",
+              "Students": 1,
+              "Share %": 50.0
+            },
+            {
+              "Grade": "B",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "C",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "D",
+              "Students": 1,
+              "Share %": 50.0
+            },
+            {
+              "Grade": "F",
+              "Students": 0,
+              "Share %": 0.0
+            }
+          ]
+        },
+        "missing": [
+          {
+            "Subject": "Maths",
+            "Missing": 0,
+            "Missing %": 0.0
+          }
+        ],
+        "studentsWithMissing": [],
+        "classes": null,
+        "explanations": {
+          "overview": [
+            "The file contains 2 students and 1 subjects.",
+            "The average overall percentage is 65.0% and the median is 65.0%.",
+            "2 students passed every subject (pass mark 40%), 0 scored below the pass mark in at least one subject."
+          ],
+          "subjects": [
+            "Maths has the highest average (65.0) and Maths the lowest (65.0).",
+            "Scores vary most in Maths (standard deviation 21.2) and least in Maths (21.2).",
+            "Every student with a score reached the pass mark in every subject."
+          ],
+          "grades": [
+            "The most common overall grade is A (1 of 2 students).",
+            "1 students (50.0%) earned A or A+, and 0 (0.0%) have an overall F."
+          ],
+          "missing": ["No scores are missing, so every statistic uses every student."]
+        }
+      }
+    },
+    {
+      "name": "one-class-average",
+      "csv": "Student ID,Name,Class,Maths\nC1,Ann,10-A,64.68\nC2,Ben,10-A,86.6\nC3,Cy,10-A,19.16\nC4,Di,10-A,83.63\nC5,Ed,10-A,49.78\nC6,Fa,10-A,65.07\n",
+      "validation": {
+        "ok": true,
+        "errors": [],
+        "warnings": [],
+        "subjects": ["Maths"],
+        "rows": [
+          {
+            "Student ID": "C1",
+            "Name": "Ann",
+            "Class": "10-A",
+            "Maths": 64.68
+          },
+          {
+            "Student ID": "C2",
+            "Name": "Ben",
+            "Class": "10-A",
+            "Maths": 86.6
+          },
+          {
+            "Student ID": "C3",
+            "Name": "Cy",
+            "Class": "10-A",
+            "Maths": 19.16
+          },
+          {
+            "Student ID": "C4",
+            "Name": "Di",
+            "Class": "10-A",
+            "Maths": 83.63
+          },
+          {
+            "Student ID": "C5",
+            "Name": "Ed",
+            "Class": "10-A",
+            "Maths": 49.78
+          },
+          {
+            "Student ID": "C6",
+            "Name": "Fa",
+            "Class": "10-A",
+            "Maths": 65.07
+          }
+        ]
+      },
+      "analysis": {
+        "statistics": [
+          {
+            "Subject": "Maths",
+            "Count": 6,
+            "Missing": 0,
+            "Mean": 61.48666666666667,
+            "Median": 64.875,
+            "Std dev": 24.78966370620357,
+            "Min": 19.16,
+            "Q1": 53.505,
+            "Q3": 78.99,
+            "Max": 86.6,
+            "Passed": 5,
+            "Pass rate %": 83.33333333333334
+          }
+        ],
+        "results": [
+          {
+            "Student ID": "C2",
+            "Name": "Ben",
+            "Class": "10-A",
+            "Total": 86.6,
+            "Subjects scored": 1,
+            "Percentage": 86.6,
+            "Grade": "A",
+            "Result": "Pass",
+            "Rank": 1,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "C4",
+            "Name": "Di",
+            "Class": "10-A",
+            "Total": 83.63,
+            "Subjects scored": 1,
+            "Percentage": 83.63,
+            "Grade": "A",
+            "Result": "Pass",
+            "Rank": 2,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "C6",
+            "Name": "Fa",
+            "Class": "10-A",
+            "Total": 65.07,
+            "Subjects scored": 1,
+            "Percentage": 65.07,
+            "Grade": "C",
+            "Result": "Pass",
+            "Rank": 3,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "C1",
+            "Name": "Ann",
+            "Class": "10-A",
+            "Total": 64.68,
+            "Subjects scored": 1,
+            "Percentage": 64.68,
+            "Grade": "C",
+            "Result": "Pass",
+            "Rank": 4,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "C5",
+            "Name": "Ed",
+            "Class": "10-A",
+            "Total": 49.78,
+            "Subjects scored": 1,
+            "Percentage": 49.78,
+            "Grade": "D",
+            "Result": "Pass",
+            "Rank": 5,
+            "Below pass mark in": ""
+          },
+          {
+            "Student ID": "C3",
+            "Name": "Cy",
+            "Class": "10-A",
+            "Total": 19.16,
+            "Subjects scored": 1,
+            "Percentage": 19.16,
+            "Grade": "F",
+            "Result": "Fail",
+            "Rank": 6,
+            "Below pass mark in": "Maths"
+          }
+        ],
+        "overview": {
+          "students": 6,
+          "subjects": 1,
+          "average_percentage": 61.48666666666667,
+          "median_percentage": 64.875,
+          "passed": 5,
+          "failed": 1,
+          "incomplete": 0,
+          "highest_subject": "Maths",
+          "lowest_subject": "Maths"
+        },
+        "gradeDistribution": [
+          {
+            "Grade": "A+",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "A",
+            "Students": 2,
+            "Share %": 33.33333333333333
+          },
+          {
+            "Grade": "B",
+            "Students": 0,
+            "Share %": 0.0
+          },
+          {
+            "Grade": "C",
+            "Students": 2,
+            "Share %": 33.33333333333333
+          },
+          {
+            "Grade": "D",
+            "Students": 1,
+            "Share %": 16.666666666666664
+          },
+          {
+            "Grade": "F",
+            "Students": 1,
+            "Share %": 16.666666666666664
+          }
+        ],
+        "subjectGrades": {
+          "Maths": [
+            {
+              "Grade": "A+",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "A",
+              "Students": 2,
+              "Share %": 33.33333333333333
+            },
+            {
+              "Grade": "B",
+              "Students": 0,
+              "Share %": 0.0
+            },
+            {
+              "Grade": "C",
+              "Students": 2,
+              "Share %": 33.33333333333333
+            },
+            {
+              "Grade": "D",
+              "Students": 1,
+              "Share %": 16.666666666666664
+            },
+            {
+              "Grade": "F",
+              "Students": 1,
+              "Share %": 16.666666666666664
+            }
+          ]
+        },
+        "missing": [
+          {
+            "Subject": "Maths",
+            "Missing": 0,
+            "Missing %": 0.0
+          }
+        ],
+        "studentsWithMissing": [],
+        "classes": [
+          {
+            "Class": "10-A",
+            "Students": 6,
+            "Average %": 61.48666666666666,
+            "Passed": 5,
+            "Pass rate %": 83.33333333333334
+          }
+        ],
+        "explanations": {
+          "overview": [
+            "The file contains 6 students and 1 subjects.",
+            "The average overall percentage is 61.5% and the median is 64.9%.",
+            "The average is noticeably lower than the median, so a few low scores are pulling the average down.",
+            "5 students passed every subject (pass mark 40%), 1 scored below the pass mark in at least one subject."
+          ],
+          "subjects": [
+            "Maths has the highest average (61.5) and Maths the lowest (61.5).",
+            "Scores vary most in Maths (standard deviation 24.8) and least in Maths (24.8).",
+            "Maths has the lowest pass rate: 5 of 6 students (83.3%) reached the pass mark."
+          ],
+          "grades": [
+            "The most common overall grade is A (2 of 6 students).",
+            "2 students (33.3%) earned A or A+, and 1 (16.7%) have an overall F."
+          ],
+          "missing": ["No scores are missing, so every statistic uses every student."]
+        }
+      }
+    }
+  ]
+}

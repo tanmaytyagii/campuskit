@@ -150,6 +150,9 @@
     background: var(--ck-canvas);
     font-size: 1rem;
     line-height: 1.6;
+    /* A word too long for its line (a large heading with a reader's own letter spacing, a file
+       path in a list) breaks instead of widening the page. */
+    overflow-wrap: break-word;
   }
 
   ::selection {
@@ -163,6 +166,12 @@
      width; grid-cols-* utilities, which live in a later layer, still win. */
   .grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Browsers keep a fieldset at least as wide as its content, so a long word inside one could
+     push the page sideways. Like any other box, it may shrink. */
+  fieldset {
+    min-width: 0;
   }
 
   :focus-visible {
@@ -334,6 +343,11 @@ dialog[open] {
 
 dialog::backdrop {
   transition: background-color 180ms ease;
+}
+
+/* Presentation mode keeps its header and footer on screen; focus scrolls clear of them. */
+html:has([data-presentation]) {
+  scroll-padding-block: 4.5rem;
 }
 
 /* Rendered Markdown (README files, guides, policies). */

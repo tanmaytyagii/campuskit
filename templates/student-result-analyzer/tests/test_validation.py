@@ -58,6 +58,14 @@ def test_duplicate_and_blank_headers_are_rejected():
     assert "have no name" in messages(validate_results(csv_bytes("Student ID,Name,,Maths\n1,A,x,2"), max_marks=100))
 
 
+def test_identical_names_without_ascii_letters_are_reported():
+    # These names normalize to "" and were once let through, so the analysis crashed later.
+    for name in ("गणित", "---"):
+        result = validate_results(csv_bytes(f"Student ID,Name,{name},{name}\n1,Asha,50,60"), max_marks=100)
+        assert not result.ok
+        assert f"The columns “{name}” and “{name}” have the same name." in messages(result)
+
+
 def test_line_numbers_account_for_blank_lines():
     data = b"Student ID,Name,Maths\n1,Asha,50\n\n2,Ravi,abc\n"
     result = validate_results(data, max_marks=100)
@@ -70,7 +78,7 @@ def test_respects_a_custom_maximum():
 
 
 def test_byte_order_mark_and_windows_encoding():
-    utf8_bom = "﻿Student ID,Name,Maths\n1,Zoë,50\n".encode("utf-8")
+    utf8_bom = "\ufeffStudent ID,Name,Maths\n1,Zoë,50\n".encode("utf-8")
     result = validate_results(utf8_bom, max_marks=100)
     assert result.ok and result.data.loc[0, "Name"] == "Zoë"
 

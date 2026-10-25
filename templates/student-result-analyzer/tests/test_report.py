@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import re
 from datetime import datetime
 
 import pandas as pd
@@ -48,7 +49,7 @@ def test_csv_export_round_trips_and_blocks_formulas():
     raw = csv_bytes("Student ID,Name,Maths\nS1,=HYPERLINK(\"x\"),50\nS2,Zoë,70")
     _, _, results = analysed(raw)
     exported = report.to_csv_bytes(results)
-    assert exported.startswith("﻿".encode("utf-8"))
+    assert exported.startswith("\ufeff".encode("utf-8"))
     frame = pd.read_csv(io.BytesIO(exported), encoding="utf-8-sig")
     assert "'=HYPERLINK(\"x\")" in frame["Name"].tolist()
     assert "Zoë" in frame["Name"].tolist()
@@ -60,3 +61,32 @@ def test_markdown_tables_escape_pipes():
     _, stats, results = analysed(raw)
     table = report._markdown_table(results[["Name"]])
     assert "A\\|B" in table
+
+
+def test_a_file_with_no_scores_says_so_instead_of_nan():
+    # Every score marked absent: there is no average, and "nan" must not reach the student.
+    raw = csv_bytes(
+        """
+        Student ID,Name,Class,Maths,Science
+        A1,Ann,10-A,AB,-
+        A2,Ben,10-B,NA,absent
+        """
+    )
+    result, stats, results = analysed(raw)
+    assert result.ok
+    summary = analysis.overview(results, stats)
+    overview = explain.explain_overview(summary, 40)
+    assert "No student has a score yet, so there is no average or median percentage." in overview
+    text = report.build_report(
+        config=CONFIG,
+        source_name="absent.csv",
+        summary=summary,
+        stats=stats,
+        results=results,
+        distribution=analysis.grade_distribution(results["Grade"]),
+        missing=analysis.missing_summary(result.data, result.subjects),
+        explanations={"overview": overview, "subjects": explain.explain_subjects(stats)},
+        generated_at=datetime(2026, 10, 24, 9, 30),
+    )
+    assert "| 2 | 2 | — | — | 0 | 0 | 2 |" in text
+    assert re.search(r"\bnan\b", text, re.IGNORECASE) is None

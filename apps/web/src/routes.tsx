@@ -31,6 +31,9 @@ const LearnPage = lazy(() =>
 const ReportPage = lazy(() =>
   import('./pages/ReportPage.tsx').then((module) => ({ default: module.ReportPage })),
 );
+const DemosPage = lazy(() =>
+  import('./pages/DemosPage.tsx').then((module) => ({ default: module.DemosPage })),
+);
 const VivaHubPage = lazy(() =>
   import('./pages/VivaHubPage.tsx').then((module) => ({ default: module.VivaHubPage })),
 );
@@ -42,6 +45,21 @@ const LearningStudioPage = lazy(() =>
 const VivaPracticePage = lazy(() =>
   import('./features/viva/VivaPracticePage.tsx').then((module) => ({
     default: module.VivaPracticePage,
+  })),
+);
+const PresentationPage = lazy(() =>
+  import('./features/presentation/PresentationPage.tsx').then((module) => ({
+    default: module.PresentationPage,
+  })),
+);
+const ReadinessPage = lazy(() =>
+  import('./features/readiness/ReadinessPage.tsx').then((module) => ({
+    default: module.ReadinessPage,
+  })),
+);
+const DemoStudioPage = lazy(() =>
+  import('./features/demo/DemoStudioPage.tsx').then((module) => ({
+    default: module.DemoStudioPage,
   })),
 );
 const ComparePage = lazy(() =>
@@ -76,6 +94,12 @@ function load(Component: LazyExoticComponent<ComponentType>) {
 
 export const routes: RouteObject[] = [
   {
+    // Presentation mode fills the screen, without the site's header and footer.
+    path: '/projects/:slug/present',
+    element: load(PresentationPage),
+    errorElement: <ErrorPage />,
+  },
+  {
     path: '/',
     element: <Layout />,
     errorElement: <ErrorPage />,
@@ -92,11 +116,14 @@ export const routes: RouteObject[] = [
           // One route for every section, so moving between sections keeps the page (and focus).
           { path: 'projects/:slug/learn/:section?', element: load(LearningStudioPage) },
           { path: 'projects/:slug/viva', element: load(VivaPracticePage) },
+          { path: 'projects/:slug/demo', element: load(DemoStudioPage) },
+          { path: 'projects/:slug/ready', element: load(ReadinessPage) },
           { path: 'compare', element: load(ComparePage) },
           { path: 'generate', element: load(GeneratorPage) },
           { path: 'learn', element: load(LearnPage) },
           { path: 'learn/report', element: load(ReportPage) },
           { path: 'viva', element: load(VivaHubPage) },
+          { path: 'demos', element: load(DemosPage) },
           { path: 'docs', element: load(DocsIndexPage) },
           { path: 'docs/:slug', element: load(DocPage) },
           { path: '*', element: <NotFoundPage /> },

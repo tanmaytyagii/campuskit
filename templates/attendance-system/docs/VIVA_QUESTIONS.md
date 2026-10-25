@@ -28,7 +28,14 @@ Through React Context. `AttendanceProvider` holds the data with `useReducer` and
 
 ## 7. What happens if the saved data is corrupted?
 
-`loadData` parses the JSON inside `try/catch`, and `validateData` checks every field (ids, dates, statuses). If anything is wrong, the app starts with fresh data and copies the unreadable value to a backup key, so nothing is silently lost and the app never crashes on bad data.
+`loadData` parses the JSON inside `try/catch`, and `recoverData` checks every field (ids, dates, statuses).
+
+- A student, date or mark that fails is left out and the rest is loaded, with a banner giving the reason.
+- If the data as a whole is unreadable, the app starts fresh.
+- Either way, the saved value is first copied to a backup key, and an earlier copy is never replaced, so nothing is silently lost.
+- If the browser refuses that copy, the app doesn't save at all.
+
+The app never crashes on bad data. Imported backups must pass `validateData` in full, because an import replaces everything.
 
 ## 8. How do you prevent duplicate roll numbers?
 

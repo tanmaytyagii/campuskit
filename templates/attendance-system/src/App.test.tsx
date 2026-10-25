@@ -4,7 +4,8 @@ import { describe, expect, it } from 'vitest';
 
 import { App } from './App';
 import type { AppConfig } from './config';
-import { STORAGE_KEY } from './lib/storage';
+import { createDemoData } from './lib/demo-data';
+import { BACKUP_KEY, STORAGE_KEY } from './lib/storage';
 
 const config: AppConfig = {
   appName: 'Test Attendance',
@@ -36,6 +37,43 @@ describe('Attendance app', () => {
       .getByRole('heading', { name: 'Below the 75% threshold' })
       .closest('section');
     expect(within(attention as HTMLElement).getByText('Rohan Das')).toBeInTheDocument();
+  });
+
+  it('keeps the readable students when one saved student is malformed', () => {
+    const data = createDemoData();
+    const raw = JSON.stringify({
+      ...data,
+      students: data.students.map((student, index) =>
+        index === 1 ? { ...student, rollNumber: 42 } : student,
+      ),
+    });
+    window.localStorage.setItem(STORAGE_KEY, raw);
+    render(<App config={{ ...config, seedDemoData: false }} />);
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      `Some saved data couldn’t be read (student 2 has no roll number) and was left out. A copy of the saved data was kept in localStorage under ${BACKUP_KEY}.`,
+    );
+    expect(screen.queryByText('No students yet')).toBeNull();
+    const saved = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? '{}') as {
+      students: unknown[];
+    };
+    expect(saved.students).toHaveLength(data.students.length - 1);
+    expect(window.localStorage.getItem(BACKUP_KEY)).toBe(raw);
+  });
+
+  it('saves nothing over data it couldn’t read when the browser refuses to keep a copy', () => {
+    const items = new Map([[STORAGE_KEY, '{not json']]);
+    const storage = {
+      getItem: (key: string) => items.get(key) ?? null,
+      setItem: () => {
+        throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+      },
+      removeItem: (key: string) => items.delete(key),
+    } as unknown as Storage;
+    render(<App config={config} storage={storage} />);
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Changes can’t be saved because some saved data couldn’t be read (the saved data is not valid JSON) and the browser refused to keep a copy, so saving would lose it. Data will be lost when you close this tab.',
+    );
+    expect(items.get(STORAGE_KEY)).toBe('{not json');
   });
 
   it('starts empty when demo data is turned off', () => {

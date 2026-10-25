@@ -9,6 +9,7 @@ const COLUMNS = [
     title: 'Use CampusKit',
     links: [
       { to: '/projects', label: 'Project gallery' },
+      { to: '/demos', label: 'Interactive demos' },
       { to: '/generate', label: 'Project generator' },
       { to: '/compare', label: 'Compare projects' },
       { to: '/learn', label: 'Learning center' },

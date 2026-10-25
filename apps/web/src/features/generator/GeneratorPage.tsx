@@ -7,8 +7,8 @@ import {
   type ProjectManifest,
 } from '@campuskit/project-catalog';
 import { formatBytes, type TemplateOption } from '@campuskit/template-engine';
-import { Download, PackageOpen, RotateCcw } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, type RefObject } from 'react';
+import { ArrowRight, Download, PackageOpen, RotateCcw } from 'lucide-react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import { Link, useSearchParams } from 'react-router';
 
 import { PageHeader } from '../../components/layout/PageHeader.tsx';
@@ -25,7 +25,14 @@ import { cn } from '../../lib/cn.ts';
 import { downloadFile } from '../../lib/download.ts';
 import { readSession, writeSession } from '../../lib/storage.ts';
 import { getTemplateStatus } from '../../lib/verification.ts';
-import { studioHref, vivaHref } from '../learning/links.ts';
+import { hasDemo } from '../demo/registry.ts';
+import {
+  demoHref,
+  presentationHref,
+  readinessHref,
+  studioHref,
+  vivaHref,
+} from '../learning/links.ts';
 import { AppPreview } from './AppPreview.tsx';
 import { FilePreview } from './FilePreview.tsx';
 import { KitPreview } from './KitPreview.tsx';
@@ -129,7 +136,10 @@ export function GeneratorPage() {
       ? STEP_IDS.filter((id) => id !== 'options')
       : [...STEP_IDS];
 
-  useEffect(() => {
+  // A layout effect moves focus in the same commit that shows the new step. The done step
+  // arrives after an await, and a passive effect could then run a task later, leaving
+  // focus on the page body in between.
+  useLayoutEffect(() => {
     if (previousStep.current === step) return;
     previousStep.current = step;
     heading.current?.focus();
@@ -245,7 +255,8 @@ export function GeneratorPage() {
       ) : (
         <span />
       )}
-      <Button onClick={goNext} disabled={disabled}>
+      {/* "Continue with Student Attendance System" can need two lines on a phone. */}
+      <Button onClick={goNext} disabled={disabled} wrap>
         {nextLabel}
       </Button>
     </div>
@@ -728,23 +739,72 @@ function DonePanel({
         must write or measure yourself.
       </Callout>
 
-      <div className="flex flex-wrap gap-3 border-t border-line pt-6">
-        <ButtonLink to={studioHref(manifest)} variant="secondary">
-          Learn how it works
-        </ButtonLink>
-        <ButtonLink to={vivaHref(manifest)} variant="secondary">
-          Practise viva questions
-        </ButtonLink>
-        <ButtonLink to={`/learn/report?project=${manifest.id}`} variant="secondary">
-          Draft your report
-        </ButtonLink>
-        <ButtonLink to={`/projects/${manifest.slug}`} variant="secondary">
-          Open the project page
-        </ButtonLink>
-        <Button variant="ghost" onClick={onStartOver}>
-          Change settings and generate again
-        </Button>
-      </div>
+      <nav aria-labelledby="next-heading" className="space-y-3 border-t border-line pt-6">
+        <h3 id="next-heading" className="font-bold text-ink">
+          What to do next
+        </h3>
+        <ul className="grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-2">
+          {[
+            {
+              to: studioHref(manifest),
+              title: 'Learn how it works',
+              text: 'The architecture, the important files and a checklist.',
+            },
+            ...(hasDemo(manifest)
+              ? [
+                  {
+                    to: demoHref(manifest),
+                    title: 'Practise the demonstration',
+                    text: 'The interactive demo, with a guided demo that checks your actions.',
+                  },
+                ]
+              : []),
+            {
+              to: vivaHref(manifest),
+              title: 'Practise viva questions',
+              text: 'Questions with model answers based on the code.',
+            },
+            {
+              to: `/learn/report?project=${manifest.id}`,
+              title: 'Draft your report',
+              text: 'Every section, from the project’s real features and limitations.',
+            },
+            {
+              to: presentationHref(manifest),
+              title: 'Present the project',
+              text: 'Slides built from the project, with speaking notes.',
+            },
+            {
+              to: readinessHref(manifest),
+              title: 'Check your readiness',
+              text: 'What is verified, what you have done and what is left.',
+            },
+          ].map((link) => (
+            <li key={link.to} className="bg-surface">
+              <Link to={link.to} className="group flex h-full items-start gap-3 p-4">
+                <span className="min-w-0 flex-1">
+                  <span className="block font-semibold text-ink group-hover:text-violet">
+                    {link.title}
+                  </span>
+                  <span className="block text-sm text-ink-2">{link.text}</span>
+                </span>
+                <ArrowRight
+                  aria-hidden="true"
+                  className="mt-1 size-4 shrink-0 text-ink-3 transition-transform group-hover:translate-x-0.5 group-hover:text-violet motion-reduce:transition-none"
+                />
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <div className="flex flex-wrap gap-3 pt-1">
+          <ButtonLink to={`/projects/${manifest.slug}`} variant="secondary" size="sm">
+            Open the project page
+          </ButtonLink>
+          <Button variant="ghost" size="sm" onClick={onStartOver}>
+            Change settings and generate again
+          </Button>
+        </div>
+      </nav>
     </div>
   );
 }

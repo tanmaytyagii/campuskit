@@ -25,6 +25,7 @@ describe('money', () => {
     ['.5', 'USD', 50],
     ['0.1', 'USD', 10],
     ['1200', 'JPY', 1200],
+    ['100000000', 'INR', 10000000000],
   ] as const)(
     'parses %s %s into %i minor units without rounding errors',
     (input, currency, expected) => {
@@ -41,6 +42,7 @@ describe('money', () => {
     ['10.5', 'JPY', /no decimal places/],
     ['0', 'INR', /greater than zero/],
     ['200000000', 'INR', /not supported/],
+    ['100000000.01', 'INR', /not supported/],
   ] as const)('rejects %j for %s', (input, currency, message) => {
     const result = parseAmount(input, currency);
     expect(result.ok).toBe(false);

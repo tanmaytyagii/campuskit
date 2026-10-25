@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ReactNode, Ref } from 'react';
 
 import { cn } from '../../lib/cn.ts';
 
@@ -8,9 +8,18 @@ interface EmptyStateProps {
   children: ReactNode;
   actions?: ReactNode;
   className?: string;
+  /** For pages that move focus to the heading, for example after deleting the last item. */
+  headingRef?: Ref<HTMLHeadingElement>;
 }
 
-export function EmptyState({ icon, title, children, actions, className }: EmptyStateProps) {
+export function EmptyState({
+  icon,
+  title,
+  children,
+  actions,
+  className,
+  headingRef,
+}: EmptyStateProps) {
   return (
     <div
       className={cn(
@@ -23,7 +32,13 @@ export function EmptyState({ icon, title, children, actions, className }: EmptyS
           {icon}
         </div>
       ) : null}
-      <h2 className="type-h3 text-ink">{title}</h2>
+      <h2
+        ref={headingRef}
+        tabIndex={headingRef ? -1 : undefined}
+        className="type-h3 text-ink outline-none"
+      >
+        {title}
+      </h2>
       <div className="mx-auto mt-2 max-w-md text-sm text-ink-3">{children}</div>
       {actions ? <div className="mt-6 flex flex-wrap justify-center gap-3">{actions}</div> : null}
     </div>

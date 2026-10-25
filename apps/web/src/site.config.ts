@@ -5,6 +5,6 @@
  */
 export const siteConfig = {
   name: 'CampusKit',
-  tagline: 'Build it. Understand it. Present it.',
+  tagline: 'Explore it. Build it. Understand it. Demonstrate it.',
   repositoryUrl: 'https://github.com/tanmaytyagii/campuskit' as string | null,
 };

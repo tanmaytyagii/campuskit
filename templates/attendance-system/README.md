@@ -79,7 +79,7 @@ Everything is saved in your browser’s **localStorage** under the key `campuski
 - **Reset from the app:** open **Settings** and choose **Load demo data** or **Delete all data**. Use **Export backup (JSON)** first if you want to keep a copy.
 - **Reset without the app:** open your browser’s developer tools (F12), go to **Application** (Chrome, Edge) or **Storage** (Firefox), open **Local Storage**, select the site (for example `http://localhost:5173`) and delete the `campuskit-attendance:v1` entry. Reload the page.
 
-If saved data ever becomes unreadable, the app starts fresh and keeps the old value under `campuskit-attendance:v1:unreadable-backup`.
+If a saved record is ever damaged (a student, a date or a mark), the app leaves it out, loads the rest, and says so in a banner. If nothing saved can be read, it starts fresh. Either way, it first copies the saved value to `campuskit-attendance:v1:unreadable-backup`. An earlier copy is never replaced: a later one gets the time added to its key. If the browser refuses even that copy (for example, its storage is full), the app doesn't save anything, so the saved value stays as it was.
 
 ## Project structure
 

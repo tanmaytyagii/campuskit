@@ -15,6 +15,8 @@ export interface LoadedDemo {
   render: (props: DemoViewProps<unknown>) => ReactNode;
   /** null when the step has no action to check. */
   check: (stepId: string, state: unknown, start: unknown) => StepCheck | null;
+  /** The presentation steps this demo can check (for the registry tests). */
+  checkIds: string[];
   describe: (state: unknown) => string;
 }
 
@@ -27,12 +29,12 @@ export function defineDemo<State>(implementation: DemoImplementation<State>): Lo
       const state = implementation.readState(value);
       return state === null ? null : { state };
     },
-    render: (props) =>
-      createElement(implementation.View, props as unknown as DemoViewProps<State>),
+    render: (props) => createElement(implementation.View, props as unknown as DemoViewProps<State>),
     check: (stepId, state, start) => {
       const check = implementation.checks[stepId];
       return check ? check(state as State, start as State) : null;
     },
+    checkIds: Object.keys(implementation.checks),
     describe: (state) => implementation.describe(state as State),
   };
 }

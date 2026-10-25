@@ -26,7 +26,7 @@
  */
 import { spawn, type ChildProcess } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
+import { appendFile, mkdtemp, readdir, readFile, realpath, rm } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { arch, release, tmpdir } from 'node:os';
 import { dirname, join, relative, resolve, sep } from 'node:path';
@@ -62,6 +62,9 @@ import {
 } from '@campuskit/template-engine';
 import { buildTemplateBundle, extractZipArchive } from '@campuskit/template-engine/node';
 
+import { keepOutput, NotReadyError, stopProcess, waitForHealth } from './lib/processes.ts';
+import { errorAnnotation, jobSummary } from './lib/verify-report.ts';
+
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const isWindows = process.platform === 'win32';
 const GENERATED_ON = new Date('2026-10-21T10:30:00Z');
@@ -73,6 +76,12 @@ const record = args.includes('--record');
 const verificationDir = join(repoRoot, 'packages', 'project-catalog', 'verification');
 const requested = args.filter((arg) => !arg.startsWith('--'));
 const python = process.env.CAMPUSKIT_PYTHON ?? (isWindows ? 'python' : 'python3');
+/*
+ * The real path of the temporary folder. os.tmpdir() can be a short 8.3 name on Windows
+ * (C:\Users\RUNNER~1\..., as on GitHub's runners) or a symbolic link on macOS (/var), and
+ * build tools that resolve real paths then see the project at two different paths.
+ */
+const tempRoot = await realpath(tmpdir());
 
 class CheckError extends Error {}
 
@@ -148,23 +157,6 @@ function run(command: string, commandArgs: string[], options: RunOptions): Promi
 }
 
 /**
- * Stops a long-running child process and waits until it has exited. On Windows,
- * files stay locked until the process is really gone, so deleting its folder
- * straight after `kill()` can fail.
- */
-function stop(child: ChildProcess, timeoutMs = 15_000): Promise<void> {
-  if (child.exitCode !== null || child.signalCode !== null) return Promise.resolve();
-  return new Promise((resolvePromise) => {
-    const timer = setTimeout(resolvePromise, timeoutMs);
-    child.once('exit', () => {
-      clearTimeout(timer);
-      resolvePromise();
-    });
-    child.kill();
-  });
-}
-
-/**
  * Deletes a temporary folder, retrying while Windows still holds files open.
  * A folder that can't be deleted is reported, but it doesn't fail the
  * verification: the project itself passed.
@@ -192,22 +184,6 @@ function freePort(): Promise<number> {
       );
     });
   });
-}
-
-async function waitForHealth(url: string, child: ChildProcess, timeoutMs: number): Promise<void> {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    if (child.exitCode !== null)
-      throw new CheckError(`The app stopped with exit code ${child.exitCode} before it was ready`);
-    try {
-      const response = await fetch(url);
-      if (response.ok) return;
-    } catch {
-      // not listening yet
-    }
-    await new Promise((done) => setTimeout(done, 500));
-  }
-  throw new CheckError(`${url} did not answer within ${timeoutMs / 1000} seconds`);
 }
 
 // ---------------------------------------------------------------------------
@@ -343,12 +319,18 @@ async function checkPythonVersion(): Promise<void> {
   );
 }
 
+/** Command output without terminal colours: test runners colour their output when CI is set. */
+function plain(output: string): string {
+  // eslint-disable-next-line no-control-regex -- terminal colour codes start with the ESC character
+  return output.replace(/\u001b\[[0-9;]*m/g, '');
+}
+
 async function runNpmProject(projectDir: string, project: GeneratedProject): Promise<string[]> {
   const steps: string[] = [];
   await run('npm', ['ci', '--include=dev', '--no-audit', '--no-fund'], { cwd: projectDir });
   steps.push('npm ci');
   const testOutput = await run('npm', ['test'], { cwd: projectDir, env: { CI: 'true' } });
-  const summary = /Tests\s+(\d+) passed/.exec(testOutput);
+  const summary = /Tests\s+(\d+) passed/.exec(plain(testOutput));
   steps.push(`npm test (${summary ? `${summary[1]} passed` : 'passed'})`);
   await run('npm', ['run', 'build'], { cwd: projectDir });
   const html = await readFile(join(projectDir, 'dist', 'index.html'), 'utf8');
@@ -374,7 +356,7 @@ async function runPipProject(projectDir: string): Promise<string[]> {
   const testOutput = await run(venvPython, ['-m', 'pytest', '-q', '-p', 'no:cacheprovider'], {
     cwd: projectDir,
   });
-  const summary = /(\d+) passed/.exec(testOutput);
+  const summary = /(\d+) passed/.exec(plain(testOutput));
   steps.push(`python -m pytest (${summary ? `${summary[1]} passed` : 'passed'})`);
 
   if (existsSync(join(projectDir, 'app.py'))) {
@@ -388,6 +370,10 @@ async function runPipProject(projectDir: string): Promise<string[]> {
         'app.py',
         '--server.headless',
         'true',
+        // An explicit IPv4 address: "localhost" can resolve to ::1 first on some systems
+        // (Windows among them) while the server listens on 127.0.0.1, or the other way round.
+        '--server.address',
+        '127.0.0.1',
         '--server.port',
         String(port),
       ],
@@ -395,11 +381,12 @@ async function runPipProject(projectDir: string): Promise<string[]> {
         cwd: projectDir,
       },
     );
+    const output = keepOutput(app);
     try {
-      await waitForHealth(`http://localhost:${port}/_stcore/health`, app, 90_000);
+      await waitForHealth(`http://127.0.0.1:${port}/_stcore/health`, app, 90_000, output);
       steps.push('streamlit run app.py (health check answered)');
     } finally {
-      await stop(app);
+      await stopProcess(app);
     }
   }
   return steps;
@@ -424,7 +411,7 @@ async function verify(
   variant: 'defaults' | 'customized',
 ): Promise<Result> {
   const details: string[] = [];
-  const workDir = await mkdtemp(join(tmpdir(), `campuskit-${manifest.id}-${variant}-`));
+  const workDir = await mkdtemp(join(tempRoot, `campuskit-${manifest.id}-${variant}-`));
   let ok = false;
   let failure: string | undefined;
   try {
@@ -478,7 +465,11 @@ async function verify(
   } catch (error) {
     failure = error instanceof Error ? error.message : String(error);
     details.push(`FAILED: ${failure}`);
-    if (!(error instanceof CheckError) && error instanceof Error && error.stack)
+    if (
+      !(error instanceof CheckError || error instanceof NotReadyError) &&
+      error instanceof Error &&
+      error.stack
+    )
       details.push(error.stack);
   } finally {
     if (ok && !keep) await removeWorkDir(workDir, details);
@@ -494,6 +485,34 @@ async function verify(
     .filter((line) => !line.includes('\n'))
     .map((line) => line.slice(0, 200));
   return { template: manifest.id, variant, ok, details, steps, failure };
+}
+
+// ---------------------------------------------------------------------------
+// Reporting in GitHub Actions (formatting in scripts/lib/verify-report.ts)
+// ---------------------------------------------------------------------------
+
+const inGitHubActions = process.env.GITHUB_ACTIONS === 'true';
+
+function annotate(title: string, message: string): void {
+  if (inGitHubActions) console.log(errorAnnotation(title, message));
+}
+
+function annotateFailure(result: Result): void {
+  if (result.failure)
+    annotate(
+      `${result.template} (${result.variant}) failed on ${process.platform}`,
+      result.failure,
+    );
+}
+
+async function writeJobSummary(results: Result[]): Promise<void> {
+  const file = process.env.GITHUB_STEP_SUMMARY;
+  if (!inGitHubActions || !file) return;
+  try {
+    await appendFile(file, `${jobSummary(results, process.platform, process.version)}\n`);
+  } catch (error) {
+    console.error(`Could not write the job summary: ${(error as Error).message}`);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -586,9 +605,9 @@ if (!filesOnly && manifests.some((manifest) => manifest.template.packageManager 
   try {
     await checkPythonVersion();
   } catch (error) {
-    console.error(
-      `\n${(error as Error).message}\nInstall Python 3.11+ or set CAMPUSKIT_PYTHON, or run with --files-only.\n`,
-    );
+    const message = `${(error as Error).message}\nInstall Python 3.11+ or set CAMPUSKIT_PYTHON, or run with --files-only.`;
+    console.error(`\n${message}\n`);
+    annotate(`Python check failed on ${process.platform}`, message);
     process.exit(1);
   }
 }
@@ -601,6 +620,7 @@ for (const manifest of manifests) {
     process.stdout.write(`\n${manifest.id} (${variant})\n`);
     const result = await verify(manifest, variant);
     for (const line of result.details) console.log(`  ${result.ok ? '✓' : '•'} ${line}`);
+    annotateFailure(result);
     templateResults.push(result);
   }
   results.push(...templateResults);
@@ -615,6 +635,7 @@ for (const manifest of manifests) {
 }
 
 const failed = results.filter((result) => !result.ok);
+await writeJobSummary(results);
 if (recordFailures.length > 0) {
   console.error(`\nCould not write verification records for: ${recordFailures.join(', ')}`);
   process.exitCode = 1;

@@ -256,12 +256,16 @@
         "name": "localStorage persistence",
         "layer": "storage",
         "kind": "storage",
-        "responsibility": "Loads the saved JSON under the key campuskit-attendance:v1, checks every field with validateData before using it, keeps unreadable data under a backup key, and saves the data after each change.",
+        "responsibility": "Loads the saved JSON under the key campuskit-attendance:v1 and checks every field with recoverData before using it. A record that fails is left out and the rest is kept, after the saved value is copied to a backup key. The data is saved after each change.",
         "files": ["src/lib/storage.ts"],
         "symbols": [
           {
             "file": "src/lib/storage.ts",
             "name": "loadData"
+          },
+          {
+            "file": "src/lib/storage.ts",
+            "name": "recoverData"
           },
           {
             "file": "src/lib/storage.ts",
@@ -391,7 +395,7 @@
           },
           {
             "component": "storage",
-            "text": "AttendanceProvider calls loadData, which parses the saved JSON and runs validateData on it."
+            "text": "AttendanceProvider calls loadData, which parses the saved JSON and runs recoverData on it."
           },
           {
             "component": "demo-data",
@@ -497,7 +501,7 @@
       "title": "The app shell",
       "file": "src/App.tsx",
       "role": "Header, navigation, storage banner, the current screen and the footer.",
-      "explanation": "App wraps everything in AttendanceProvider (data) and NoticeProvider (announcements). It reads the current screen from useHashRoute, updates document.title and moves keyboard focus to the page heading when the screen changes. StorageBanner shows a message when saved data was unreadable, storage is blocked or a save failed.",
+      "explanation": "App wraps everything in AttendanceProvider (data) and NoticeProvider (announcements). It reads the current screen from useHashRoute, updates document.title and moves keyboard focus to the page heading when the screen changes. StorageBanner shows a message when some or all saved data was unreadable, storage is blocked or a save failed.",
       "symbols": [
         {
           "name": "App",
@@ -593,7 +597,7 @@
       "title": "Loading and saving in localStorage",
       "file": "src/lib/storage.ts",
       "role": "Reads and writes the data under one localStorage key, never trusting what is stored.",
-      "explanation": "loadData parses the saved JSON inside try/catch and runs validateData, which checks the version, every student field, unique ids, every date and every status. Marks for students that no longer exist are dropped. If anything is wrong, the raw value is copied to a backup key and the app starts fresh, so bad data can't crash it. getBrowserStorage returns null when the browser blocks storage.",
+      "explanation": "loadData parses the saved JSON inside try/catch and runs recoverData, which checks the version, every student field, unique ids, every date and every status. A student, date or mark that fails is left out and the rest is loaded; if the data as a whole is unreadable, the app starts fresh. Either way, keepCopy first copies the raw value to a backup key without replacing an earlier copy, and if the browser refuses, the app saves nothing. Bad data can't crash it. Marks for students that no longer exist are dropped. getBrowserStorage returns null when the browser blocks storage.",
       "symbols": [
         {
           "name": "STORAGE_KEY",
@@ -604,12 +608,20 @@
           "explanation": "Where unreadable data is kept instead of being thrown away."
         },
         {
+          "name": "recoverData",
+          "explanation": "Keeps every student, date and mark that passes the checks, and lists what was wrong with the rest."
+        },
+        {
           "name": "validateData",
-          "explanation": "Returns clean AttendanceData, or a sentence describing the first problem."
+          "explanation": "The strict check for imported backups: clean AttendanceData, or a sentence describing the first problem."
+        },
+        {
+          "name": "keepCopy",
+          "explanation": "Copies saved data that couldn’t be fully read to a backup key, never replacing an earlier copy. Returns the key, or null if the browser refused."
         },
         {
           "name": "loadData",
-          "explanation": "Returns empty, loaded, invalid (with a reason) or unavailable."
+          "explanation": "Returns empty, loaded, partial (some data left out), invalid or unavailable, with the backup key when a copy was kept."
         },
         {
           "name": "saveData",
@@ -690,7 +702,7 @@
         },
         {
           "name": "isValidDateKey",
-          "explanation": "A yes/no wrapper used by forms and validateData."
+          "explanation": "A yes/no wrapper used by forms and recoverData."
         },
         {
           "name": "previousWeekdays",
@@ -770,7 +782,7 @@
       "title": "Backups and demo data",
       "file": "src/views/SettingsView.tsx",
       "role": "Export and import JSON backups, load the demo class or delete all data.",
-      "explanation": "exportBackup downloads the current data as JSON. handleImport rejects files over 5 MB, parses the JSON and runs the same validateData used at start-up before asking for confirmation, so an edited or damaged backup is refused with a reason. Every destructive action goes through a confirmation dialog.",
+      "explanation": "exportBackup downloads the current data as JSON. handleImport rejects files over 5 MB, parses the JSON and runs validateData, the strict form of the start-up checks, before asking for confirmation. So an edited or damaged backup is refused with a reason rather than partly imported. Every destructive action goes through a confirmation dialog.",
       "symbols": [
         {
           "name": "exportBackup",
@@ -875,7 +887,7 @@
     {
       "id": "validation-corrupt",
       "area": "validation",
-      "text": "Explain what happens when the saved data is corrupted: loadData, validateData and the backup key.",
+      "text": "Explain what happens when the saved data is corrupted: loadData, recoverData and the backup key.",
       "file": "src/lib/storage.ts"
     },
     {
@@ -1118,8 +1130,8 @@
       "category": "implementation",
       "difficulty": "hard",
       "question": "What happens if the saved data is corrupted?",
-      "answer": "loadData parses the JSON inside try/catch and validateData checks every field: ids, dates and statuses. If anything is wrong, the app starts with fresh data, copies the unreadable value to a backup key and shows a banner with the reason. Bad data is never used, so the app can't crash on it.",
-      "explanation": "The banner text comes from StorageBanner in App.tsx (kind 'recovered'). The backup key is campuskit-attendance:v1:unreadable-backup, so nothing is silently lost.",
+      "answer": "loadData parses the JSON inside try/catch and recoverData checks every field: ids, dates and statuses. A student, date or mark that fails is left out and the rest is loaded; if nothing can be used, the app starts fresh. Either way, the saved value is first copied to a backup key and a banner gives the reason. Bad data is never used, so the app can't crash on it.",
+      "explanation": "The banner text comes from StorageBanner in App.tsx (kinds 'partial' and 'recovered'). The backup key is campuskit-attendance:v1:unreadable-backup. keepCopy never replaces an earlier copy, and if the browser refuses the copy, the app doesn't save, so nothing is silently lost.",
       "keyConcepts": [
         {
           "label": "Parsing inside try/catch",
@@ -1127,15 +1139,15 @@
         },
         {
           "label": "Field-by-field validation",
-          "terms": ["validatedata", "validate", "check"]
+          "terms": ["recoverdata", "validatedata", "validate", "check"]
         },
         {
           "label": "Backup of the unreadable value",
           "terms": ["backup"]
         },
         {
-          "label": "Fresh start with a message",
-          "terms": ["fresh", "banner", "message", "start"]
+          "label": "Keeping what can be read, with a message",
+          "terms": ["left out", "rest", "keep", "fresh", "banner", "message"]
         }
       ],
       "files": ["src/lib/storage.ts", "src/App.tsx"],
@@ -1146,7 +1158,7 @@
         },
         {
           "file": "src/lib/storage.ts",
-          "name": "validateData"
+          "name": "recoverData"
         }
       ]
     },
@@ -1561,24 +1573,24 @@
       {
         "id": "saved-data-unreadable",
         "stage": "data",
-        "title": "“Saved data couldn’t be read … so the app started fresh”",
-        "symptom": "A banner says the saved data couldn't be read, gives a reason in brackets, and the app shows fresh data.",
+        "title": "“Some saved data couldn’t be read” or “… so the app started fresh”",
+        "symptom": "A banner says saved data couldn't be read and gives a reason in brackets. Either some students or marks are missing, or the app shows fresh data.",
         "causes": [
-          "The value under campuskit-attendance:v1 was edited by hand or damaged, so validateData rejected it."
+          "The value under campuskit-attendance:v1 was edited by hand or damaged. recoverData leaves out each record that fails its checks, or everything if the data as a whole is unreadable."
         ],
         "diagnose": [
           {
-            "text": "The reason in brackets names the first problem, for example an unknown status or an invalid date.",
+            "text": "The reason in brackets names the first problem, for example an unknown status or an invalid date, and how many more there are.",
             "commands": []
           },
           {
-            "text": "In the developer tools, the old value is kept under campuskit-attendance:v1:unreadable-backup.",
+            "text": "In the developer tools, the old value is kept under the key the banner names: campuskit-attendance:v1:unreadable-backup, or that key with a time added if an earlier copy was already there.",
             "commands": []
           }
         ],
         "fix": [
           {
-            "text": "If you need the old data, copy the backup value into a text file, fix the problem the banner named, save it with a .json extension and use Settings → Import backup.",
+            "text": "If you need the old data, copy the backup value into a text file and fix the problem the banner named. Save it with a .json extension and use Settings → Import backup. An import replaces all the current data, so export a backup first if you changed anything since.",
             "commands": []
           }
         ],

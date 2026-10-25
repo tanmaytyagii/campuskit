@@ -1,6 +1,6 @@
 import { getProjectBySlug, type ProjectManifest } from '@campuskit/project-catalog';
 import { FileText, MessageCircleQuestion, RotateCcw, Wand } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { Link, Navigate, NavLink, useParams } from 'react-router';
 
 import { Breadcrumbs } from '../../components/layout/Breadcrumbs.tsx';
@@ -46,8 +46,9 @@ function Studio({ project, section }: { project: ProjectManifest; section: Studi
   const heading = useRef<HTMLHeadingElement>(null);
   const previous = useRef(section);
 
-  // Moving between sections keeps the page; focus moves to the new section's heading.
-  useEffect(() => {
+  // Moving between sections keeps the page; focus moves to the new section's heading, in the
+  // same commit (a layout effect), since section links navigate in a transition.
+  useLayoutEffect(() => {
     if (previous.current === section) return;
     previous.current = section;
     heading.current?.focus();

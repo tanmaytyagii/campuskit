@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { Outlet, ScrollRestoration, useLocation } from 'react-router';
 
 import { SiteFooter } from './SiteFooter.tsx';
@@ -15,10 +15,13 @@ export function Layout() {
   const main = useRef<HTMLElement>(null);
   const previousPath = useRef(location.pathname);
 
-  useEffect(() => {
+  // A layout effect, so focus moves in the same commit as the new page. Navigations are
+  // transitions, whose ordinary effects can run later, leaving focus on the page body meanwhile
+  // (see GeneratorFocus.test.tsx).
+  useLayoutEffect(() => {
     if (previousPath.current === location.pathname) return;
     previousPath.current = location.pathname;
-    // Pages' own effects run before this one, so focus they placed is respected.
+    // Pages' own layout effects run before this one, so focus they placed is respected.
     if (location.hash || main.current?.contains(document.activeElement)) return;
     main.current?.focus({ preventScroll: true });
   }, [location.pathname, location.hash]);

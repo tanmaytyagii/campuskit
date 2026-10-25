@@ -70,7 +70,7 @@ describe('learning studio', () => {
       }),
     ).toBeChecked();
     await user.click(screen.getByRole('button', { name: 'Reset checklist' }));
-    const dialog = await screen.findByRole('dialog', { name: 'Reset the checklist?' });
+    const dialog = await screen.findByRole('alertdialog', { name: 'Reset the checklist?' });
     await user.click(within(dialog).getByRole('button', { name: 'Reset checklist' }));
     expect(screen.getByText('0 of 16 ticked')).toBeInTheDocument();
     expect(window.localStorage.getItem('campuskit:checklist:v1:expense-tracker')).toBeNull();

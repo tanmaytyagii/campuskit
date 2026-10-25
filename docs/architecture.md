@@ -7,7 +7,8 @@ CampusKit is a static website. There is no server, database, account system or A
 ```text
 campuskit/
 ├── apps/web/                 The website: React 19, TypeScript, Vite, Tailwind CSS
-│   ├── src/features/         Gallery, project pages, generator, report builder
+│   ├── src/features/         Gallery, project pages, generator, report builder, demos,
+│   │                         presentation mode, readiness check
 │   ├── src/pages/            Home, learning center, documentation, 404
 │   ├── vite-plugins/         Template bundles and the Content Security Policy
 │   └── e2e/                  Playwright tests against the production build
@@ -15,7 +16,8 @@ campuskit/
 │   ├── template-engine/      Options, edits, escaping, path rules, ZIP files
 │   └── project-catalog/      Project manifests, their schema and the validator
 ├── templates/                The starter projects, exactly as students receive them
-├── scripts/                  Repository checks, generated-project verification, screenshots
+├── scripts/                  Repository checks, generated-project verification, screenshots,
+│                             the analyzer demo's Python fixture
 ├── tests/                    Repository-level tests (lint configuration, documentation)
 └── docs/                     Student guides and contributor documentation
 ```
@@ -79,13 +81,32 @@ learning studio (/projects/<slug>/learn/<section>) · viva practice (/projects/<
 report workspace demonstration checklist · generator app preview (navigation labels)
 ```
 
+### Demos, presentation mode and readiness
+
+The Demo Studio (`apps/web/src/features/demo/`) gives each project an interactive demo. A demo's **definition** (screens, guided steps, source references, what it simplifies) is plain data loaded with the page; its **implementation** is loaded only when the demo opens. Demo data lives in `sessionStorage` for the tab and is validated with the template's own rules whenever it is read.
+
+```text
+templates/attendance-system/src/lib/*.ts ──imported unchanged──▶ demos/attendance (template-logic)
+templates/expense-tracker/src/lib/*.ts   ──imported unchanged──▶ demos/expenses   (template-logic)
+templates/student-result-analyzer/analyzer/*.py
+        │ pnpm demo:fixtures (runs the real Python)
+        ▼
+analyzer.fixture.json ──compared in tests with──▶ demos/results/analyzer.ts (browser-port)
+
+demo definition + learning guide + manifest ──▶ presentation slides (/projects/<slug>/present)
+learning checklist · viva ratings · report draft · guided demo record · student confirmations
+        ──▶ readiness items and score (/projects/<slug>/ready)
+```
+
+Presentation slides come only from the manifest, the learning guide and the demo definition, and every slide names its source. The readiness check (`features/readiness/readiness.ts`) derives each item from evidence and labels it as checked by CampusKit, taken from the student's progress or confirmed by the student. See [Demo Studio](demo-studio.md).
+
 The manifest's `stack` field (backend and persistence) and its existing metadata drive the comparison page (`/compare`). Goal suggestions there are fixed rules in `apps/web/src/features/compare/logic.ts`, each shown to students next to its results.
 
 ### The website
 
-- **Routing:** React Router in library mode. Heavy pages (generator, Markdown documents, source viewer, learning studio, viva practice, comparison) load on demand.
-- **State:** gallery filters, the comparison and the walkthrough step live in the URL, so a view can be shared. The generator keeps its choices in `sessionStorage` until the tab is closed.
-- **Saved progress:** checklist ticks, demonstration steps, viva self-ratings and report drafts are saved in the browser's `localStorage` only (`apps/web/src/lib/progress.ts`), validated whenever they are read, and can be reset per project. The answers students type in viva practice are never saved.
+- **Routing:** React Router in library mode. Heavy pages (generator, Markdown documents, source viewer, learning studio, viva practice, comparison, demos, presentation mode, readiness) load on demand. Presentation mode is a full-screen route outside the site layout.
+- **State:** gallery filters, the comparison, the walkthrough step, the demo screen and the current slide live in the URL, so a view can be shared. The generator keeps its choices, and each demo its data, in `sessionStorage` until the tab is closed.
+- **Saved progress:** checklist ticks, demonstration steps, viva self-ratings, report drafts, readiness confirmations and the date of a finished guided demo are saved in the browser's `localStorage` only (`apps/web/src/lib/progress.ts`), validated whenever they are read, and can be reset per project. The answers students type in viva practice are never saved.
 - **Documents:** project documents are imported from the template folders and repository documents from `docs/`, at build time, so the site shows the same files the repository and the ZIPs contain. Markdown is rendered without raw HTML.
 - **Security:** a Content Security Policy is added to the built `index.html` (see `apps/web/vite-plugins/content-security-policy.ts`). External links open in a new tab with `rel="noopener noreferrer"`.
 - **Accessibility:** native form controls and `<dialog>`, visible focus, a skip link, focus moved to new content after navigation (to the main region, or to a heading the page chose, such as a learning studio section), `prefers-reduced-motion` respected, and both colour themes checked with axe in a real browser.
@@ -97,6 +118,7 @@ The manifest's `stack` field (backend and persistence) and its existing metadata
 | Engine unit tests              | `packages/template-engine/src/*.test.ts` | Escaping, edits, path safety, exclusions, ZIP structure, Unicode                                                                              |
 | Catalog tests and validator    | `packages/project-catalog`               | Every manifest is valid, every edit applies to the real template, and every learning guide names only files and functions that exist          |
 | Web component tests            | `apps/web/src/**/*.test.tsx`             | Pages, filters, the generator flow and its ZIP, learning studio, viva practice, comparison, report drafts, links, accessibility (jsdom + axe) |
+| Demo tests                     | `apps/web/src/features/demo`             | Each demo matches its template, its main flows and guided checks work, and the analyzer port reproduces the Python output exactly             |
 | End-to-end tests               | `apps/web/e2e`                           | The production build in Chromium, desktop and phone sizes: downloads, keyboard use, axe in both themes, no console errors or CSP violations   |
 | Template tests                 | each `templates/<id>`                    | Each starter project's own behaviour                                                                                                          |
 | Generated-project verification | `scripts/verify-generated-projects.ts`   | Generated ZIPs extract safely, install, pass their tests and build                                                                            |
@@ -108,3 +130,4 @@ The manifest's `stack` field (backend and persistence) and its existing metadata
 - **Generation in the browser.** Student details never leave their computer.
 - **Declared edits instead of a general templating language.** Templates stay normal, runnable projects (no `{{placeholders}}` that break the build), and every change the generator makes is listed on the project page.
 - **Honest content.** Counts come from the catalog, screenshots are captured from the real apps, and report drafts mark everything a student must write or measure themselves.
+- **Demos that run the real logic.** A demo calls the template's own modules instead of imitating them, says so on the page, and a port of non-JavaScript code is tested against that code's real output.

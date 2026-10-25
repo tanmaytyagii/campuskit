@@ -57,6 +57,18 @@ describe('viva practice', () => {
     );
   });
 
+  it('offers questions picked by a link from the demo studio', async () => {
+    const user = userEvent.setup();
+    renderRoute('/projects/attendance-system/viva?questions=percentage,threshold,unknown');
+    const picked = await screen.findByRole('region', { name: '2 questions picked for you' });
+    expect(within(picked).getAllByRole('listitem')).toHaveLength(2);
+    await user.click(within(picked).getByRole('button', { name: 'Practise these 2 questions' }));
+    expect(await screen.findByText(/Selected questions · Question 1 of 2/)).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 2, name: /percentage calculated\?$/ }),
+    ).toHaveFocus();
+  });
+
   it('reveals the answer without one, skips without rating, and ends with a summary', async () => {
     const user = userEvent.setup();
     renderRoute('/projects/attendance-system/viva');
@@ -92,7 +104,7 @@ describe('viva practice', () => {
     await user.click(await screen.findByRole('button', { name: 'Choose another practice mode' }));
 
     await user.click(await screen.findByRole('button', { name: 'Reset viva progress' }));
-    const dialog = await screen.findByRole('dialog', { name: 'Reset viva progress?' });
+    const dialog = await screen.findByRole('alertdialog', { name: 'Reset viva progress?' });
     await user.click(within(dialog).getByRole('button', { name: 'Reset viva progress' }));
     expect(screen.getByRole('button', { name: 'Start review' })).toBeDisabled();
     expect(window.localStorage.getItem('campuskit:viva:v1:attendance-system')).toBeNull();

@@ -1,5 +1,168 @@
 # Changelog
 
+## 4.0.0 (25 October 2026)
+
+CampusKit now covers the last stretch before a submission: students can try every project in an interactive demo, rehearse demonstrating it, present it with slides built from the project, and check what is left to do. The tagline is now “Explore it. Build it. Understand it. Demonstrate it.”
+
+All three templates have bug fixes and are verified again: Student Attendance System 1.0.1, Personal Expense Tracker 1.0.2 and Student Result Analyzer 1.0.2. See “Found and fixed in the release audit” and “Found and fixed in the hardening pass”. Saved data from 2.0, 3.0 and 3.1 loads as before, typed viva answers are still never saved, and nothing a student types in a demo leaves the browser.
+
+### Demo Studio
+
+- Every project has an interactive demo at `/projects/<slug>/demo`, and the new **Demos** page (`/demos`, also in the header and footer) lists them.
+- Every demo is labelled as a demonstration with fictional sample data, not a live system. Its data stays in the browser tab (`sessionStorage`), is checked with the template's own rules whenever it is read, and comes back with **Reset to the example**. The attendance and expense demos can also **Start with no data**.
+- **Student Attendance System** (Students, Mark attendance, Summary, Data model) and **Personal Expense Tracker** (Overview, Transactions, Budget, Data model) run the templates' own modules unchanged: calculations, validation, dates, sample data, the reducer and the stored-data checks. The expense form's checks live in a React component, so the demo mirrors them, and a test compares the mirror with the template source.
+- **Student Result Analyzer** (Dataset, Overview, Subjects, Grades, Missing data, Students) is a TypeScript version of the Python code in `validation.py`, `analysis.py`, `grading.py` and `explain.py`, including how numpy and pandas sum, round, rank and compute quantiles. The page says that the browser doesn't run Python. Tests compare every number, message and sentence with the real Python output for both sample files and nine edge cases. `pnpm demo:fixtures` regenerates that output, and the tests fail if the Python files change without it.
+- Beside each screen, **About this screen** says what to try, what the full project does differently, which files and functions the screen comes from (linked to the source browser), and where to learn more: the code walkthrough, the architecture explorer, and the related viva questions.
+- Charts (bar lists and column charts with gridlines, a threshold line, legends and hover readouts) are drawn without a chart library. Every chart has a written summary and a table view. The two chart colours were checked for colour-vision separation and contrast in both themes.
+
+### Tour and guided demo
+
+- **Take the tour** steps through the screens and shows what each one is built from.
+- **Practise the demo** gives every step of a demonstration: what to say, what to do and what should happen, plus a slide for it in presentation mode. Steps that change the data are checked against the data at the start, so the demo can say “Done in the demo: Added Kavya Rao.”
+- Finishing with every checked action done saves the date in the browser (`campuskit:rehearsal:v1:<project>`) for the readiness check. Skipping steps saves nothing.
+
+### Presentation mode
+
+- `/projects/<slug>/present` shows full-screen slides in the order examiners expect: introduction, problem, learning objectives, key features, architecture, how it works, technology, demo plan, one slide per demonstration step with the live demo, limitations and conclusion.
+- Slides use only the project's manifest, learning guide and demo, and each one says which. Speaking notes are labelled as CampusKit's suggestions, and **N** hides them on a projector.
+- Arrow keys, Page Up/Down and Space move between slides, Home and End jump to the ends, and Escape leaves. A menu jumps to any slide. Keys typed in a form, a dialog or the demo are left alone, and the Previous and Next buttons stay on screen.
+- There is no PowerPoint or PDF export; the student guide says so.
+
+### Readiness check
+
+- `/projects/<slug>/ready` lists eleven items in three stages: get it running, understand it, and present and submit it. Each item has a status (Ready, In progress or To do, in words and with an icon), its evidence and the next action.
+- Every item says where its status comes from:
+  - **Checked by CampusKit:** verification records, published setup steps, the guided demo's checks, prompts left in the saved report draft.
+  - **From your progress:** checklist ticks and viva ratings.
+  - **You confirm:** installing, running and testing on the student's computer.
+- The score counts Ready as 1, In progress as ½ and To do as 0, out of eleven. The page explains this and says it isn't a grade. Opening a page never counts as doing something.
+- Confirmations are saved in `campuskit:readiness:v1:<project>`. **Clear my confirmations** removes only those, and the learning studio's reset also clears them and the guided demo record.
+
+### Finding projects and the student workflow
+
+- Project pages:
+  - **Try the interactive demo** next to **Customize and download**.
+  - A **Your path with this project** strip (Explore, Build, Understand, Demonstrate).
+  - An **Interactive demo** section: what to try, what the full project adds, what the demo simplifies, and what the full project needs (backend, data, online services, API keys).
+- Project cards link to the demo, and gallery search also matches features, learning objectives and the category, type, difficulty and audience names.
+- The home page tour has a **Demonstrate** stop, and the generator's last step lists what to do next: learn, practise the demonstration, viva, report, present and check readiness.
+- Learning links can open the architecture explorer on one component (`?component=`) and start viva practice with chosen questions (`?questions=`, shown as “Selected questions”, at most ten).
+
+### Found and fixed while testing
+
+- On phones, screen-reader-only notes in table cells made the attendance Summary up to 186 px wider than the screen. Scrolling table regions and the demo frame are now positioned containers.
+- The analyzer's raw data and statistics tables sat inside sections with the same name (axe `landmark-unique`).
+- The pass-mark label covered the first column of the analyzer chart; it is now in the chart's key.
+- Phone layouts: three-figure grids left an empty cell, roll numbers broke inside “10-A”, and raw CSV rows wrapped names.
+- Pressing arrow keys quickly on the demo tabs could jump to the wrong screen, because the selected screen lives in the address and updated a moment later. Arrows now move from the focused tab, and screen changes apply at once. Quick key presses in presentation mode no longer get lost.
+- The generator now moves focus to “… is ready” in the same update that shows it.
+
+### Found and fixed in the release audit
+
+- **Node.js 22.18 or newer is now required (it said 22.12).** The build and test tools load the workspace packages' TypeScript directly, which Node.js 22.12 to 22.17 can't: `pnpm test` and `pnpm build` stopped with `ERR_UNKNOWN_FILE_EXTENSION`. `engines`, README and CONTRIBUTING say 22.18, and CI now runs the tests and build on Node.js 22.18. CONTRIBUTING explains what to do when `pnpm` is “command not found” after installing.
+- **Personal Expense Tracker 1.0.1:** an amount just over the limit (100,000,000.01) was accepted, but the saved data then failed its own check, so the app opened empty on the next visit (the data was kept as a backup). The form now checks the whole amount. The demo uses the template's code, so it has the fix too.
+- **Student Result Analyzer 1.0.1:** two subject columns with the same name written without ASCII letters (for example “गणित” twice) were let through, and the analysis then crashed with a Python error. They are now reported like any other duplicate column name.
+- **Analyzer demo:** checked against the Python code (pandas 3, what students install) on 15,000 generated files. That found differences, now fixed, in:
+  - Python's whitespace rules;
+  - numbers like `1e400`;
+  - files that are empty or start with a blank line;
+  - line numbers after a quoted line break;
+  - columns with the same name;
+  - the sign of zero in medians, quartiles and integer columns;
+  - how pandas 3 averages a class.
+    The demo now matches on every one of those files. Each difference has a case in the parity fixture, and `pnpm demo:compare` runs the check.
+- **Focus:**
+  - The generator's “… is ready” heading, the learning studio's sections and presentation slides now take focus in the same update that shows them. Focus could briefly be on the page body before; a test now forces the timing that caused a one-off test failure.
+  - Closing a dialog that the page removes, such as the demos' forms, now returns focus to the button that opened it, instead of leaving it on the page body.
+
+### Found and fixed in the hardening pass
+
+- **Saved data in Student Attendance System 1.0.1 and Personal Expense Tracker 1.0.2:**
+  - One damaged record no longer hides all the others. The app leaves out only the students, marks or transactions that fail their checks, loads the rest, and says what was wrong. Before, it started fresh.
+  - The saved value is copied to a backup key first. A later copy never replaces an earlier one: it gets the time added to its key.
+  - If the browser refuses that copy (for example, because its storage is full), the app no longer crashes on start. It says so and saves nothing, so the saved data isn't lost.
+  - Imported backup files are still checked in full, because an import replaces all the data.
+- **Student Result Analyzer 1.0.2:** for a file where nobody has a score, the average showed as “nan%” in the Overview, its explanation and the downloadable report. It now says there is no average yet; so does the demo.
+- **Analyzer demo and PyArrow:**
+  - A student's pandas 3 always has PyArrow, because Streamlit installs it.
+  - With PyArrow, pandas tidies the spaces inside names with a different regular-expression engine when a column is all ASCII, and that engine treats five control characters differently.
+  - The release audit had compared the demo with pandas without PyArrow.
+  - The demo now follows pandas' rule, and `pnpm demo:fixtures` and `pnpm demo:compare` refuse a Python without PyArrow. 29,700 newly generated files match.
+- **Keyboard and screen readers:**
+  - After deleting a row in a demo, focus moves to the next row's delete button (or to the empty state, or to the button that clears the filters) instead of the page body.
+  - After removing a filter in the gallery, focus moves to the next filter or to the number of results.
+  - Confirmation dialogs (delete, reset, discard) are alert dialogs, so screen readers read what will happen together with the question.
+  - Each chart's **Table view** button names its chart, so a screen with two charts no longer has two identical buttons.
+- **Wider text spacing (WCAG 1.4.12):**
+  - With larger letter, word and line spacing at 320 px, five pages scrolled sideways. The causes were long words in headings, a file path, a fieldset, the page header and the generator's buttons.
+  - Long words now break, fieldsets may shrink, and the generator's buttons wrap.
+- The expense tracker's README documents its money limits: at most 100,000,000 per transaction, with totals exact up to about 90 trillion.
+
+### Continuous integration and tooling
+
+- `pnpm verify:generated` (hardening pass):
+  - A failed Streamlit health check now includes the end of the app's output. Before, it said only that the app didn't answer.
+  - Each try has a 5-second limit, and an app that a signal stopped ends the wait at once.
+  - On Windows, the app's whole process tree is stopped with `taskkill /T`; this couldn't be tested without Windows.
+- `pnpm demo:compare --shapes` adds files with shapes random ones rarely have: one student, everyone absent, hundreds of ties and more.
+- End-to-end tests press Option-Tab in WebKit on macOS, as Safari users do to reach links and buttons. Four new tests follow whole student journeys through the site's own links.
+
+- In GitHub Actions, `pnpm verify:generated` writes every failure as an error annotation and adds a table of results, with the failure output, to the job summary. Both are visible without signing in, unlike the log. A failed job also keeps its full output as the `verify-generated-<os>` artifact.
+- The Streamlit app is started and health-checked on `127.0.0.1` instead of `localhost`.
+- New `pnpm demo:fixtures` command (`scripts/update-demo-fixtures.ts` and `scripts/python/analyzer_parity.py`), which needs pandas 3 and keeps Python's exact numbers (including `-0.0`), and `pnpm demo:compare` (`scripts/compare-analyzer.ts`).
+- Workflows:
+  - Every job has a time limit.
+  - Runs on `main` are no longer cancelled by a newer push.
+  - The one third-party action (`pnpm/action-setup`) is pinned to a commit.
+  - The template list is split without glob expansion.
+- End-to-end tests:
+  - The `github` reporter writes flaky tests as annotations.
+  - The Playwright report is kept even when every test passed.
+- The Pages workflow gives write access only to its deploy job.
+- The internal-link test, which renders every page the site links to, has a 2-minute limit: it had come close to the 20-second default, and passed it in a Linux container.
+- `pnpm verify:generated`:
+  - Its reporting is in `scripts/lib/verify-report.ts`, with unit tests.
+  - It works in the real path of the temporary folder (GitHub's Windows runners use a short `RUNNER~1` name).
+  - A failed Python check is annotated too.
+
+### Documentation
+
+- New: [Demo Studio](docs/demo-studio.md) for contributors and [Present your project](docs/guides/present-your-project.md) for students. Both are also on the site.
+- Updated:
+  - README
+  - architecture
+  - design system (chart colours and rules)
+  - deployment (what to do when the Pages deployment fails)
+  - CONTRIBUTING (demo fixtures, what to do when CI fails)
+  - BUILD_STATUS
+
+### Tests
+
+- 444 unit tests in 52 files (319 in 40 before) and 227 end-to-end tests passed with 7 skipped by design (149 and 3 before). No test was removed.
+- The hardening pass added:
+  - tests for focus after deleting rows and removing filters, and for the alert dialogs and chart buttons;
+  - four journey tests;
+  - tests for the verifier's process handling, including a server that never answers;
+  - six parity cases;
+  - storage tests in the attendance (39 tests, 34 before) and expense (48, 42 before) templates;
+  - a report test in the analyzer template (51, 50 before).
+- The release audit added:
+  - parity cases for every analyzer difference it found;
+  - a test that forces the generator's focus timing;
+  - tests for the CI reporting;
+  - end-to-end checks that Escape returns focus to the button that opened a dialog, and that quick key presses move between slides;
+  - tests in the expense tracker and result analyzer templates for the bugs fixed in 1.0.1.
+- New tests cover:
+  - each demo against its template, its main flows and its guided checks;
+  - the analyzer port against the Python output;
+  - presentation mode and its keyboard rules;
+  - the readiness items and score;
+  - selected viva questions, and the new saved data and its reset;
+  - keyboard use, reloads and phone layouts in a real browser;
+  - axe on every new page and on the demo dialogs in both themes.
+- Existing tests changed only where the product changed: the home page heading has the new tagline, the header lists Demos, and the tour has six tabs.
+- The new accessibility test of the demo dialog waits for its 180 ms fade-in to finish; before that, axe measured half-faded colours.
+
 ## 3.1.0 (23 October 2026)
 
 A redesign of the whole website for a calmer, more consistent and more accessible interface. Features, templates (still version 1.0.0 and verified) and saved data are unchanged: checklist ticks, viva ratings and report drafts saved by 2.0 or 3.0 load exactly as before, and typed viva answers are still never saved.

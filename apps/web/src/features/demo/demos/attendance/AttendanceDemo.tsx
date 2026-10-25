@@ -16,8 +16,10 @@ import { BarList, ChartCard } from '../../charts.tsx';
 import { defineDemo } from '../../define.ts';
 import type { DemoViewProps } from '../../types.ts';
 import {
+  actionCellClasses,
   highlightClasses,
   JsonView,
+  rowHeaderClasses,
   ScreenHeading,
   StatGrid,
   StatTile,
@@ -26,6 +28,7 @@ import {
   tdClasses,
   theadClasses,
   thClasses,
+  useFocusAfterDelete,
 } from '../../ui.tsx';
 import {
   ATTENDANCE_STATUSES,
@@ -92,7 +95,7 @@ function Percentage({ value }: { value: number | null }) {
 }
 
 const iconButton =
-  'inline-flex size-8 items-center justify-center rounded-md text-ink-2 transition-colors hover:bg-raised hover:text-ink';
+  'inline-flex size-8 items-center justify-center rounded-md text-ink-2 transition-colors hover:bg-raised';
 
 // ---------------------------------------------------------------------------
 // Students
@@ -121,11 +124,9 @@ function StudentForm({
   const [errors, setErrors] = useState<StudentErrors>({});
   const formId = useId();
   const listId = useId();
-  const refs = {
-    name: useRef<HTMLInputElement>(null),
-    rollNumber: useRef<HTMLInputElement>(null),
-    className: useRef<HTMLInputElement>(null),
-  };
+  const nameRef = useRef<HTMLInputElement>(null);
+  const rollNumberRef = useRef<HTMLInputElement>(null);
+  const classNameRef = useRef<HTMLInputElement>(null);
 
   function change(field: keyof StudentInput, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
@@ -138,6 +139,7 @@ function StudentForm({
     setErrors(found);
     const firstInvalid = (['name', 'rollNumber', 'className'] as const).find((key) => found[key]);
     if (firstInvalid) {
+      const refs = { name: nameRef, rollNumber: rollNumberRef, className: classNameRef };
       refs[firstInvalid].current?.focus();
       return;
     }
@@ -162,7 +164,7 @@ function StudentForm({
     >
       <form id={formId} noValidate onSubmit={submit} className="space-y-4">
         <TextField
-          ref={refs.name}
+          ref={nameRef}
           label="Full name"
           placeholder="e.g. Priya Menon"
           autoComplete="off"
@@ -171,7 +173,7 @@ function StudentForm({
           onChange={(event) => change('name', event.target.value)}
         />
         <TextField
-          ref={refs.rollNumber}
+          ref={rollNumberRef}
           label="Roll number"
           placeholder="e.g. 10A-07"
           autoComplete="off"
@@ -180,7 +182,7 @@ function StudentForm({
           onChange={(event) => change('rollNumber', event.target.value)}
         />
         <TextField
-          ref={refs.className}
+          ref={classNameRef}
           label="Class or section"
           placeholder="e.g. Class 10-A"
           autoComplete="off"
@@ -207,6 +209,7 @@ function StudentsScreen({ state, update, highlight }: Props) {
   const [classFilter, setClassFilter] = useState('all');
   const [form, setForm] = useState<{ key: number; student: Student | null } | null>(null);
   const [deleting, setDeleting] = useState<Student | null>(null);
+  const { rowsRef, fallbackRef, deleting: willDelete } = useFocusAfterDelete();
   const searchId = useId();
 
   const classes = classNames(state.students);
@@ -240,6 +243,7 @@ function StudentsScreen({ state, update, highlight }: Props) {
   function confirmDelete() {
     if (!deleting) return;
     const { id, name } = deleting;
+    willDelete(visible.findIndex((student) => student.id === id));
     update(
       (current) => attendanceReducer(current, { type: 'student/delete', studentId: id }),
       `Deleted ${name} and their attendance history.`,
@@ -273,6 +277,7 @@ function StudentsScreen({ state, update, highlight }: Props) {
         <EmptyState
           icon={<Users aria-hidden="true" className="size-6" />}
           title="No students yet"
+          headingRef={fallbackRef}
           actions={
             <Button size="sm" onClick={() => setForm({ key: Date.now(), student: null })}>
               Add your first student
@@ -314,6 +319,7 @@ function StudentsScreen({ state, update, highlight }: Props) {
             <div className="rounded-xl border border-dashed border-line-strong px-4 py-8 text-center text-sm text-ink-2">
               <p>No students match these filters.</p>
               <Button
+                ref={fallbackRef}
                 size="sm"
                 variant="secondary"
                 className="mt-3"
@@ -349,16 +355,20 @@ function StudentsScreen({ state, update, highlight }: Props) {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-line">
+                  <tbody ref={rowsRef} className="divide-y divide-line">
                     {visible.map((student) => {
                       const summary = summarizeStudent(student, state.attendance, THRESHOLD);
                       return (
                         <tr key={student.id}>
                           <td className={tdClasses}>
                             <span className="font-semibold text-ink">{student.name}</span>
+                            {/* Wraps only between the roll number and the class, never inside "10-A". */}
                             <span className="type-meta block md:hidden">
-                              <span className="sm:hidden">{student.rollNumber} · </span>
-                              {student.className}
+                              <span className="sm:hidden">
+                                <span className="whitespace-nowrap">{student.rollNumber}</span>{' '}
+                                ·{' '}
+                              </span>
+                              <span className="whitespace-nowrap">{student.className}</span>
                             </span>
                           </td>
                           <td className={cn(tdClasses, 'hidden font-mono text-xs sm:table-cell')}>
@@ -370,10 +380,10 @@ function StudentsScreen({ state, update, highlight }: Props) {
                           <td className={cn(tdClasses, 'text-right')}>
                             <Percentage value={summary.percentage} />
                           </td>
-                          <td className={cn(tdClasses, 'py-1.5 text-right whitespace-nowrap')}>
+                          <td className={actionCellClasses}>
                             <button
                               type="button"
-                              className={iconButton}
+                              className={cn(iconButton, 'hover:text-ink')}
                               aria-label={`Edit ${student.name}`}
                               onClick={() => setForm({ key: Date.now(), student })}
                             >
@@ -383,6 +393,7 @@ function StudentsScreen({ state, update, highlight }: Props) {
                               type="button"
                               className={cn(iconButton, 'hover:text-danger')}
                               aria-label={`Delete ${student.name}`}
+                              data-delete=""
                               onClick={() => setDeleting(student)}
                             >
                               <Trash2 aria-hidden="true" className="size-4" />
@@ -405,7 +416,9 @@ function StudentsScreen({ state, update, highlight }: Props) {
           student={form.student}
           students={state.students}
           classes={classes}
-          defaultClass={form.student?.className ?? (shownClass === 'all' ? (classes[0] ?? '') : shownClass)}
+          defaultClass={
+            form.student?.className ?? (shownClass === 'all' ? (classes[0] ?? '') : shownClass)
+          }
           onSave={save}
           onClose={() => setForm(null)}
         />
@@ -415,6 +428,7 @@ function StudentsScreen({ state, update, highlight }: Props) {
         open={deleting !== null}
         onClose={() => setDeleting(null)}
         title={deleting ? `Delete ${deleting.name}?` : 'Delete student?'}
+        confirmation
         footer={
           <div className="flex flex-wrap justify-end gap-2">
             <Button variant="secondary" onClick={() => setDeleting(null)}>
@@ -627,6 +641,7 @@ function MarkScreen({ state, update, selectFeature, highlight }: Props) {
           setDateInput(date);
         }}
         title="Discard unsaved marks?"
+        confirmation
         footer={
           <div className="flex flex-wrap justify-end gap-2">
             <Button
@@ -760,7 +775,7 @@ function SummaryScreen({ state, selectFeature, highlight }: Props) {
                 <tbody className="divide-y divide-line tabular-nums">
                   {classes.map((item) => (
                     <tr key={item.className}>
-                      <th scope="row" className={cn(tdClasses, 'font-semibold text-ink')}>
+                      <th scope="row" className={rowHeaderClasses}>
                         {item.className}
                       </th>
                       <td className={cn(tdClasses, 'text-right')}>{item.studentCount}</td>
@@ -838,7 +853,7 @@ function SummaryScreen({ state, selectFeature, highlight }: Props) {
               {ordered.map((summary) =>
                 summary ? (
                   <tr key={summary.student.id}>
-                    <th scope="row" className={cn(tdClasses, 'font-semibold text-ink')}>
+                    <th scope="row" className={rowHeaderClasses}>
                       {summary.student.name}
                       <span className="type-meta block font-normal">
                         {summary.student.className}

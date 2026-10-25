@@ -73,6 +73,12 @@ If the file contains a mistake, the app shows which setting is wrong instead of 
 
 Amounts are stored as whole numbers of the currency’s smallest unit, for example **paise** for rupees (₹12.50 is stored as `1250`). Adding whole numbers is exact, whereas decimal fractions in JavaScript are not (`0.1 + 0.2` is `0.30000000000000004`). Typed amounts are parsed with string arithmetic for the same reason. See `src/lib/money.ts`.
 
+Limits:
+
+- One transaction can be at most 100,000,000 in the chosen currency (₹10,00,00,000), set by `MAX_AMOUNT`. Larger amounts are refused when typed.
+- Totals stay exact as long as they are below JavaScript's largest safe whole number (`Number.MAX_SAFE_INTEGER`): about 90 trillion rupees in paise. That is about 900,000 transactions of the largest size.
+- Shares and chart percentages use ordinary division, and are rounded for display.
+
 ## Your data and how to reset it
 
 Data is saved in your browser’s **localStorage** under the key `campuskit-expenses:v1`. It never leaves your computer and is separate for each browser and profile.
@@ -80,7 +86,7 @@ Data is saved in your browser’s **localStorage** under the key `campuskit-expe
 - **Reset from the app:** open **Budget & data** and choose **Load demo data** or **Delete all data**. Use **Export backup (JSON)** first to keep a copy, and **Import backup** to restore it.
 - **Reset without the app:** open your browser’s developer tools (F12), go to **Application** (Chrome, Edge) or **Storage** (Firefox), open **Local Storage**, select the site and delete the `campuskit-expenses:v1` entry. Reload the page.
 
-If saved data ever becomes unreadable, the app starts fresh and keeps the old value under `campuskit-expenses:v1:unreadable-backup`.
+If a saved transaction is ever damaged, the app leaves it out, loads the others, and says so in a banner. If nothing saved can be read, it starts fresh. Either way, it first copies the saved value to `campuskit-expenses:v1:unreadable-backup`. An earlier copy is never replaced: a later one gets the time added to its key. If the browser refuses even that copy (for example, its storage is full), the app doesn't save anything, so the saved value stays as it was.
 
 ## Project structure
 

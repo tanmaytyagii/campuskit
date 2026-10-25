@@ -1,6 +1,6 @@
 import { catalog } from '@campuskit/project-catalog';
 import { Search, SearchX, SlidersHorizontal } from 'lucide-react';
-import { useId, useMemo, useState } from 'react';
+import { useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 
 import { PageHeader } from '../../components/layout/PageHeader.tsx';
@@ -76,6 +76,20 @@ export function GalleryPage() {
 
   const reset = () => apply({ ...EMPTY_FILTERS, sort: filters.sort });
 
+  // After a reset or the last chip removal, the control that had focus is gone: focus moves to
+  // the result count, which screen readers then read.
+  const resultsRef = useRef<HTMLParagraphElement>(null);
+  const focusResults = useRef(false);
+  useLayoutEffect(() => {
+    if (!focusResults.current) return;
+    focusResults.current = false;
+    resultsRef.current?.focus();
+  });
+  function resetFilters() {
+    focusResults.current = true;
+    reset();
+  }
+
   return (
     <>
       <PageHeader
@@ -148,9 +162,23 @@ export function GalleryPage() {
 
           <ChooseGuide projects={catalog} />
 
-          <ActiveFilters filters={filters} facets={FACETS} onRemove={remove} onReset={reset} />
+          <ActiveFilters
+            filters={filters}
+            facets={FACETS}
+            onRemove={remove}
+            onReset={resetFilters}
+            onEmptied={() => {
+              focusResults.current = true;
+            }}
+          />
 
-          <p className="text-sm text-ink-3" role="status" aria-live="polite">
+          <p
+            ref={resultsRef}
+            tabIndex={-1}
+            className="text-sm text-ink-3 outline-none"
+            role="status"
+            aria-live="polite"
+          >
             {results.length === catalog.length
               ? `${catalog.length} ${catalog.length === 1 ? 'project' : 'projects'}`
               : `Showing ${results.length} of ${catalog.length} projects`}
@@ -162,7 +190,7 @@ export function GalleryPage() {
               title="No projects match these filters"
               actions={
                 <>
-                  <Button onClick={reset}>Reset filters</Button>
+                  <Button onClick={resetFilters}>Reset filters</Button>
                   <Link
                     to="/docs/adding-a-template"
                     className={cn(

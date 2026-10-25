@@ -34,6 +34,13 @@ const PAGES = [
   '/projects/expense-tracker/viva',
   '/docs',
   '/docs/contributing',
+  '/demos',
+  '/projects/attendance-system/demo',
+  '/projects/expense-tracker/demo?feature=overview',
+  '/projects/student-result-analyzer/demo?feature=subjects',
+  '/projects/attendance-system/present',
+  '/projects/expense-tracker/present?slide=demo-add-expense',
+  '/projects/attendance-system/ready',
   '/no-such-page',
 ];
 

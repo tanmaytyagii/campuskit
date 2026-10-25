@@ -43,6 +43,11 @@ def _markdown_table(frame: pd.DataFrame, digits: int = 1) -> str:
     return "\n".join([header, divider, *body])
 
 
+def _percent(value: float) -> str:
+    """A summary percentage, or a dash when no student has a score."""
+    return "—" if pd.isna(value) else f"{value:.1f}"
+
+
 def build_report(
     *,
     config: AppConfig,
@@ -69,8 +74,8 @@ def build_report(
         "",
         "| Students | Subjects | Average % | Median % | Passed | Failed | Incomplete |",
         "| --- | --- | --- | --- | --- | --- | --- |",
-        f"| {summary.students} | {summary.subjects} | {summary.average_percentage:.1f} | "
-        f"{summary.median_percentage:.1f} | {summary.passed} | {summary.failed} | {summary.incomplete} |",
+        f"| {summary.students} | {summary.subjects} | {_percent(summary.average_percentage)} | "
+        f"{_percent(summary.median_percentage)} | {summary.passed} | {summary.failed} | {summary.incomplete} |",
         "",
     ]
     for line in explanations.get("overview", []):
