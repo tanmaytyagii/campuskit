@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% from "_macros.html" import percent %}
+{% block title %}Statistics{% endblock %}
+{% block content %}
+  <h1>Statistics</h1>
+  <p class="lead">Every figure is calculated from the records in the database when the page opens. Present and late both count as attending.</p>
+  <div class="columns">
+    <section class="panel" aria-labelledby="status-heading">
+      <h2 id="status-heading">Students by status</h2>
+      <table>
+        <caption class="visually-hidden">Number of students with each status</caption>
+        <thead><tr><th scope="col">Status</th><th scope="col">Students</th></tr></thead>
+        <tbody>
+          {% for status, count in stats.by_status.items() %}
+            <tr><th scope="row">{{ status | capitalize }}</th><td>{{ count }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+    <section class="panel" aria-labelledby="class-heading">
+      <h2 id="class-heading">Students by class</h2>
+      <table>
+        <caption class="visually-hidden">Number of students in each class</caption>
+        <thead><tr><th scope="col">Class</th><th scope="col">Students</th></tr></thead>
+        <tbody>
+          {% for row in stats.by_class %}
+            <tr><th scope="row">{{ row.class_name }}</th><td>{{ row.count }}</td></tr>
+          {% else %}
+            <tr><td colspan="2">No students yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  </div>
+  <section class="panel" aria-labelledby="course-stats-heading">
+    <h2 id="course-stats-heading">Courses</h2>
+    <div class="table-scroll" role="region" aria-label="Course statistics table" tabindex="0">
+      <table>
+        <thead><tr><th scope="col">Course</th><th scope="col">Students</th><th scope="col">Marks recorded</th><th scope="col">Attended</th><th scope="col">Attendance</th></tr></thead>
+        <tbody>
+          {% for course in stats.by_course %}
+            <tr>
+              <th scope="row"><a href="{{ url_for('courses.show_course', course_id=course.id) }}">{{ course.code }} {{ course.title }}</a></th>
+              <td>{{ course.students }}</td><td>{{ course.marked }}</td><td>{{ course.attended }}</td>
+              <td>{{ percent(course.attended, course.marked) }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="5">No courses yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}

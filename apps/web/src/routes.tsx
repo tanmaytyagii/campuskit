@@ -67,6 +67,46 @@ const ComparePage = lazy(() =>
     default: module.ComparePage,
   })),
 );
+const MyProjectsPage = lazy(() =>
+  import('./features/workspace/MyProjectsPage.tsx').then((module) => ({
+    default: module.MyProjectsPage,
+  })),
+);
+const ProjectDetailPage = lazy(() =>
+  import('./features/workspace/ProjectDetailPage.tsx').then((module) => ({
+    default: module.ProjectDetailPage,
+  })),
+);
+const ProjectDocsPage = lazy(() =>
+  import('./features/workspace/ProjectDocsPage.tsx').then((module) => ({
+    default: module.ProjectDocsPage,
+  })),
+);
+const DashboardPage = lazy(() =>
+  import('./features/dashboard/DashboardPage.tsx').then((module) => ({
+    default: module.DashboardPage,
+  })),
+);
+const WelcomePage = lazy(() =>
+  import('./features/onboarding/WelcomePage.tsx').then((module) => ({
+    default: module.WelcomePage,
+  })),
+);
+const SettingsPage = lazy(() =>
+  import('./features/onboarding/SettingsPage.tsx').then((module) => ({
+    default: module.SettingsPage,
+  })),
+);
+const VivaProgressPage = lazy(() =>
+  import('./features/viva/VivaProgressPage.tsx').then((module) => ({
+    default: module.VivaProgressPage,
+  })),
+);
+const AssistantPage = lazy(() =>
+  import('./features/assistant/AssistantPage.tsx').then((module) => ({
+    default: module.AssistantPage,
+  })),
+);
 const DocsIndexPage = lazy(() =>
   import('./pages/DocsPages.tsx').then((module) => ({ default: module.DocsIndexPage })),
 );
@@ -74,9 +114,17 @@ const DocPage = lazy(() =>
   import('./pages/DocsPages.tsx').then((module) => ({ default: module.DocPage })),
 );
 
+/**
+ * At least a screen tall, so the footer starts below the fold and doesn't jump up the screen
+ * when the page arrives (Lighthouse measured a 0.2 layout shift from that on phones).
+ */
 function PageLoading() {
   return (
-    <div className="container-page space-y-4 py-14" role="status" aria-label="Loading page">
+    <div
+      className="container-page min-h-dvh space-y-4 py-14"
+      role="status"
+      aria-label="Loading page"
+    >
       <Skeleton className="h-12 w-1/2" />
       <Skeleton className="h-5 w-2/3" />
       <Skeleton className="h-72 w-full" />
@@ -122,8 +170,16 @@ export const routes: RouteObject[] = [
           { path: 'generate', element: load(GeneratorPage) },
           { path: 'learn', element: load(LearnPage) },
           { path: 'learn/report', element: load(ReportPage) },
+          { path: 'dashboard', element: load(DashboardPage) },
+          { path: 'welcome', element: load(WelcomePage) },
+          { path: 'settings', element: load(SettingsPage) },
+          { path: 'my-projects', element: load(MyProjectsPage) },
+          { path: 'my-projects/:projectId', element: load(ProjectDetailPage) },
+          { path: 'my-projects/:projectId/docs', element: load(ProjectDocsPage) },
           { path: 'viva', element: load(VivaHubPage) },
+          { path: 'viva/progress', element: load(VivaProgressPage) },
           { path: 'demos', element: load(DemosPage) },
+          { path: 'assistant', element: load(AssistantPage) },
           { path: 'docs', element: load(DocsIndexPage) },
           { path: 'docs/:slug', element: load(DocPage) },
           { path: '*', element: <NotFoundPage /> },

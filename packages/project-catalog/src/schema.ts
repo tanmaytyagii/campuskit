@@ -126,7 +126,7 @@ export const manifestSchema = z
       steps: z.array(setupStepSchema).min(2).max(10),
       localUrl: z
         .string()
-        .regex(/^http:\/\/localhost:\d{2,5}\/$/)
+        .regex(/^http:\/\/(localhost|127\.0\.0\.1):\d{2,5}\/$/)
         .optional(),
       notes: z.array(sentence).max(8),
     }),

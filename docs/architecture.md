@@ -92,6 +92,10 @@ templates/student-result-analyzer/analyzer/*.py
         │ pnpm demo:fixtures (runs the real Python)
         ▼
 analyzer.fixture.json ──compared in tests with──▶ demos/results/analyzer.ts (browser-port)
+templates/student-management-system/studentms/*.py, schema.sql
+        │ pnpm demo:fixtures:students (runs the real Python and SQLite)
+        ▼
+sms.fixture.json ──compared in tests with──▶ demos/students/model.ts (simulation)
 
 demo definition + learning guide + manifest ──▶ presentation slides (/projects/<slug>/present)
 learning checklist · viva ratings · report draft · guided demo record · student confirmations

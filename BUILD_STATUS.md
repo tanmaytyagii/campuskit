@@ -1,165 +1,116 @@
 # Build status
 
-This file records the second QA pass on CampusKit 4.0.0, the “hardening pass” of 24–25 October 2026 (India Standard Time). It followed the release audit of 24 October; the audit's findings are summarised at the end. Every result below was produced in this working copy on the final code, unless it says otherwise. Nothing was committed, pushed or deployed.
+This file records the checks on CampusKit **6.0.0-rc.1**, a release candidate, on 31 October 2026 (India Standard Time). Every result was produced in this working copy on the final code unless it says otherwise. Nothing was committed, pushed or deployed. The detailed test results, the problems QA found and the release-readiness matrix are in `QA_REPORT.md`; the security review is in `SECURITY_REVIEW.md`. The 5.0.0-rc.1 record is kept at the end of this file.
 
 ## Summary
 
-| Area                                             | Status                                                                                                                                                                                            |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Validate, format, lint, type check, tests, build | Pass on macOS with Node.js 24.12.0 and 22.18.0: 444 unit tests in 52 files, 3 templates **Verified**. A clean copy of the package passed too, on macOS and in a Linux container (Node.js 24.21.0) |
-| End-to-end tests                                 | Chromium, desktop and phone: 227 passed and 7 skipped by design, in 3 runs out of 3. WebKit and Firefox at desktop size: see “Browsers”                                                           |
-| Generated projects                               | 6 of 6 verified on macOS. All three templates were fixed in this pass and recorded again                                                                                                          |
-| Analyzer demo                                    | Matches the Python code with pandas 3.1.0 and PyArrow 26.0.0, as students install it: 28 recorded cases and 29,700 generated files                                                                |
-| Accessibility                                    | axe in both themes, in all three browser engines; keyboard tests; focus after deletions and WCAG 1.4.12 text spacing fixed                                                                        |
-| Sideways scrolling                               | None on 44 routes at 7 widths, and none with WCAG text spacing at 5 widths, in Chromium, WebKit and Firefox                                                                                       |
-| Security                                         | No known vulnerable dependencies, no new dependencies, no secrets                                                                                                                                 |
-| GitHub Actions                                   | Both workflows pass actionlint. The Windows verification and the Pages deployment are still unverified on GitHub                                                                                  |
-| Windows, Safari, screen readers, real phones     | **Not run**                                                                                                                                                                                       |
+| Area                                                  | Status                                                                                                                                                                                                                                                                                                                                |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Validate, format, lint, type check, tests, build      | Pass on macOS: All passed: catalog validation, repository and secret scan, format, lint, typecheck, 694 tests in 76 files, build. A clean copy of the release package: installed with `pnpm install --frozen-lockfile` and passed `pnpm check` (694 tests, build) on macOS and in a Linux container (`node:24-slim`, Node.js 24.21.0) |
+| End-to-end tests                                      | Chromium desktop and phone: 309 passed, 7 skipped by design. WebKit desktop: 155 passed, 3 skipped. Firefox desktop: 155 passed, 3 skipped                                                                                                                                                                                            |
+| Accessibility                                         | axe (WCAG 2.2 AA and best practices) in both themes on every new page and dialog, in Chromium, WebKit and Firefox; Hindi pages too                                                                                                                                                                                                    |
+| Lighthouse (median of 3, production build, local)     | Mobile: home 100, gallery 85, dashboard 90, assistant 87. Desktop: 99–100. Accessibility, best practices and SEO 100 on all four pages                                                                                                                                                                                                |
+| Generated projects                                    | 8 of 8 verified on macOS: attendance and expense tracker (tests and build), student management (69 pytest tests, Flask health check, home page, database), result analyzer (51 pytest tests, Streamlit health check), each with default and customised options                                                                        |
+| Smoke test                                            | 10 of 10 checks against a production build                                                                                                                                                                                                                                                                                            |
+| Security                                              | `pnpm audit --prod`: no known vulnerabilities. Secret scan clean. See `SECURITY_REVIEW.md`                                                                                                                                                                                                                                            |
+| AI assistant against the live API                     | **Not run**: no API key in this environment. Verified with the real SDK against a mocked API in Chromium, WebKit and Firefox                                                                                                                                                                                                          |
+| Hindi translation review by a native speaker          | **Not done**                                                                                                                                                                                                                                                                                                                          |
+| GitHub CI (including the new Firefox and WebKit jobs) | **Not run**: nothing was pushed                                                                                                                                                                                                                                                                                                       |
+| Windows, real phones, Safari on iOS, screen readers   | **Not run**                                                                                                                                                                                                                                                                                                                           |
 
 ## Environment
 
-- macOS 26.2 on Apple silicon (arm64), Node.js 24.12.0, pnpm 10.34.7 (the pinned version, through Corepack shims in a temporary folder)
-- Node.js 22.18.0, the oldest supported version: the official macOS build, checksum-checked against nodejs.org, in a temporary folder
-- Playwright 1.64.1 with its Chromium 156 headless shell, Firefox 157 and WebKit 27.2 builds. The Firefox and WebKit builds were installed for the runs and removed afterwards
+- macOS 26.2 on Apple silicon (arm64), Node.js 24.12.0, pnpm 10.34.7 (the pinned version, through a Corepack shim in a temporary folder)
+- Playwright 1.64.1: Chromium 156 (build 1248), WebKit (build 2370), Firefox 157 (build 1555, downloaded for this run)
+- Lighthouse 13.6.0 through `pnpm dlx`, on Playwright's Chrome for Testing
 - Python 3.11.7 from python.org for `pnpm verify:generated`
-- For the analyzer comparison and `pip-audit`, a temporary environment with what the template's requirements install today: pandas 3.1.0, PyArrow 26.0.0, numpy 2.4.6, Streamlit 1.66.1, Altair 6.3.0, pytest 9.1.1
-- Docker Desktop for actionlint and a clean Linux container (`node:24-slim`, Debian, arm64)
+- Docker 29.3.1 with `node:24-slim` for the clean Linux copy
 
 ## Commands run
 
-| Command or check                                                                  | Result                                                                                                                                               | Where                                         |
-| --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| `pnpm check`                                                                      | Passed: validate (3 templates **Verified**), format check, lint, type check, 444 tests in 52 files, build                                            | macOS, Node.js 24.12.0                        |
-| `pnpm check`                                                                      | Passed: 444 tests in 52 files, build                                                                                                                 | macOS, Node.js 22.18.0                        |
-| `pnpm test`, repeated                                                             | 3 of 3 runs passed, about 18 s each, with nothing else running                                                                                       | macOS                                         |
-| `pnpm test:e2e` (Chromium, desktop and phone), repeated                           | 3 of 3 runs: 227 passed, 7 skipped by design                                                                                                         | macOS                                         |
-| Every e2e spec at desktop size, WebKit 27.2                                       | 2 of 2 runs: 114 passed, 3 skipped                                                                                                                   | macOS, Playwright build                       |
-| Every e2e spec at desktop size, Firefox 157                                       | Runs 2 and 3: 114 passed, 3 skipped. Run 1: 5 timeouts while the Mac was asleep (see “Browsers”)                                                     | macOS, Playwright build                       |
-| `pnpm verify:generated`                                                           | 6 of 6: attendance (39 tests, build), expense tracker (48 tests, build), result analyzer (51 tests, Streamlit health check), defaults and customized | macOS                                         |
-| `pnpm verify:generated <id> --record`                                             | Passing macOS records for attendance 1.0.1, expense tracker 1.0.2 and result analyzer 1.0.2                                                          | macOS                                         |
-| `pnpm demo:compare`                                                               | 29,700 generated files (5 seeds × 5,400, 1 × 2,700), 0 differences, 0 Python exceptions                                                              | macOS, pandas 3.1.0 with PyArrow              |
-| The analyzer's Streamlit app on 7 file shapes (`AppTest`, one-off)                | No exceptions. It found the “nan%” average, now fixed                                                                                                | macOS                                         |
-| Sideways-scrolling sweep: 44 routes at 320, 360, 390, 768, 1024, 1440 and 1920 px | No sideways scrolling                                                                                                                                | Chromium, WebKit, Firefox                     |
-| The same with WCAG 1.4.12 text spacing, at 320, 360, 390, 768 and 1280 px         | No sideways scrolling, after fixing the five pages that scrolled at 320 px                                                                           | Chromium, WebKit, Firefox                     |
-| actionlint 1.7.12 (with shellcheck)                                               | No problems in either workflow                                                                                                                       | Docker                                        |
-| `pnpm audit`; `npm audit` in both React templates; `pip-audit` for the Python one | No known vulnerabilities                                                                                                                             | macOS                                         |
-| `git diff --check`; a scan for invisible and control characters                   | Clean. Two literal byte-order marks in the analyzer's tests became `﻿` escapes; the parity fixture's are test data                                   | macOS                                         |
-| Clean copy of the package: `pnpm install --frozen-lockfile`, then `pnpm check`    | Passed, lockfile unchanged: 3 templates **Verified**, 444 tests in 52 files, build                                                                   | macOS; Linux (Debian, arm64), Node.js 24.21.0 |
+| Command or check                                                                        | Result                                                                                                                                                                                                                                                         |
+| --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm check`                                                                            | All passed: catalog validation, repository and secret scan, format, lint, typecheck, 694 tests in 76 files, build                                                                                                                                              |
+| `playwright test --project=desktop --project=mobile`                                    | 309 passed, 7 skipped by design                                                                                                                                                                                                                                |
+| `CAMPUSKIT_E2E_BROWSERS=firefox,webkit playwright test --project=webkit`                | 155 passed, 3 skipped by design                                                                                                                                                                                                                                |
+| `CAMPUSKIT_E2E_BROWSERS=firefox,webkit playwright test --project=firefox`               | 155 passed, 3 skipped by design                                                                                                                                                                                                                                |
+| Lighthouse, 4 pages × mobile and desktop × 3 runs, before and after the two fixes below | Before: dashboard 80 and assistant 78 on mobile (layout shift 0.16–0.20, all from the footer), SEO 91–92 (no `robots.txt`). After: see the summary                                                                                                             |
+| `pnpm verify:generated`                                                                 | 8 of 8 verified on macOS: attendance and expense tracker (tests and build), student management (69 pytest tests, Flask health check, home page, database), result analyzer (51 pytest tests, Streamlit health check), each with default and customised options |
+| `pnpm smoke http://127.0.0.1:4174/` against `vite preview`                              | 10 of 10 checks passed                                                                                                                                                                                                                                         |
+| `pnpm audit --prod`; `pnpm audit`                                                       | No known vulnerabilities; with development tools, 2 moderate in `minimatch` under ESLint                                                                                                                                                                       |
+| `git diff --check`; invisible and bidirectional character scan                          | Clean                                                                                                                                                                                                                                                          |
+| Release ZIP, extracted into a clean folder                                              | installed with `pnpm install --frozen-lockfile` and passed `pnpm check` (694 tests, build) on macOS and in a Linux container (`node:24-slim`, Node.js 24.21.0)                                                                                                 |
 
-The skipped end-to-end tests apply to one screen size only: keyboard tests run on desktop, phone-layout tests on phones.
+## Performance
 
-## Found and fixed
+- First visit (entry plus preloaded scripts): 712.4 kB of JavaScript, 217.0 kB gzipped. 5.0.0-rc.1: 661.3 kB, 200.8 kB. The +16.2 kB gzipped comes from features that are on every page: the command palette, shortcuts, toasts, offline notice and the two language catalogs.
+- The Anthropic SDK (352 kB, 79 kB gzipped) is a separate chunk, loaded only when an AI request is sent. It's left out of the offline precache.
+- Fixed during QA: the loading placeholder for lazily loaded pages is now at least a screen tall, so the footer no longer jumps (layout shift 0.20 → 0). Also added a `robots.txt`.
+- Remaining: on Lighthouse's simulated slow 4G, a lazily loaded page's own chunk starts only after the entry script, so mobile LCP is 3.7–4.3 s on the gallery, dashboard and assistant. Preloading the likely next chunks is the next step.
 
-### Defects
+## Before publishing
 
-- **Saved data (Student Attendance System 1.0.1, Personal Expense Tracker 1.0.2):**
-  - One damaged record made the app start fresh. It now loads everything that passes its checks, leaves out the rest and says what was wrong.
-  - An unreadable value went to one backup key, so a second incident replaced the first copy. Copies are no longer replaced; later ones get the time added to their key.
-  - A full browser storage made the backup write throw while the app loaded, so it showed a blank page. Now the app says so and saves nothing, so the saved data isn't overwritten.
-  - Tests cover each case, in the storage module and in the app.
-- **Student Result Analyzer 1.0.2:** a file where every score is absent showed the average as “nan%” in the Overview, its explanation and the Markdown report. Found by running the real Streamlit app on edge-case files. It now says there is no average yet, and the demo says the same.
-- **Analyzer demo, measured against the wrong Python:**
-  - The audit's comparison (and this pass's first runs) used pandas 3 without PyArrow, but Streamlit always installs PyArrow.
-  - With PyArrow, pandas 3.1 runs `str.replace(r"\s+", " ")` on RE2 when a column is all ASCII, and RE2's `\s` leaves out U+000B and U+001C–U+001F. `pnpm demo:compare` found it once PyArrow was installed.
-  - The demo now applies pandas' rule. `analyzer_parity.py` refuses to run without PyArrow and records its version, and the fixture has cases for both paths.
-- **Keyboard focus:**
-  - Deleting a row in a demo left focus on the page body. It now moves to the next row's delete button, or to the empty state or the filter reset. The confirmation dialog closes in a layout effect, before the page moves focus.
-  - Removing the last filter chip in the gallery also lost focus; it now moves to the next chip or the result count.
-- **Screen-reader semantics:**
-  - Confirmation dialogs are now `alertdialog`s whose text is their description.
-  - Each chart's “Table view” button names its chart.
-- **Text spacing (WCAG 1.4.12):**
-  - With wider letter, word and line spacing, five pages scrolled sideways at 320 px. The causes were a long word in the home page heading, the docs header, the checklist's fieldset, a file path in the demo panel, and the generator's buttons.
-  - `overflow-wrap: break-word` on the body, `min-width: 0` on fieldsets, `min-w-0` on flex text, and a `wrap` option for `Button` fixed them.
+1. Make one AI request with a real key (any task) and check the answer, the Stop button and an invalid-key error.
+2. Have a native speaker review `apps/web/src/i18n/hi.ts`.
+3. With the owner's permission, commit and push, then confirm every CI job passes, including `e2e-browsers` (Firefox, WebKit) and the generated-project matrix on Windows.
+4. If all pass, change the version to 6.0.0, and move the CHANGELOG entry's date.
 
-### CI and tooling
+## 5.0.0-rc.1 record (kept for reference)
 
-- **`pnpm verify:generated`:**
-  - A failed Streamlit health check now quotes the end of the app's output; before, it said only that the app didn't answer. This may finally show why the Windows job fails.
-  - Each try has a 5-second limit, so a server that never answers can't hold the check past its deadline. A test fails without the limit.
-  - An app stopped by a signal ends the wait at once.
-  - On Windows, the whole process tree is stopped (`taskkill /T`), because a virtual environment's `python.exe` is a launcher. This is untested without Windows.
-  - The helpers are in `scripts/lib/processes.ts`, with tests.
-- **`pnpm demo:compare --shapes`** adds files random ones rarely have: one student, everyone absent, a subject nobody sat, hundreds of ties, every subject, and averages that round.
-- **End-to-end tests:**
-  - In WebKit on macOS they press Option-Tab, as Safari users must to reach links and buttons (`nextKey()` in `e2e/fixtures.ts`). That fixed the audit's two WebKit failures without weakening either test.
-  - Four new journeys go from discovery to download, from learning to viva practice, from demo to presentation and back, and from readiness to the report and back.
+This file records the checks on CampusKit **5.0.0-rc.1**, a release candidate, on 30–31 October 2026 (India Standard Time). Every result below was produced in this working copy on the final code unless it says otherwise. Nothing was committed, pushed or deployed. The report for 4.0.0 is in the Git history (commit `245fb2a`).
 
-## Cross-platform status
+### Summary
 
-| Platform | Status                 | Evidence                                                                                                                                                                                                            |
-| -------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| macOS    | **Verified**           | Everything in “Commands run”                                                                                                                                                                                        |
-| Linux    | **Partially verified** | A clean copy of the package passed `pnpm install --frozen-lockfile` and `pnpm check` in a Debian arm64 container. End-to-end tests and generated projects weren't run on Linux in this pass; CI runs them on Ubuntu |
-| Windows  | **Not run**            | No Windows machine was available. GitHub's Windows job has failed on every release; the cause is unknown (see below)                                                                                                |
+| Area                                                              | Status                                                                                                                                                                           |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Validate, format, lint, type check, tests, build                  | Pass on macOS: 595 tests in 58 files, 4 templates **Verified**. A clean copy of the package passed too, on macOS and in a Linux container                                        |
+| End-to-end tests                                                  | Chromium and WebKit, desktop and phone sizes: 263 passed and 7 skipped by design in each engine                                                                                  |
+| Generated projects                                                | 8 of 8 verified on macOS (all four templates, default and customized)                                                                                                            |
+| New template                                                      | Student Management System 1.0.0 (Flask, SQLite): 69 pytest tests; **Verified on macOS** and recorded. Linux and Windows: not run here; CI runs them after a push                 |
+| Demo simulation                                                   | The Flask demo's validation, sample data, 18 queries, statistics and rounding match the template's Python code (78 tests against recorded results)                               |
+| Accessibility                                                     | axe (WCAG 2.2 AA and best practices) in both themes in Chromium and WebKit, including every new page and dialog; no sideways scrolling at 360 and 320 px on the new demo screens |
+| Performance                                                       | First visit: 661.3 kB of JavaScript, 200.8 kB gzipped (4.0.0: 733.0 kB, 221.5 kB gzipped)                                                                                        |
+| Security                                                          | No known vulnerabilities (`pnpm audit --prod`, `pip-audit` on the Flask template). Template hardened against DNS rebinding and debugger exposure                                 |
+| Windows, Firefox, Safari on a device, screen readers, real phones | **Not run**                                                                                                                                                                      |
 
-## Browsers
+### Environment
 
-Every end-to-end spec ran at desktop size in Playwright's Firefox 157 and WebKit 27.2, through a configuration kept outside the repository.
+- macOS 26.2 on Apple silicon (arm64), Node.js 24.12.0, pnpm 10.34.7 (the pinned version, through Corepack shims in a temporary folder)
+- Playwright with its Chromium headless shell and WebKit 27.2 (playwright webkit v2370, downloaded for this run)
+- Python 3.11.7 from python.org for `pnpm verify:generated`; a temporary virtual environment with Flask 3.1.3, Werkzeug 3.1.9 and pytest for the parity fixture, plus python-docx 1.2.0 and pip-audit
+- Docker with `node:24-slim` (Debian 12, Node.js 24.21.0) for the clean Linux copy
 
-- **WebKit:** both runs of the final gate passed.
-  - On 24 October, the first run after installing WebKit failed once: “switching templates keeps the name…” found the template's default name instead of the typed one.
-  - It didn't come back in 80 reruns of the same steps that day, including runs under CPU load and with random network delays, or in the final gate's two full runs.
-  - The Mac's power log shows no sleep during that run. The cause is unknown.
-- **Firefox:** runs 2 and 3 passed. In run 1, five axe tests timed out at once, 38 seconds in. The power log shows the Mac in idle sleep from 01:24:11 to 01:39:11. The trace shows one step taking 898 seconds, and on waking, every test that was running had passed its 45-second limit. Later runs used `caffeinate -i`, but a closed lid on battery still sends the Mac to sleep, which interrupted three sweeps; they were run again.
+### Commands run
 
-These builds are close to the browsers people use but not the same: Safari itself wasn't tested.
+| Command or check                                                                 | Result                                                                                                                                                                                              | Where                   |
+| -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| `pnpm validate`, `format:check`, `lint`, `typecheck`, `vitest run`, `pnpm build` | All passed: 4 templates **Verified**, 595 tests in 58 files. Run step by step, with 4 test workers, because the disk was nearly full during the session                                             | macOS                   |
+| The same in a clean copy of the package                                          | All passed: 595 tests, build                                                                                                                                                                        | macOS; Linux container  |
+| `playwright test` (Chromium, desktop and phone)                                  | 263 passed, 7 skipped by design                                                                                                                                                                     | macOS                   |
+| `playwright test` (WebKit, desktop Safari and iPhone 13 profiles)                | 263 passed, 7 skipped by design                                                                                                                                                                     | macOS, Playwright build |
+| `pnpm verify:generated`                                                          | 8 of 8: attendance (39 tests, build), expense tracker (48 tests, build), student management (69 tests, Flask health check, home page, database), result analyzer (51 tests, Streamlit health check) | macOS                   |
+| `pnpm verify:generated student-management-system --record`                       | Passing macOS record for 1.0.0, after the final template change                                                                                                                                     | macOS                   |
+| `pnpm smoke http://127.0.0.1:4174/` against a production build                   | 10 of 10 checks passed, including every project page and demo and a downloaded ZIP                                                                                                                  | macOS, `vite preview`   |
+| `pnpm demo:fixtures:students` and `model.test.ts`                                | Fixture recorded from the template's Python code; 78 tests passed. A deliberate change to the simulation makes them fail                                                                            | macOS                   |
+| A real exported report opened with python-docx 1.2.0                             | Title, heading styles, lists, quotes, 3 tables and checklist boxes read back                                                                                                                        | macOS                   |
+| `pnpm audit --prod`; `pip-audit` on the Flask template's requirements            | No known vulnerabilities                                                                                                                                                                            | macOS                   |
+| `git diff --check`; scan for control and invisible characters                    | Clean: 149 changed or new files, 0 hits                                                                                                                                                             | macOS                   |
 
-## What still needs GitHub
+### What changed, and how it was checked
 
-- **Windows generated-project verification:**
-  - It failed for `b5f11ee` (3.1.0) and `ad52b02`, and Linux and macOS passed. The public annotation says only “exit code 1”.
-  - Ruled out locally: line endings (`.gitattributes` forces LF), implicit text encodings in the Python template, and template file names.
-  - After the push, any failure appears as an annotation, in the job summary and in the `verify-generated-windows-latest` artifact. A failed health check now includes Streamlit's own output.
-- **GitHub Pages:** the deployment can't succeed until Pages is enabled (Settings → Pages → Source: GitHub Actions). The hosted site is unverified.
-- **The workflows** pass actionlint, but only GitHub can run them.
+- **Student Management System template (Flask, SQLite):** CRUD for students and courses, enrollments, attendance with an upsert, search, filters, sorting and pages, statistics. CSRF tokens, parameterized SQL, a script-free CSP, escaped output, a secret key created readable by its owner only, `TRUSTED_HOSTS` against DNS rebinding, and no debugger when other computers could connect. Bugs found while building it are fixed with regression tests (see the changelog).
+- **Demo Studio simulation:** a clearly labelled `simulation` fidelity; the page says the browser runs no Python and no SQL. Parity tests against the real code found and fixed two simulation bugs (rounding of ties, years 1 to 99).
+- **Student workspace:** My projects, backup and restore (strict validation, preview, replace per project), spaced viva review, Word and print/PDF report export.
+- **Reliability:** the verifier's command diagnostics, a smoke job after each Pages deployment, and support for Flask apps in the generated-project verification.
+- **Performance:** the ZIP code is off the first page load (see “Performance” in the changelog).
 
-## Not run or not verified
+### Not done, and why
 
-- Windows, and Safari itself.
-- Screen readers: no screen reader was used. Accessibility was checked with axe-core, role-based queries (names, descriptions, roles) and keyboard tests in three engines.
-- Real phones: phone layouts ran in Chromium's Pixel 7 emulation and at 320–390 px in all three engines.
-- End-to-end tests on Linux: Playwright's Linux image needs about 2 GB, and the disk had under 3 GB free.
-- The hosted website.
-- The analyzer demo beyond the recorded and generated files: other inputs could still expose differences.
+- Windows and Linux verification of the new template, Firefox, Safari on a real device, screen readers and real phones: not available on this computer, or not run. CI verifies every template on Linux, Windows and macOS after a push. [Accessibility testing](docs/accessibility-testing.md) has manual screen-reader scripts.
+- More templates, “Extend your project” guides, more generator options, offline use (PWA) and a Hindi interface: left out of this release so that what shipped could be finished and tested.
 
-## Known issues and limitations
+### Before publishing
 
-- The analyzer demo follows pandas 3 with PyArrow. A student with pandas 2.2, which `requirements.txt` still allows, or without PyArrow, can see differences:
-  - numbers like `1e400` are called “not a number” instead of “out of range”;
-  - five control characters inside names are kept or turned into spaces differently;
-  - class averages can differ in a digit that doesn't show.
-- The real analyzer still calls a CSV whose first line is blank “empty”, whatever follows; the demo does the same.
-- Saved data that some other code damaged is copied once per incident, so repeated incidents add backup keys until the student removes them in the developer tools.
-- The disk on this Mac was 99–100% full. That limited what could run: no Playwright Linux image, and one browser build at a time.
-
-## Earlier: the release audit (24 October 2026)
-
-- **Node.js:** the minimum is 22.18. Node.js 22.12 couldn't build or test, because the workspace TypeScript is loaded directly. `engines` says `^22.18.0 || >=23.6.0`, and CI tests and builds on 22.18.
-- **Templates:**
-  - The expense tracker accepted 100,000,000.01 and then couldn't read its own saved data (1.0.1).
-  - The analyzer crashed on two identical non-ASCII column names (1.0.1).
-- **Analyzer demo:** differences in whitespace, `1e400`, empty files, line numbers, duplicate columns, the sign of zero and class averages were found and fixed.
-- **Focus:** the generator, route changes, learning studio sections and slides move focus in layout effects. A dialog that the page removes returns focus to its opener.
-- **CI:**
-  - time limits on every job;
-  - no cancelled runs on `main`;
-  - a pinned `pnpm/action-setup`;
-  - a Node.js 22.18 job;
-  - least-privilege Pages deployment;
-  - annotations and job summaries from `verify:generated`;
-  - a 2-minute limit for the internal-link test.
-
-## How to run it
-
-```bash
-sudo corepack enable pnpm          # once, if `pnpm` is "command not found"
-pnpm install
-pnpm check                         # validate, format:check, lint, typecheck, test, build
-pnpm playwright:install            # once, then:
-pnpm test:e2e
-pnpm verify:generated              # Python 3.11+ with the template's requirements for the analyzer
-pnpm demo:compare                  # the same Python, with pandas 3 and PyArrow
-```
-
-See [README.md](README.md) for every command and [CONTRIBUTING.md](CONTRIBUTING.md) for the pull request checklist.
+1. Review the working tree and push it.
+2. Watch the CI run, especially “Generated projects (windows-latest)” and “(ubuntu-latest)” for the new template, then record those platforms (`pnpm verify:generated student-management-system --record` on each, or keep the macOS record).
+3. Watch “Deploy to GitHub Pages”: its new smoke job checks the live site after deployment.

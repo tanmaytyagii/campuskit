@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, error_summary %}
+{% set title = "Edit " ~ student.first_name ~ " " ~ student.last_name if student else "Add a student" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+  <h1>{{ title }}</h1>
+  {{ error_summary(errors, {"roll_number": "Roll number", "first_name": "First name", "last_name": "Last name", "email": "Email", "class_name": "Class", "admission_date": "Admission date", "status": "Status"}) }}
+  <form method="post" class="panel form" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {{ field("roll_number", "Roll number", form, errors, required=True, hint="Unique for each student, for example 24CS001.") }}
+    <div class="field-row">
+      {{ field("first_name", "First name", form, errors, required=True, autocomplete="off") }}
+      {{ field("last_name", "Last name", form, errors, required=True, autocomplete="off") }}
+    </div>
+    {{ field("email", "Email", form, errors, type="email") }}
+    {{ field("class_name", "Class or section", form, errors, required=True, hint="For example BCA 1-A.") }}
+    {{ field("admission_date", "Admission date", form, errors, type="date", required=True) }}
+    <div class="field{% if errors.get('status') %} field-invalid{% endif %}">
+      <label for="status">Status</label>
+      <select id="status" name="status" {% if errors.get('status') %}aria-invalid="true" aria-describedby="status-error"{% endif %}>
+        {% for status in statuses %}<option value="{{ status }}" {% if (form.get('status') or 'active') == status %}selected{% endif %}>{{ status | capitalize }}</option>{% endfor %}
+      </select>
+      {% if errors.get('status') %}<p class="error" id="status-error">{{ errors.status }}</p>{% endif %}
+    </div>
+    <p class="actions">
+      <button type="submit">{{ "Save changes" if student else "Add student" }}</button>
+      <a href="{{ url_for('students.show_student', student_id=student.id) if student else url_for('students.list_students') }}">Cancel</a>
+    </p>
+  </form>
+{% endblock %}

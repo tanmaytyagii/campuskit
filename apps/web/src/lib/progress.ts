@@ -21,16 +21,21 @@ const KEYS = {
 
 export type ProgressKind = keyof typeof KEYS;
 
+/** Where one kind of progress is saved for a project (for backing up and restoring it). */
+export function progressKey(kind: ProgressKind, projectId: string): string {
+  return KEYS[kind](projectId);
+}
+
 // ---------------------------------------------------------------------------
 // Ticked lists (the learning checklist and the demonstration checklist)
 // ---------------------------------------------------------------------------
 
-interface TickedList {
+export interface TickedList {
   version: 1;
   done: string[];
 }
 
-function isTickedList(value: unknown): value is TickedList {
+export function isTickedList(value: unknown): value is TickedList {
   if (typeof value !== 'object' || value === null) return false;
   const candidate = value as Partial<TickedList>;
   return (
@@ -105,6 +110,11 @@ export interface QuestionProgress {
   attempts: number;
   /** YYYY-MM-DD in the student's time zone. */
   lastPracticed: string;
+  /**
+   * On how many days in a row the question was rated confident, for spaced review. Missing in
+   * progress saved before 5.0, where it counts as 1 for a confident question and 0 otherwise.
+   */
+  confidentStreak?: number;
 }
 
 export interface VivaProgress {
@@ -131,7 +141,7 @@ function isRatings(value: unknown): value is Ratings {
   );
 }
 
-function isQuestionProgress(value: unknown): value is QuestionProgress {
+export function isQuestionProgress(value: unknown): value is QuestionProgress {
   if (typeof value !== 'object' || value === null) return false;
   const candidate = value as Partial<QuestionProgress>;
   return (
@@ -141,8 +151,15 @@ function isQuestionProgress(value: unknown): value is QuestionProgress {
     Number.isInteger(candidate.attempts) &&
     candidate.attempts >= 1 &&
     typeof candidate.lastPracticed === 'string' &&
-    /^\d{4}-\d{2}-\d{2}$/.test(candidate.lastPracticed)
+    /^\d{4}-\d{2}-\d{2}$/.test(candidate.lastPracticed) &&
+    (candidate.confidentStreak === undefined ||
+      (Number.isSafeInteger(candidate.confidentStreak) && candidate.confidentStreak >= 0))
   );
+}
+
+/** confidentStreak, with the value it has in progress saved before it existed. */
+export function streakOf(entry: QuestionProgress): number {
+  return entry.confidentStreak ?? (entry.outcome === 'confident' ? 1 : 0);
 }
 
 function isVivaProgress(value: unknown): value is VivaProgress {
@@ -181,15 +198,26 @@ export function recordRatings(
   today: string,
 ): VivaProgress {
   const previous = progress.questions[questionId];
+  const outcome = outcomeFor(ratings);
+  // A streak counts days, so a second confident rating on the same day doesn't lengthen it.
+  const before = previous ? streakOf(previous) : 0;
+  const sameDay = previous?.lastPracticed === today;
+  const confidentStreak =
+    outcome !== 'confident'
+      ? 0
+      : sameDay && previous?.outcome === 'confident'
+        ? before
+        : before + 1;
   return {
     version: 1,
     questions: {
       ...progress.questions,
       [questionId]: {
-        outcome: outcomeFor(ratings),
+        outcome,
         ratings: { ...ratings },
         attempts: (previous?.attempts ?? 0) + 1,
         lastPracticed: today,
+        confidentStreak,
       },
     },
   };
@@ -232,7 +260,7 @@ export interface Rehearsal {
   checkedSteps: number;
 }
 
-function isRehearsal(value: unknown): value is Rehearsal {
+export function isRehearsal(value: unknown): value is Rehearsal {
   if (typeof value !== 'object' || value === null) return false;
   const candidate = value as Partial<Rehearsal>;
   return (

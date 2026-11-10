@@ -19,10 +19,11 @@ function sidebar() {
 describe('project gallery', () => {
   it('lists every project with its real count', () => {
     renderRoute('/projects');
-    expect(screen.getByRole('status')).toHaveTextContent('3 projects');
+    expect(screen.getByRole('status')).toHaveTextContent('4 projects');
     expect(resultNames()).toEqual([
       'Personal Expense Tracker',
       'Student Attendance System',
+      'Student Management System',
       'Student Result Analyzer',
     ]);
   });
@@ -31,13 +32,17 @@ describe('project gallery', () => {
     const user = userEvent.setup();
     const { router } = renderRoute('/projects?q=pandas&difficulty=intermediate');
     expect(screen.getByRole('searchbox', { name: 'Search' })).toHaveValue('pandas');
-    expect(screen.getByRole('status')).toHaveTextContent('Showing 1 of 3 projects');
+    expect(screen.getByRole('status')).toHaveTextContent('Showing 1 of 4 projects');
     expect(resultNames()).toEqual(['Student Result Analyzer']);
 
     const chips = within(screen.getByRole('group', { name: 'Active filters' }));
     await user.click(chips.getByRole('button', { name: 'Remove filter “pandas”' }));
     expect(router.state.location.search).toBe('?difficulty=intermediate');
-    expect(resultNames()).toEqual(['Personal Expense Tracker', 'Student Result Analyzer']);
+    expect(resultNames()).toEqual([
+      'Personal Expense Tracker',
+      'Student Management System',
+      'Student Result Analyzer',
+    ]);
   });
 
   it('keeps focus on the filters, then the result count, as chips are removed', async () => {
@@ -51,7 +56,7 @@ describe('project gallery', () => {
     ).toHaveFocus();
     // The last chip: the group goes, and focus moves to the result count.
     await user.click(chips.getByRole('button', { name: 'Remove filter Difficulty: Intermediate' }));
-    expect(screen.getByRole('status')).toHaveTextContent('3 projects');
+    expect(screen.getByRole('status')).toHaveTextContent('4 projects');
     expect(screen.getByRole('status')).toHaveFocus();
   });
 
@@ -67,7 +72,7 @@ describe('project gallery', () => {
     // Changing the address elsewhere (here: removing the filter chip) updates the box.
     await user.click(screen.getByRole('button', { name: 'Remove filter “react typescript”' }));
     expect(search).toHaveValue('');
-    expect(resultNames()).toHaveLength(3);
+    expect(resultNames()).toHaveLength(4);
   });
 
   it('filters with checkboxes, keeps the URL in sync and shows counts per option', async () => {
@@ -108,7 +113,7 @@ describe('project gallery', () => {
 
     await user.click(screen.getAllByRole('button', { name: 'Reset filters' })[0] as HTMLElement);
     expect(router.state.location.search).toBe('?sort=newest');
-    expect(resultNames()).toHaveLength(3);
+    expect(resultNames()).toHaveLength(4);
     // The reset button went with the empty state: focus moves to the result count.
     expect(screen.getByRole('status')).toHaveFocus();
   });
@@ -119,7 +124,7 @@ describe('project gallery', () => {
     await user.click(screen.getByRole('button', { name: 'Filters (1)' }));
     const dialog = screen.getByRole('dialog', { name: 'Filter projects' });
     expect(within(dialog).getByRole('checkbox', { name: /^Python/ })).toBeChecked();
-    await user.click(within(dialog).getByRole('button', { name: 'Show 1 project' }));
+    await user.click(within(dialog).getByRole('button', { name: 'Show 2 projects' }));
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 });

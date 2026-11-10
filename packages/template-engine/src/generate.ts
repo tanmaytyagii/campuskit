@@ -3,11 +3,11 @@
  *
  * Generation is split in two so the browser can show a review screen first:
  *   1. `generateProject` validates everything and computes the final files.
- *   2. `packageProject` turns those files into a ZIP archive.
+ *   2. `packageProject` (packaging.ts) turns those files into a ZIP archive.
  * Nothing here executes template code or shell commands.
  */
 import { applyEdits, type AppliedEdit, type WorkingFile } from './edits.ts';
-import { base64ToBytes, utf8Encode } from './encoding.ts';
+import { utf8Encode } from './encoding.ts';
 import { renderGettingStarted, type SetupGuide } from './instructions.ts';
 import { resolveValues, type ResolvedValues } from './options.ts';
 import { assertSafeRelativePath, getExclusionReason, RESERVED_OUTPUT_FILES } from './paths.ts';
@@ -17,7 +17,6 @@ import {
   type CustomizationSpec,
   type TemplateBundle,
 } from './spec.ts';
-import { createZipArchive, type ArchiveFile } from './zip.ts';
 
 export const MAX_PROJECT_BYTES = 30 * 1024 * 1024;
 export const GETTING_STARTED_FILE = 'GETTING_STARTED.md';
@@ -137,22 +136,4 @@ export function generateProject(options: GenerateProjectOptions): GeneratedProje
     guide,
     totalBytes,
   };
-}
-
-/** Packages a generated project as a ZIP with a single root folder. */
-export async function packageProject(project: GeneratedProject, date?: Date): Promise<Uint8Array> {
-  const archiveFiles: ArchiveFile[] = project.files.map((file) => ({
-    path: file.path,
-    data: file.encoding === 'utf8' ? file.content : base64ToBytes(file.content),
-  }));
-  return createZipArchive(project.rootFolder, archiveFiles, date ? { date } : {});
-}
-
-/** Convenience helper used by tests and scripts: validate, generate and zip. */
-export async function generateProjectZip(
-  options: GenerateProjectOptions & { date?: Date },
-): Promise<{ project: GeneratedProject; zip: Uint8Array }> {
-  const project = generateProject(options);
-  const zip = await packageProject(project, options.date);
-  return { project, zip };
 }

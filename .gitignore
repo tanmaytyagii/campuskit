@@ -12,6 +12,7 @@ build/
 coverage/
 playwright-report/
 test-results/
+smoke-report/
 blob-report/
 .vitest-attachments/
 

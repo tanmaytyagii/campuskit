@@ -4,7 +4,23 @@ import { Link } from 'react-router';
 
 import { Button } from '../../components/ui/Button.tsx';
 import { sourceHref } from '../learning/links.ts';
-import type { DemoDefinition } from './types.ts';
+import type { DemoDefinition, DemoFidelity } from './types.ts';
+
+/** The expandable details' summary, and the heading over what runs, for each kind of demo. */
+const DETAILS: Record<DemoFidelity, { summary: string; heading: string }> = {
+  'template-logic': {
+    summary: 'What runs here, and what the full project adds',
+    heading: 'Template code running here',
+  },
+  'browser-port': {
+    summary: 'How this differs from the real project',
+    heading: 'What the browser version reproduces',
+  },
+  simulation: {
+    summary: 'How this simulation relates to the real project',
+    heading: 'What the simulation reproduces',
+  },
+};
 
 /**
  * The label every demo carries: it is a demonstration with fictional data,
@@ -22,7 +38,7 @@ export function DemoNotice({
   onReset: () => void;
   onStartEmpty: (() => void) | null;
 }) {
-  const ported = definition.fidelity === 'browser-port';
+  const { summary, heading } = DETAILS[definition.fidelity];
   return (
     <section
       aria-labelledby="demo-notice-title"
@@ -60,15 +76,11 @@ export function DemoNotice({
       </div>
       <details className="mt-3 border-t border-line pt-3">
         <summary className="cursor-pointer text-sm font-semibold text-ink-2 hover:text-ink">
-          {ported
-            ? 'How this differs from the real project'
-            : 'What runs here, and what the full project adds'}
+          {summary}
         </summary>
         <div className="mt-3 grid gap-6 text-sm md:grid-cols-2">
           <div className="space-y-2">
-            <h3 className="font-semibold text-ink">
-              {ported ? 'What the browser version reproduces' : 'Template code running here'}
-            </h3>
+            <h3 className="font-semibold text-ink">{heading}</h3>
             <p className="text-ink-2">{definition.runs.description}</p>
             <ul className="flex flex-wrap gap-1.5">
               {definition.runs.files.map((file) => (

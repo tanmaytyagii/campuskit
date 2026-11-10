@@ -38,7 +38,6 @@ import { FilePreview } from './FilePreview.tsx';
 import { KitPreview } from './KitPreview.tsx';
 import {
   appPreviewModel,
-  buildZip,
   initialFormValues,
   optionFiles,
   optionsForStep,
@@ -51,13 +50,16 @@ import {
   validateOptions,
   type FormValue,
   type FormValues,
-  type GeneratedZip,
   type StepId,
 } from './logic.ts';
+import { buildZip, type GeneratedZip } from './zip.ts';
 import { OptionInput, optionInputId } from './OptionInput.tsx';
 import { STEP_LABELS, Stepper } from './Stepper.tsx';
 
 const DRAFT_KEY = 'campuskit:generator:v1';
+
+/** “A and B”, or “A, B and C”. */
+const NAME_LIST = new Intl.ListFormat('en-GB', { type: 'conjunction' });
 
 const GROUP_LABELS = {
   appearance: 'Appearance',
@@ -858,7 +860,7 @@ function UnavailableNote({
       <ul className="mt-1 space-y-0.5">
         {missing.map((item) => (
           <li key={item.label}>
-            {item.label} (offered by {item.offeredBy.join(' and ')})
+            {item.label} (offered by {NAME_LIST.format(item.offeredBy)})
           </li>
         ))}
       </ul>

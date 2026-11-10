@@ -30,6 +30,11 @@ export function LearnPage() {
         eyebrow="Learn"
         title="Learning center"
         description="Understand your project, practise explaining it and prepare your report. Your progress is saved in this browser only."
+        actions={
+          <ButtonLink to="/my-projects" variant="secondary">
+            My projects and backups
+          </ButtonLink>
+        }
       />
       <div className="container-page space-y-16">
         <section aria-labelledby="projects-heading" className="space-y-4">

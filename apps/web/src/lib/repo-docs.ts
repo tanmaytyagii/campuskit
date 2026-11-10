@@ -110,6 +110,14 @@ export const REPO_DOCS: readonly RepoDoc[] = [
     group: 'contributing',
   },
   {
+    slug: 'accessibility-testing',
+    title: 'Testing with a screen reader',
+    description:
+      'What the automated accessibility checks cover, and manual scripts for VoiceOver and NVDA.',
+    path: 'docs/accessibility-testing.md',
+    group: 'contributing',
+  },
+  {
     slug: 'template-engine',
     title: 'Template engine',
     description: 'Options, edits, escaping, exclusion rules and ZIP safety in detail.',

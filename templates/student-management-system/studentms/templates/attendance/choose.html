@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Attendance{% endblock %}
+{% block content %}
+  <h1>Attendance</h1>
+  {% if courses %}
+    <p>Choose a course to mark attendance for {{ today.strftime("%d %B %Y") }}, or for an earlier day.</p>
+    <ul class="card-list">
+      {% for course in courses %}
+        <li class="panel">
+          <h2><a href="{{ url_for('attendance.mark', course_id=course.id) }}">{{ course.code }} {{ course.title }}</a></h2>
+          <p class="muted">{{ course.student_count }} {{ 'student' if course.student_count == 1 else 'students' }}</p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>There are no courses yet. <a href="{{ url_for('courses.new_course') }}">Add a course</a> first.</p>
+  {% endif %}
+{% endblock %}

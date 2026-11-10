@@ -4,9 +4,11 @@ import { createServer, type AddressInfo } from 'node:net';
 import { describe, expect, it } from 'vitest';
 
 import {
+  describeExit,
   hasEnded,
   keepOutput,
   outputNote,
+  runCommand,
   stopProcess,
   waitForHealth,
 } from '../scripts/lib/processes.ts';
@@ -142,5 +144,50 @@ describe('child processes in pnpm verify:generated', () => {
     expect(outputNote('\nError: address in use\n')).toBe(
       '\nIts output ended with:\nError: address in use',
     );
+  });
+
+  describe('running a command to the end', () => {
+    const cwd = process.cwd();
+    const nodeArgs = (code: string) => ['-e', code];
+
+    it('returns everything the command printed', async () => {
+      await expect(
+        runCommand(process.execPath, nodeArgs('console.log("out"); console.error("err")'), { cwd }),
+      ).resolves.toMatch(/out[\s\S]*err|err[\s\S]*out/);
+    });
+
+    it('names the command, its exit code and the end of its output when it fails', async () => {
+      await expect(
+        runCommand(
+          process.execPath,
+          nodeArgs('console.error("npm ERR! missing script"); process.exit(2)'),
+          {
+            cwd,
+          },
+        ),
+      ).rejects.toThrow(/exited with code 2\nIts output ended with:\nnpm ERR! missing script/);
+    });
+
+    it('stops a command that runs too long, with everything it started', async () => {
+      const started = Date.now();
+      await expect(
+        runCommand(process.execPath, nodeArgs('setInterval(() => {}, 1000)'), {
+          cwd,
+          timeoutMs: 500,
+        }),
+      ).rejects.toThrow(/did not finish within 0\.5 seconds and was stopped/);
+      expect(Date.now() - started).toBeLessThan(10_000);
+    });
+
+    it('says when the program itself is missing', async () => {
+      await expect(runCommand('campuskit-no-such-program', [], { cwd })).rejects.toThrow(
+        /^Could not run "campuskit-no-such-program" in .+: spawn campuskit-no-such-program ENOENT/,
+      );
+    });
+
+    it('describes an exit by a signal instead of "code null"', () => {
+      expect(describeExit(null, 'SIGKILL')).toBe('was stopped by signal SIGKILL');
+      expect(describeExit(1, null)).toBe('exited with code 1');
+    });
   });
 });

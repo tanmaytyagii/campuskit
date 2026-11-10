@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "templateId": "student-management-system",
+  "entries": [
+    {
+      "platform": "macos",
+      "verifiedOn": "2026-10-30",
+      "templateVersion": "1.0.0",
+      "fingerprint": "sha256:77f5a7e8ea62f9b2ad7d098fa27db0b7bf4b0b79d09ae1cff04fd11b72aabe46",
+      "environment": {
+        "os": "macOS 26.2 (arm64)",
+        "node": "24.12.0",
+        "python": "3.11.7"
+      },
+      "runs": [
+        {
+          "variant": "defaults",
+          "passed": true,
+          "steps": [
+            "student-management-system.zip: 53 files, 425 KB, 0 excluded",
+            "files, customizations and exclusions checked",
+            "python -m venv .venv",
+            "pip install -r requirements-dev.txt",
+            "python -m pytest (69 passed)",
+            "python run.py (health check answered, home page rendered, database created)"
+          ]
+        },
+        {
+          "variant": "customized",
+          "passed": true,
+          "steps": [
+            "riya-and-sam-s-lab-app-v2.zip: 53 files, 426 KB, 0 excluded",
+            "files, customizations and exclusions checked",
+            "python -m venv .venv",
+            "pip install -r requirements-dev.txt",
+            "python -m pytest (69 passed)",
+            "python run.py (health check answered, home page rendered, database created)"
+          ]
+        }
+      ]
+    }
+  ]
+}

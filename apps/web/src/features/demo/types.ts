@@ -15,8 +15,12 @@ import type { ComponentType } from 'react';
  * - `browser-port`: the template is not JavaScript (for example Python), so
  *   the demo re-implements its logic in TypeScript and is checked against
  *   results produced by the real code.
+ * - `simulation`: the template is a server app (for example Flask with
+ *   SQLite) that a browser can't run, so its pages and database are
+ *   simulated. The rules and queries are checked against results produced by
+ *   the real code; the rest is re-created to show how the app behaves.
  */
-export type DemoFidelity = 'template-logic' | 'browser-port';
+export type DemoFidelity = 'template-logic' | 'browser-port' | 'simulation';
 
 /** A file in the template, optionally narrowed to where a function or constant is defined. */
 export interface SourceRef {
@@ -86,8 +90,8 @@ export interface DemoDefinition {
   notice: string;
   /**
    * What runs in the browser. For `template-logic` demos these are template
-   * files imported as they are; for `browser-port` demos, the files whose
-   * behaviour the port reproduces.
+   * files imported as they are; for `browser-port` and `simulation` demos,
+   * the files whose behaviour the demo reproduces.
    */
   runs: { files: string[]; description: string };
   data: {

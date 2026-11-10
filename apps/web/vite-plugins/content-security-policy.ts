@@ -26,7 +26,9 @@ export function buildPolicy(inlineScripts: string[]): string {
     // Source images in the file viewer are shown as data: URLs.
     "img-src 'self' data: blob:",
     "font-src 'self' data:",
-    "connect-src 'self'",
+    // The optional AI assistant sends requests, with the student's own key and consent, to
+    // Anthropic's API. Nothing else leaves the site.
+    "connect-src 'self' https://api.anthropic.com",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

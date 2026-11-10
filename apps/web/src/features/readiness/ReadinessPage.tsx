@@ -130,16 +130,20 @@ function Readiness({ project, guide }: { project: ProjectManifest; guide: Learni
   );
   const [resetting, setResetting] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  // Ticking a box changes the score on screen; this says so to screen-reader users too.
+  const [announcement, setAnnouncement] = useState('');
 
-  const items = evaluateReadiness({
-    project,
-    guide,
-    templateStatus: getTemplateStatus(project),
-    verificationLines: verificationLines(project),
-    confirmed,
-    hasDemo: hasDemo(project),
-    ...saved,
-  });
+  const itemsFor = (ticked: ReadonlySet<string>) =>
+    evaluateReadiness({
+      project,
+      guide,
+      templateStatus: getTemplateStatus(project),
+      verificationLines: verificationLines(project),
+      confirmed: ticked,
+      hasDemo: hasDemo(project),
+      ...saved,
+    });
+  const items = itemsFor(confirmed);
   const score = scoreReadiness(items);
 
   function toggle(id: string, checked: boolean) {
@@ -148,6 +152,10 @@ function Readiness({ project, guide }: { project: ProjectManifest; guide: Learni
     else next.delete(id);
     setConfirmed(next);
     writeTicked('readiness', project.id, next);
+    const updated = scoreReadiness(itemsFor(next));
+    setAnnouncement(
+      `Your readiness is now ${updated.percent}%: ${updated.points} of ${updated.total} items.`,
+    );
   }
 
   return (
@@ -169,6 +177,9 @@ function Readiness({ project, guide }: { project: ProjectManifest; guide: Learni
             Your readiness
           </h2>
           <p className="text-4xl font-extrabold text-ink">{score.percent}%</p>
+          <p role="status" className="sr-only">
+            {announcement}
+          </p>
           <p className="text-sm text-ink-2">
             {score.points} of {score.total} items (
             {items.filter((item) => item.status === 'ready').length} ready,{' '}

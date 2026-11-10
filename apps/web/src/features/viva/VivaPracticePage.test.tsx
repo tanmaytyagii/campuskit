@@ -2,7 +2,10 @@ import { screen, within } from '@testing-library/react';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
+import attendanceGuide from '../../../../../packages/project-catalog/learning/attendance-system.json';
+import { formatIsoDate, todayIso } from '../../lib/format.ts';
 import { renderRoute } from '../../test/render.tsx';
+import { addDays } from './logic.ts';
 
 async function rateAll(user: UserEvent, rating: 'Not yet' | 'Partly' | 'Confident') {
   for (const criterion of [
@@ -108,5 +111,58 @@ describe('viva practice', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Reset viva progress' }));
     expect(screen.getByRole('button', { name: 'Start review' })).toBeDisabled();
     expect(window.localStorage.getItem('campuskit:viva:v1:attendance-system')).toBeNull();
+  });
+
+  it('offers the questions due for spaced review, and says when the next one is', async () => {
+    const [first, second] = attendanceGuide.viva;
+    if (!first || !second) throw new Error('the guide changed');
+    const today = todayIso();
+    const ratings = (rating: string) => ({
+      correctness: rating,
+      understanding: rating,
+      clarity: rating,
+      limitations: rating,
+    });
+    window.localStorage.setItem(
+      'campuskit:viva:v1:attendance-system',
+      JSON.stringify({
+        version: 1,
+        questions: {
+          // "Not yet" five days ago: due since four days ago.
+          [first.id]: {
+            outcome: 'missed',
+            ratings: ratings('not-yet'),
+            attempts: 1,
+            lastPracticed: addDays(today, -5),
+          },
+          // Confident today: back in three days.
+          [second.id]: {
+            outcome: 'confident',
+            ratings: ratings('confident'),
+            attempts: 1,
+            lastPracticed: today,
+            confidentStreak: 1,
+          },
+        },
+      }),
+    );
+    const user = userEvent.setup();
+    renderRoute('/projects/attendance-system/viva');
+    expect(await screen.findByText(/1 question is due today\./)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Start spaced review' }));
+    expect(await screen.findByText(/Spaced review · Question 1 of 1/)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: first.question })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /I don’t know yet/ }));
+    await rateAll(user, 'Confident');
+    await user.click(screen.getByRole('button', { name: 'Save rating and continue' }));
+    await user.click(await screen.findByRole('button', { name: 'Choose another practice mode' }));
+    expect(
+      await screen.findByText(
+        new RegExp(
+          `Nothing is due today\\. The next review is on ${formatIsoDate(addDays(today, 3))}\\.`,
+        ),
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Start spaced review' })).toBeDisabled();
   });
 });

@@ -3,7 +3,9 @@
  * generator and the source browser. Bundles are fetched only when needed and
  * validated before use.
  */
-import { templateBundleSchema, type TemplateBundle } from '@campuskit/template-engine';
+// The schema alone, from its own entry point: the package's main one also brings the ZIP code,
+// which the first page doesn't need.
+import { templateBundleSchema, type TemplateBundle } from '@campuskit/template-engine/spec';
 import bundlePaths from 'virtual:template-bundles';
 
 export type BundleLoader = (templateId: string) => Promise<TemplateBundle>;

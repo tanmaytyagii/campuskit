@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
 import { contentSecurityPolicy } from './vite-plugins/content-security-policy.ts';
+import { serviceWorker } from './vite-plugins/service-worker.ts';
 import { templateBundles } from './vite-plugins/template-bundles.ts';
 
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
@@ -12,7 +13,15 @@ const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
 export default defineConfig({
   // Set CAMPUSKIT_BASE=/repository-name/ when deploying to a sub-path (e.g. GitHub Pages).
   base: process.env.CAMPUSKIT_BASE ?? '/',
-  plugins: [react(), tailwindcss(), templateBundles({ repoRoot }), contentSecurityPolicy()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    templateBundles({ repoRoot }),
+    contentSecurityPolicy(),
+    serviceWorker({
+      source: fileURLToPath(new URL('./src/sw/service-worker.js', import.meta.url)),
+    }),
+  ],
   server: { port: 5173 },
   preview: { port: 4173 },
   build: {

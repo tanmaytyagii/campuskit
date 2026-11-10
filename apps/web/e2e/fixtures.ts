@@ -5,6 +5,10 @@
  */
 import { test as base, expect, type Page } from '@playwright/test';
 
+/** How each engine reports a request it cancelled itself: WebKit, Chromium, Firefox. */
+const CANCELLED = new Set(['cancelled', 'net::ERR_ABORTED', 'NS_BINDING_ABORTED']);
+const PASSIVE_RESOURCES = new Set(['font', 'image', 'stylesheet', 'media']);
+
 interface Fixtures {
   /** Problems seen so far. A test that causes errors on purpose can clear it. */
   problems: string[];
@@ -19,8 +23,13 @@ export const test = base.extend<Fixtures>({
         if (message.type() === 'error') problems.push(`console error: ${message.text()}`);
       });
       page.on('requestfailed', (request) => {
+        const error = request.failure()?.errorText ?? '';
+        // A font or image still loading when the page reloads or navigates is cancelled by the
+        // browser (WebKit does this under load); nothing failed. Scripts and fetches still count.
+        const cancelledByNavigation =
+          CANCELLED.has(error) && PASSIVE_RESOURCES.has(request.resourceType());
         // Downloads use blob: URLs that the browser hands over to the download manager.
-        if (!request.url().startsWith('blob:'))
+        if (!request.url().startsWith('blob:') && !cancelledByNavigation)
           problems.push(
             `request failed: ${request.url()} (${request.failure()?.errorText ?? 'unknown'})`,
           );

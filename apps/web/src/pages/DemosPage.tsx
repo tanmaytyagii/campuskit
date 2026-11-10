@@ -13,6 +13,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle.ts';
 const FIDELITY_LABELS = {
   'template-logic': 'Runs the template’s own code',
   'browser-port': 'Browser version of a Python app',
+  simulation: 'Simulation of a Flask app',
 } as const;
 
 const POINTS = [
@@ -22,7 +23,7 @@ const POINTS = [
   },
   {
     title: 'Honest about what runs',
-    text: 'The React demos call the templates’ own calculations, validation and data updates. The Python analyzer is re-implemented in TypeScript and tested against the real code’s output.',
+    text: 'The React demos call the templates’ own calculations, validation and data updates. The Python analyzer is re-implemented in TypeScript, and the Flask app is simulated without running any Python; both are tested against the real code’s output.',
   },
   {
     title: 'Ready for your presentation',

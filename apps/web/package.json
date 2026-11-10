@@ -1,6 +1,6 @@
 {
   "name": "@campuskit/web",
-  "version": "4.0.0",
+  "version": "6.0.0-rc.1",
   "private": true,
   "description": "The CampusKit website: project gallery, project pages, generator and learning center.",
   "license": "MIT",
@@ -14,16 +14,20 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "1.3.0",
     "@campuskit/project-catalog": "workspace:*",
     "@campuskit/template-engine": "workspace:*",
     "@fontsource-variable/archivo": "5.3.0",
     "@fontsource/ibm-plex-mono": "5.3.0",
+    "jszip": "3.10.2",
     "lucide-react": "1.61.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "react-markdown": "10.1.0",
     "react-router": "7.18.4",
-    "remark-gfm": "4.0.1"
+    "remark-gfm": "4.0.1",
+    "remark-parse": "11.0.0",
+    "unified": "11.0.5"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.14.0",
@@ -33,13 +37,13 @@
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/react": "16.3.3",
     "@testing-library/user-event": "14.6.8",
+    "@types/mdast": "4.0.4",
     "@types/node": "24.19.2",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.1.2",
     "axe-core": "4.14.0",
     "jsdom": "27.4.0",
-    "jszip": "3.10.2",
     "tailwindcss": "4.3.3",
     "typescript": "6.0.3",
     "vite": "8.3.5",

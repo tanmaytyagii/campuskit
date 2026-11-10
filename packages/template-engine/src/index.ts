@@ -10,6 +10,7 @@ export * from './generate.ts';
 export * from './instructions.ts';
 export * from './json-pointer.ts';
 export * from './options.ts';
+export * from './packaging.ts';
 export * from './paths.ts';
 export * from './slug.ts';
 export * from './spec.ts';

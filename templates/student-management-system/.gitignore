@@ -1,0 +1,18 @@
+# Virtual environments
+.venv/
+venv/
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# The database, its backups and the generated secret key (never commit these)
+instance/
+
+# Local settings
+.env
+
+# Editors and operating systems
+.DS_Store
+*.log

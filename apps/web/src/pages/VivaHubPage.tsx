@@ -1,6 +1,7 @@
 import { catalog } from '@campuskit/project-catalog';
 
 import { PageHeader } from '../components/layout/PageHeader.tsx';
+import { ButtonLink } from '../components/ui/Button.tsx';
 import { ProjectLearningCard } from '../features/learning/ProjectLearningCard.tsx';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.ts';
 
@@ -27,6 +28,11 @@ export function VivaHubPage() {
         eyebrow="Practise"
         title="Viva practice"
         description="Practise the questions an examiner may ask about your project. Model answers come from each project’s code and documentation; no AI is involved and your answers are never saved or sent anywhere."
+        actions={
+          <ButtonLink to="/viva/progress" variant="secondary">
+            Your viva progress
+          </ButtonLink>
+        }
       />
       <div className="container-page space-y-12">
         <section aria-labelledby="viva-steps" className="border-y border-line py-8">

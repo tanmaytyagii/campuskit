@@ -134,6 +134,9 @@ interface TextareaFieldProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaEle
   error?: string | undefined;
   id?: string;
   containerClassName?: string;
+  /** Monospaced for data such as CSV (the default), or the body font for prose. */
+  font?: 'mono' | 'sans';
+  optional?: boolean;
 }
 
 export function TextareaField({
@@ -143,6 +146,8 @@ export function TextareaField({
   id: givenId,
   containerClassName,
   className,
+  font = 'mono',
+  optional,
   ...props
 }: TextareaFieldProps) {
   const generated = useId();
@@ -154,12 +159,18 @@ export function TextareaField({
       description={description}
       error={error}
       className={containerClassName}
+      optional={optional}
     >
       <textarea
         id={id}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy(id, description, error)}
-        className={cn(controlClasses, 'min-h-32 py-2.5 font-mono text-sm leading-6', className)}
+        className={cn(
+          controlClasses,
+          'min-h-32 py-2.5 text-sm leading-6',
+          font === 'mono' ? 'font-mono' : 'font-sans',
+          className,
+        )}
         {...props}
       />
     </FieldShell>

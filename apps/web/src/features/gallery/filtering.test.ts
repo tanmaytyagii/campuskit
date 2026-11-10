@@ -21,7 +21,7 @@ const ids = (projects: readonly { id: string }[]) => projects.map((project) => p
 
 describe('gallery filtering', () => {
   it('derives the language filter from the catalog, leaving out CSS', () => {
-    expect(languages).toEqual(['Python', 'TypeScript']);
+    expect(languages).toEqual(['Python', 'SQL', 'TypeScript']);
   });
 
   it('parses URL parameters and ignores unknown values', () => {
@@ -68,7 +68,7 @@ describe('gallery filtering', () => {
   it('combines filters: OR within a group, AND across groups', () => {
     expect(
       ids(filterProjects(catalog, { ...EMPTY_FILTERS, difficulty: ['beginner', 'intermediate'] })),
-    ).toHaveLength(3);
+    ).toHaveLength(4);
     expect(
       ids(
         filterProjects(catalog, {
@@ -85,10 +85,11 @@ describe('gallery filtering', () => {
     expect(ids(sortProjects(catalog, 'name'))).toEqual([
       'expense-tracker',
       'attendance-system',
+      'student-management-system',
       'student-result-analyzer',
     ]);
     expect(ids(sortProjects(catalog, 'difficulty'))[0]).toBe('attendance-system');
-    expect(ids(visibleProjects(catalog, { ...EMPTY_FILTERS, sort: 'newest' }))).toHaveLength(3);
+    expect(ids(visibleProjects(catalog, { ...EMPTY_FILTERS, sort: 'newest' }))).toHaveLength(4);
   });
 
   it('counts results for each filter value given the other filters', () => {
@@ -96,7 +97,7 @@ describe('gallery filtering', () => {
     expect(facetCount(catalog, filters, 'difficulty', 'beginner')).toBe(1);
     expect(facetCount(catalog, filters, 'difficulty', 'intermediate')).toBe(1);
     // The language facet ignores its own selection, so other languages still show their counts.
-    expect(facetCount(catalog, filters, 'language', 'Python')).toBe(1);
+    expect(facetCount(catalog, filters, 'language', 'Python')).toBe(2);
     expect(activeFilterCount({ ...filters, query: 'x' })).toBe(2);
   });
 

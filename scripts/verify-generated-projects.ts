@@ -62,7 +62,14 @@ import {
 } from '@campuskit/template-engine';
 import { buildTemplateBundle, extractZipArchive } from '@campuskit/template-engine/node';
 
-import { keepOutput, NotReadyError, stopProcess, waitForHealth } from './lib/processes.ts';
+import {
+  CommandError,
+  keepOutput,
+  NotReadyError,
+  runCommand,
+  stopProcess,
+  waitForHealth,
+} from './lib/processes.ts';
 import { errorAnnotation, jobSummary } from './lib/verify-report.ts';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -136,24 +143,8 @@ function start(command: string, commandArgs: string[], options: RunOptions): Chi
 }
 
 function run(command: string, commandArgs: string[], options: RunOptions): Promise<string> {
-  return new Promise((resolvePromise, reject) => {
-    const child = start(command, commandArgs, options);
-    let output = '';
-    child.stdout?.on('data', (chunk: Buffer) => (output += chunk.toString()));
-    child.stderr?.on('data', (chunk: Buffer) => (output += chunk.toString()));
-    child.on('error', (error) =>
-      reject(new CheckError(`Could not run ${command}: ${error.message}`)),
-    );
-    child.on('close', (code) => {
-      if (code === 0) resolvePromise(output);
-      else
-        reject(
-          new CheckError(
-            `"${command} ${commandArgs.join(' ')}" exited with code ${code}:\n${output.slice(-3000)}`,
-          ),
-        );
-    });
-  });
+  // npm is a .cmd script on Windows, which needs a shell.
+  return runCommand(command, commandArgs, { ...options, shell: isWindows && command === 'npm' });
 }
 
 /**
@@ -319,6 +310,17 @@ async function checkPythonVersion(): Promise<void> {
   );
 }
 
+/** Text with the HTML entities template engines write turned back into characters. */
+function decodeEntities(text: string): string {
+  return text
+    .replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code: string) => String.fromCodePoint(parseInt(code, 16)))
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
+}
+
 /** Command output without terminal colours: test runners colour their output when CI is set. */
 function plain(output: string): string {
   // eslint-disable-next-line no-control-regex -- terminal colour codes start with the ESC character
@@ -340,7 +342,11 @@ async function runNpmProject(projectDir: string, project: GeneratedProject): Pro
   return steps;
 }
 
-async function runPipProject(projectDir: string): Promise<string[]> {
+async function runPipProject(
+  projectDir: string,
+  project: GeneratedProject,
+  manifest: ProjectManifest,
+): Promise<string[]> {
   const steps: string[] = [];
   await run(python, ['-m', 'venv', '.venv'], { cwd: projectDir });
   const venvPython = isWindows
@@ -385,6 +391,42 @@ async function runPipProject(projectDir: string): Promise<string[]> {
     try {
       await waitForHealth(`http://127.0.0.1:${port}/_stcore/health`, app, 90_000, output);
       steps.push('streamlit run app.py (health check answered)');
+    } finally {
+      await stopProcess(app);
+    }
+  } else if (existsSync(join(projectDir, 'run.py'))) {
+    // A Flask app: python run.py listens on HOST and PORT and answers /health.
+    const port = await freePort();
+    const app = start(venvPython, ['run.py'], {
+      cwd: projectDir,
+      env: { HOST: '127.0.0.1', PORT: String(port), FLASK_DEBUG: '0' },
+    });
+    const output = keepOutput(app);
+    try {
+      await waitForHealth(`http://127.0.0.1:${port}/health`, app, 90_000, output);
+      const page = await fetch(`http://127.0.0.1:${port}/`, {
+        signal: AbortSignal.timeout(10_000),
+      });
+      const html = await page.text();
+      // Compared after decoding: Jinja writes " as &#34;, other escapers as &quot;.
+      const title = decodeEntities(/<title>([^<]*)<\/title>/.exec(html)?.[1] ?? '');
+      const name = String(project.values.options.projectName);
+      check(
+        page.ok && title.endsWith(`| ${name}`),
+        `The home page answered ${page.status} with the title “${title}”, not ending in “${name}”`,
+      );
+      if (manifest.stack.persistence === 'database') {
+        // Flask keeps the files an app creates, such as its SQLite database, in instance/.
+        const instance = join(projectDir, 'instance');
+        const files = existsSync(instance) ? await readdir(instance) : [];
+        check(
+          files.some((file) => /\.(db|sqlite3?)$/.test(file)),
+          'The first start did not create a SQLite database in instance/',
+        );
+        steps.push('python run.py (health check answered, home page rendered, database created)');
+      } else {
+        steps.push('python run.py (health check answered, home page rendered)');
+      }
     } finally {
       await stopProcess(app);
     }
@@ -458,7 +500,7 @@ async function verify(
       const steps =
         manifest.template.packageManager === 'npm'
           ? await runNpmProject(projectDir, project)
-          : await runPipProject(projectDir);
+          : await runPipProject(projectDir, project, manifest);
       details.push(...steps);
     }
     ok = true;
@@ -466,7 +508,11 @@ async function verify(
     failure = error instanceof Error ? error.message : String(error);
     details.push(`FAILED: ${failure}`);
     if (
-      !(error instanceof CheckError || error instanceof NotReadyError) &&
+      !(
+        error instanceof CheckError ||
+        error instanceof NotReadyError ||
+        error instanceof CommandError
+      ) &&
       error instanceof Error &&
       error.stack
     )

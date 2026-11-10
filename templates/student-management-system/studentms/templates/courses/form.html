@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, error_summary %}
+{% set title = "Edit " ~ course.code if course else "Add a course" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+  <h1>{{ title }}</h1>
+  {{ error_summary(errors, {"code": "Course code", "title": "Title", "credits": "Credits", "description": "Description"}) }}
+  <form method="post" class="panel form" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {{ field("code", "Course code", form, errors, required=True, hint="2 to 4 letters and 2 to 4 digits, for example CS101.") }}
+    {{ field("title", "Title", form, errors, required=True) }}
+    {{ field("credits", "Credits", form, errors, type="number", required=True, attrs={"min": "1", "max": "10", "step": "1"}) }}
+    <div class="field{% if errors.get('description') %} field-invalid{% endif %}">
+      <label for="description">Description <span class="optional">(optional)</span></label>
+      <textarea id="description" name="description" rows="3" maxlength="500"
+        {% if errors.get('description') %}aria-invalid="true" aria-describedby="description-error"{% endif %}>{{ form.get('description') or '' }}</textarea>
+      {% if errors.get('description') %}<p class="error" id="description-error">{{ errors.description }}</p>{% endif %}
+    </div>
+    <p class="actions">
+      <button type="submit">{{ "Save changes" if course else "Add course" }}</button>
+      <a href="{{ url_for('courses.show_course', course_id=course.id) if course else url_for('courses.list_courses') }}">Cancel</a>
+    </p>
+  </form>
+{% endblock %}

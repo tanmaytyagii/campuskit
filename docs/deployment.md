@@ -38,10 +38,28 @@ If you use a custom domain at the root of the domain, change `CAMPUSKIT_BASE` in
 
 GitHub Pages answers deep links through `404.html` with an HTTP 404 status. Browsers show the page normally, but search engines may skip those addresses.
 
+### The smoke test after each deployment
+
+After the **deploy** job, a **smoke** job checks the live site in Chromium with `pnpm smoke`. It has read-only permissions and changes nothing.
+
+1. It waits until the site serves the build that was just deployed. It compares the entry script named in the live `index.html` with the build job's output, retrying for up to five minutes while the Pages CDN updates.
+2. It loads every script and stylesheet the page links to.
+3. It opens the home page, every project page (and its demo, if the project has one), the generator and an address that doesn't exist.
+4. It downloads a ZIP with the default settings and checks that it opens and contains `README.md`, `GETTING_STARTED.md` and `LICENSE`.
+
+Each check is retried with backoff on 429, 502, 503 and 504 responses. The results appear as a table in the job summary. If a check fails, the screenshots are uploaded as the `smoke-report` artifact.
+
+To check any deployed copy yourself:
+
+```bash
+pnpm smoke https://<user>.github.io/<repository>/
+```
+
 ### If the deployment fails
 
 - **It stops at the `actions/configure-pages` step,** saying the Pages site can't be found: Pages isn't enabled for the repository yet. Do step 2, then run the workflow again. The checks and the build run before this step and don't depend on the setting.
 - **It fails at `pnpm validate` or `pnpm test`:** the workflow refuses to publish a site whose checks fail. Run the same command locally; `pnpm validate` names the template file and the problem.
+- **The smoke job fails after a successful deployment:** the site is published, but a page, the demo, the generator or the ZIP download didn't work there. Read the job summary's table, download the `smoke-report` artifact for screenshots, and run `pnpm smoke <site address>` locally against the live site.
 - **The site loads but its links lead to a blank page:** the base path is wrong. The workflow sets `CAMPUSKIT_BASE` from the repository name, so check that the site address matches it.
 
 ## Netlify

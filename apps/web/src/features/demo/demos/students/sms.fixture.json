@@ -1,0 +1,3382 @@
+{
+  "description": "Results of the Student Management System template's Python code, for the Demo Studio's simulation tests. Regenerate with `pnpm demo:fixtures:students`.",
+  "python": "3.11.7",
+  "sqlite": "3.43.1",
+  "today": "2026-10-21",
+  "sources": {
+    "studentms/validation.py": "8d69b518ad2c5e4f375c81f64a57837d75921112c0556148569bd771236bb2b9",
+    "studentms/repository.py": "62b77e03df7a9547444af1f0b964bb7d9814538686f12608560fbbbc7c961c13",
+    "studentms/db.py": "64632bcd404e318cbbf1b20b4ae26ddc176ad0ad1bb0bc5b8d5e3360fe5a40b3",
+    "studentms/schema.sql": "ea185f7cd8885091298576a04afb3d3846189c1740895ef10cfe26954488023a"
+  },
+  "validation": {
+    "students": {
+      "valid": {
+        "form": {
+          "roll_number": "25CS100",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "",
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "25CS100",
+          "email": null,
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "errors": {}
+      },
+      "cleaned": {
+        "form": {
+          "roll_number": "  25cs100 ",
+          "first_name": "  Kavya   Sri ",
+          "last_name": "Rao",
+          "email": " Kavya@Example.EDU ",
+          "class_name": "BCA   1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya Sri",
+          "last_name": "Rao",
+          "roll_number": "25CS100",
+          "email": "kavya@example.edu",
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "errors": {}
+      },
+      "empty": {
+        "form": {},
+        "values": {
+          "first_name": "",
+          "last_name": "",
+          "roll_number": "",
+          "email": null,
+          "class_name": "",
+          "admission_date": "",
+          "status": "active"
+        },
+        "errors": {
+          "roll_number": "Enter a roll number.",
+          "first_name": "Enter the first name.",
+          "last_name": "Enter the last name.",
+          "class_name": "Enter the class or section, for example BCA 1-A.",
+          "admission_date": "Enter the admission date as YYYY-MM-DD."
+        }
+      },
+      "only-spaces": {
+        "form": {
+          "roll_number": "   ",
+          "first_name": "   ",
+          "last_name": "   ",
+          "email": "   ",
+          "class_name": "   ",
+          "admission_date": "   ",
+          "status": "   "
+        },
+        "values": {
+          "first_name": "",
+          "last_name": "",
+          "roll_number": "",
+          "email": null,
+          "class_name": "",
+          "admission_date": "",
+          "status": "active"
+        },
+        "errors": {
+          "roll_number": "Enter a roll number.",
+          "first_name": "Enter the first name.",
+          "last_name": "Enter the last name.",
+          "class_name": "Enter the class or section, for example BCA 1-A.",
+          "admission_date": "Enter the admission date as YYYY-MM-DD."
+        }
+      },
+      "roll-with-space": {
+        "form": {
+          "roll_number": "25 CS 100",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "",
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "25 CS 100",
+          "email": null,
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "errors": {
+          "roll_number": "Use 2 to 20 letters, digits, / or -, for example 24CS001."
+        }
+      },
+      "roll-with-slash-and-dash": {
+        "form": {
+          "roll_number": "25/CS-100",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "",
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "25/CS-100",
+          "email": null,
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "errors": {}
+      },
+      "roll-too-short": {
+        "form": {
+          "roll_number": "A",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "",
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "A",
+          "email": null,
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "errors": {
+          "roll_number": "Use 2 to 20 letters, digits, / or -, for example 24CS001."
+        }
+      },
+      "roll-starts-with-dash": {
+        "form": {
+          "roll_number": "-25CS",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "",
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "-25CS",
+          "email": null,
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "errors": {
+          "roll_number": "Use 2 to 20 letters, digits, / or -, for example 24CS001."
+        }
+      },
+      "roll-21-characters": {
+        "form": {
+          "roll_number": "AAAAAAAAAAAAAAAAAAAAA",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "",
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "AAAAAAAAAAAAAAAAAAAAA",
+          "email": null,
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "errors": {
+          "roll_number": "Use 2 to 20 letters, digits, / or -, for example 24CS001."
+        }
+      },
+      "name-50-characters": {
+        "form": {
+          "roll_number": "25CS100",
+          "first_name": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "last_name": "Rao",
+          "email": "",
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "last_name": "Rao",
+          "roll_number": "25CS100",
+          "email": null,
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "errors": {}
+      },
+      "name-51-characters": {
+        "form": {
+          "roll_number": "25CS100",
+          "first_name": "Kavya",
+          "last_name": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "email": "",
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "roll_number": "25CS100",
+          "email": null,
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "errors": {
+          "last_name": "Keep the last name to 50 characters."
+        }
+      },
+      "unicode-names": {
+        "form": {
+          "roll_number": "25CS100",
+          "first_name": "Zoë",
+          "last_name": "अनन्या",
+          "email": "",
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Zoë",
+          "last_name": "अनन्या",
+          "roll_number": "25CS100",
+          "email": null,
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "errors": {}
+      },
+      "bad-email": {
+        "form": {
+          "roll_number": "25CS100",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "kavya.example.edu",
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "25CS100",
+          "email": "kavya.example.edu",
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "errors": {
+          "email": "Enter an email address like name@example.edu, or leave it empty."
+        }
+      },
+      "email-two-ats": {
+        "form": {
+          "roll_number": "25CS100",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "a@b@example.edu",
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "25CS100",
+          "email": "a@b@example.edu",
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "errors": {
+          "email": "Enter an email address like name@example.edu, or leave it empty."
+        }
+      },
+      "email-no-dot": {
+        "form": {
+          "roll_number": "25CS100",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "kavya@localhost",
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "25CS100",
+          "email": "kavya@localhost",
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "errors": {
+          "email": "Enter an email address like name@example.edu, or leave it empty."
+        }
+      },
+      "email-121-characters": {
+        "form": {
+          "roll_number": "25CS100",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.edu",
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "25CS100",
+          "email": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.edu",
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "errors": {
+          "email": "Enter an email address like name@example.edu, or leave it empty."
+        }
+      },
+      "class-31-characters": {
+        "form": {
+          "roll_number": "25CS100",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "",
+          "class_name": "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "25CS100",
+          "email": null,
+          "class_name": "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "errors": {
+          "class_name": "Keep the class to 30 characters."
+        }
+      },
+      "date-in-future": {
+        "form": {
+          "roll_number": "25CS100",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "",
+          "class_name": "BCA 1-C",
+          "admission_date": "2026-10-22",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "25CS100",
+          "email": null,
+          "class_name": "BCA 1-C",
+          "admission_date": "2026-10-22",
+          "status": "active"
+        },
+        "errors": {
+          "admission_date": "The admission date can’t be in the future."
+        }
+      },
+      "date-today": {
+        "form": {
+          "roll_number": "25CS100",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "",
+          "class_name": "BCA 1-C",
+          "admission_date": "2026-10-21",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "25CS100",
+          "email": null,
+          "class_name": "BCA 1-C",
+          "admission_date": "2026-10-21",
+          "status": "active"
+        },
+        "errors": {}
+      },
+      "date-february-30": {
+        "form": {
+          "roll_number": "25CS100",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "",
+          "class_name": "BCA 1-C",
+          "admission_date": "2026-02-30",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "25CS100",
+          "email": null,
+          "class_name": "BCA 1-C",
+          "admission_date": "2026-02-30",
+          "status": "active"
+        },
+        "errors": {
+          "admission_date": "Enter the admission date as YYYY-MM-DD."
+        }
+      },
+      "date-leap-day": {
+        "form": {
+          "roll_number": "25CS100",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "",
+          "class_name": "BCA 1-C",
+          "admission_date": "2024-02-29",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "25CS100",
+          "email": null,
+          "class_name": "BCA 1-C",
+          "admission_date": "2024-02-29",
+          "status": "active"
+        },
+        "errors": {}
+      },
+      "date-other-format": {
+        "form": {
+          "roll_number": "25CS100",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "",
+          "class_name": "BCA 1-C",
+          "admission_date": "15/07/2025",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "25CS100",
+          "email": null,
+          "class_name": "BCA 1-C",
+          "admission_date": "15/07/2025",
+          "status": "active"
+        },
+        "errors": {
+          "admission_date": "Enter the admission date as YYYY-MM-DD."
+        }
+      },
+      "date-single-digits": {
+        "form": {
+          "roll_number": "25CS100",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "",
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-7-5",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "25CS100",
+          "email": null,
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-7-5",
+          "status": "active"
+        },
+        "errors": {
+          "admission_date": "Enter the admission date as YYYY-MM-DD."
+        }
+      },
+      "date-year-50": {
+        "form": {
+          "roll_number": "25CS100",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "",
+          "class_name": "BCA 1-C",
+          "admission_date": "0050-01-01",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "25CS100",
+          "email": null,
+          "class_name": "BCA 1-C",
+          "admission_date": "0050-01-01",
+          "status": "active"
+        },
+        "errors": {}
+      },
+      "date-year-0": {
+        "form": {
+          "roll_number": "25CS100",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "",
+          "class_name": "BCA 1-C",
+          "admission_date": "0000-01-01",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "25CS100",
+          "email": null,
+          "class_name": "BCA 1-C",
+          "admission_date": "0000-01-01",
+          "status": "active"
+        },
+        "errors": {
+          "admission_date": "Enter the admission date as YYYY-MM-DD."
+        }
+      },
+      "date-1900-february-29": {
+        "form": {
+          "roll_number": "25CS100",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "",
+          "class_name": "BCA 1-C",
+          "admission_date": "1900-02-29",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "25CS100",
+          "email": null,
+          "class_name": "BCA 1-C",
+          "admission_date": "1900-02-29",
+          "status": "active"
+        },
+        "errors": {
+          "admission_date": "Enter the admission date as YYYY-MM-DD."
+        }
+      },
+      "date-2000-february-29": {
+        "form": {
+          "roll_number": "25CS100",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "",
+          "class_name": "BCA 1-C",
+          "admission_date": "2000-02-29",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "25CS100",
+          "email": null,
+          "class_name": "BCA 1-C",
+          "admission_date": "2000-02-29",
+          "status": "active"
+        },
+        "errors": {}
+      },
+      "date-arabic-indic-digits": {
+        "form": {
+          "roll_number": "25CS100",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "",
+          "class_name": "BCA 1-C",
+          "admission_date": "٢٠٢٥-٠٧-١٥",
+          "status": "active"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "25CS100",
+          "email": null,
+          "class_name": "BCA 1-C",
+          "admission_date": "٢٠٢٥-٠٧-١٥",
+          "status": "active"
+        },
+        "errors": {
+          "admission_date": "Enter the admission date as YYYY-MM-DD."
+        }
+      },
+      "status-unknown": {
+        "form": {
+          "roll_number": "25CS100",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "",
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "expelled"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "25CS100",
+          "email": null,
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "expelled"
+        },
+        "errors": {
+          "status": "Choose active, inactive or graduated."
+        }
+      },
+      "status-missing": {
+        "form": {
+          "roll_number": "25CS100",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "",
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "25CS100",
+          "email": null,
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "active"
+        },
+        "errors": {}
+      },
+      "status-graduated": {
+        "form": {
+          "roll_number": "25CS100",
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "email": "",
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "graduated"
+        },
+        "values": {
+          "first_name": "Kavya",
+          "last_name": "Rao",
+          "roll_number": "25CS100",
+          "email": null,
+          "class_name": "BCA 1-C",
+          "admission_date": "2025-07-15",
+          "status": "graduated"
+        },
+        "errors": {}
+      }
+    },
+    "courses": {
+      "valid": {
+        "form": {
+          "code": "PY150",
+          "title": "Python Projects",
+          "credits": "3",
+          "description": ""
+        },
+        "values": {
+          "code": "PY150",
+          "title": "Python Projects",
+          "credits": 3,
+          "description": ""
+        },
+        "errors": {}
+      },
+      "lower-case-code": {
+        "form": {
+          "code": " py150 ",
+          "title": "Python Projects",
+          "credits": "3",
+          "description": ""
+        },
+        "values": {
+          "code": "PY150",
+          "title": "Python Projects",
+          "credits": 3,
+          "description": ""
+        },
+        "errors": {}
+      },
+      "empty": {
+        "form": {},
+        "values": {
+          "code": "",
+          "title": "",
+          "credits": null,
+          "description": ""
+        },
+        "errors": {
+          "code": "Use 2 to 4 letters and 2 to 4 digits, for example CS101.",
+          "title": "Enter the course title.",
+          "credits": "Enter a whole number of credits from 1 to 10."
+        }
+      },
+      "code-one-letter": {
+        "form": {
+          "code": "P150",
+          "title": "Python Projects",
+          "credits": "3",
+          "description": ""
+        },
+        "values": {
+          "code": "P150",
+          "title": "Python Projects",
+          "credits": 3,
+          "description": ""
+        },
+        "errors": {
+          "code": "Use 2 to 4 letters and 2 to 4 digits, for example CS101."
+        }
+      },
+      "code-five-letters": {
+        "form": {
+          "code": "PYTHO150",
+          "title": "Python Projects",
+          "credits": "3",
+          "description": ""
+        },
+        "values": {
+          "code": "PYTHO150",
+          "title": "Python Projects",
+          "credits": 3,
+          "description": ""
+        },
+        "errors": {
+          "code": "Use 2 to 4 letters and 2 to 4 digits, for example CS101."
+        }
+      },
+      "code-five-digits": {
+        "form": {
+          "code": "PY15000",
+          "title": "Python Projects",
+          "credits": "3",
+          "description": ""
+        },
+        "values": {
+          "code": "PY15000",
+          "title": "Python Projects",
+          "credits": 3,
+          "description": ""
+        },
+        "errors": {
+          "code": "Use 2 to 4 letters and 2 to 4 digits, for example CS101."
+        }
+      },
+      "credits-zero": {
+        "form": {
+          "code": "PY150",
+          "title": "Python Projects",
+          "credits": "0",
+          "description": ""
+        },
+        "values": {
+          "code": "PY150",
+          "title": "Python Projects",
+          "credits": 0,
+          "description": ""
+        },
+        "errors": {
+          "credits": "Enter a whole number of credits from 1 to 10."
+        }
+      },
+      "credits-eleven": {
+        "form": {
+          "code": "PY150",
+          "title": "Python Projects",
+          "credits": "11",
+          "description": ""
+        },
+        "values": {
+          "code": "PY150",
+          "title": "Python Projects",
+          "credits": 11,
+          "description": ""
+        },
+        "errors": {
+          "credits": "Enter a whole number of credits from 1 to 10."
+        }
+      },
+      "credits-decimal": {
+        "form": {
+          "code": "PY150",
+          "title": "Python Projects",
+          "credits": "2.5",
+          "description": ""
+        },
+        "values": {
+          "code": "PY150",
+          "title": "Python Projects",
+          "credits": null,
+          "description": ""
+        },
+        "errors": {
+          "credits": "Enter a whole number of credits from 1 to 10."
+        }
+      },
+      "credits-negative": {
+        "form": {
+          "code": "PY150",
+          "title": "Python Projects",
+          "credits": "-1",
+          "description": ""
+        },
+        "values": {
+          "code": "PY150",
+          "title": "Python Projects",
+          "credits": null,
+          "description": ""
+        },
+        "errors": {
+          "credits": "Enter a whole number of credits from 1 to 10."
+        }
+      },
+      "credits-text": {
+        "form": {
+          "code": "PY150",
+          "title": "Python Projects",
+          "credits": "three",
+          "description": ""
+        },
+        "values": {
+          "code": "PY150",
+          "title": "Python Projects",
+          "credits": null,
+          "description": ""
+        },
+        "errors": {
+          "credits": "Enter a whole number of credits from 1 to 10."
+        }
+      },
+      "credits-superscript": {
+        "form": {
+          "code": "PY150",
+          "title": "Python Projects",
+          "credits": "²",
+          "description": ""
+        },
+        "values": {
+          "code": "PY150",
+          "title": "Python Projects",
+          "credits": null,
+          "description": ""
+        },
+        "errors": {
+          "credits": "Enter a whole number of credits from 1 to 10."
+        }
+      },
+      "credits-arabic-indic": {
+        "form": {
+          "code": "PY150",
+          "title": "Python Projects",
+          "credits": "٣",
+          "description": ""
+        },
+        "values": {
+          "code": "PY150",
+          "title": "Python Projects",
+          "credits": null,
+          "description": ""
+        },
+        "errors": {
+          "credits": "Enter a whole number of credits from 1 to 10."
+        }
+      },
+      "title-81-characters": {
+        "form": {
+          "code": "PY150",
+          "title": "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+          "credits": "3",
+          "description": ""
+        },
+        "values": {
+          "code": "PY150",
+          "title": "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+          "credits": 3,
+          "description": ""
+        },
+        "errors": {
+          "title": "Keep the title to 80 characters."
+        }
+      },
+      "description-501-characters": {
+        "form": {
+          "code": "PY150",
+          "title": "Python Projects",
+          "credits": "3",
+          "description": "ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "values": {
+          "code": "PY150",
+          "title": "Python Projects",
+          "credits": 3,
+          "description": "ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "errors": {
+          "description": "Keep the description to 500 characters."
+        }
+      },
+      "description-kept-as-typed": {
+        "form": {
+          "code": "PY150",
+          "title": "Python Projects",
+          "credits": "3",
+          "description": "  Two   spaces  "
+        },
+        "values": {
+          "code": "PY150",
+          "title": "Python Projects",
+          "credits": 3,
+          "description": "Two   spaces"
+        },
+        "errors": {}
+      }
+    },
+    "dates": {
+      "2026-10-21": "2026-10-21",
+      "2026-10-20": "2026-10-20",
+      "2026-10-22": {
+        "error": "Attendance can’t be marked for a future date."
+      },
+      "2026-02-30": {
+        "error": "Choose a date as YYYY-MM-DD."
+      },
+      "21-10-2026": {
+        "error": "Choose a date as YYYY-MM-DD."
+      },
+      "": {
+        "error": "Choose a date as YYYY-MM-DD."
+      },
+      " 2026-10-01 ": "2026-10-01",
+      "0050-01-01": "0050-01-01"
+    }
+  },
+  "likePatterns": {
+    "sharma": "%sharma%",
+    "50%_off": "%50\\%\\_off%",
+    "a\\b": "%a\\\\b%"
+  },
+  "percent": [
+    [0, 0, null],
+    [0, 5, 0.0],
+    [1, 3, 33.3],
+    [2, 3, 66.7],
+    [1, 8, 12.5],
+    [1, 16, 6.2],
+    [3, 16, 18.8],
+    [13, 16, 81.2],
+    [15, 16, 93.8],
+    [1, 80, 1.2],
+    [3, 80, 3.8],
+    [3, 4, 75.0],
+    [274, 300, 91.3]
+  ],
+  "sample": {
+    "students": [
+      {
+        "id": 1,
+        "roll_number": "24CS001",
+        "first_name": "Aarav",
+        "last_name": "Sharma",
+        "email": "aarav.sharma@example.edu",
+        "class_name": "BCA 1-A",
+        "admission_date": "2024-07-15",
+        "status": "active"
+      },
+      {
+        "id": 2,
+        "roll_number": "24CS002",
+        "first_name": "Diya",
+        "last_name": "Patel",
+        "email": "diya.patel@example.edu",
+        "class_name": "BCA 1-A",
+        "admission_date": "2024-07-15",
+        "status": "active"
+      },
+      {
+        "id": 3,
+        "roll_number": "24CS003",
+        "first_name": "Kabir",
+        "last_name": "Singh",
+        "email": null,
+        "class_name": "BCA 1-A",
+        "admission_date": "2024-07-15",
+        "status": "active"
+      },
+      {
+        "id": 4,
+        "roll_number": "24CS004",
+        "first_name": "Meera",
+        "last_name": "Iyer",
+        "email": "meera.iyer@example.edu",
+        "class_name": "BCA 1-A",
+        "admission_date": "2024-07-15",
+        "status": "active"
+      },
+      {
+        "id": 5,
+        "roll_number": "24CS005",
+        "first_name": "Rohan",
+        "last_name": "Das",
+        "email": "rohan.das@example.edu",
+        "class_name": "BCA 1-B",
+        "admission_date": "2024-07-15",
+        "status": "active"
+      },
+      {
+        "id": 6,
+        "roll_number": "24CS006",
+        "first_name": "Sara",
+        "last_name": "Thomas",
+        "email": "sara.thomas@example.edu",
+        "class_name": "BCA 1-B",
+        "admission_date": "2024-07-15",
+        "status": "active"
+      },
+      {
+        "id": 7,
+        "roll_number": "24CS007",
+        "first_name": "Arjun",
+        "last_name": "Nair",
+        "email": null,
+        "class_name": "BCA 1-B",
+        "admission_date": "2024-07-15",
+        "status": "inactive"
+      },
+      {
+        "id": 8,
+        "roll_number": "24CS008",
+        "first_name": "Ananya",
+        "last_name": "Gupta",
+        "email": "ananya.gupta@example.edu",
+        "class_name": "BCA 1-B",
+        "admission_date": "2024-07-15",
+        "status": "active"
+      },
+      {
+        "id": 9,
+        "roll_number": "23CS011",
+        "first_name": "Vikram",
+        "last_name": "Rao",
+        "email": "vikram.rao@example.edu",
+        "class_name": "BCA 2-A",
+        "admission_date": "2023-07-15",
+        "status": "active"
+      },
+      {
+        "id": 10,
+        "roll_number": "23CS012",
+        "first_name": "Zoya",
+        "last_name": "Khan",
+        "email": "zoya.khan@example.edu",
+        "class_name": "BCA 2-A",
+        "admission_date": "2023-07-15",
+        "status": "active"
+      },
+      {
+        "id": 11,
+        "roll_number": "23CS013",
+        "first_name": "Ishaan",
+        "last_name": "Verma",
+        "email": null,
+        "class_name": "BCA 2-A",
+        "admission_date": "2023-07-15",
+        "status": "active"
+      },
+      {
+        "id": 12,
+        "roll_number": "22CS021",
+        "first_name": "Priya",
+        "last_name": "Menon",
+        "email": "priya.menon@example.edu",
+        "class_name": "BCA 3-A",
+        "admission_date": "2022-07-15",
+        "status": "graduated"
+      }
+    ],
+    "courses": [
+      {
+        "id": 1,
+        "code": "CS101",
+        "title": "Introduction to Programming",
+        "credits": 4,
+        "description": "Variables, control flow, functions and debugging in Python."
+      },
+      {
+        "id": 2,
+        "code": "MA102",
+        "title": "Discrete Mathematics",
+        "credits": 3,
+        "description": "Sets, logic, relations, counting and graphs."
+      },
+      {
+        "id": 3,
+        "code": "EN103",
+        "title": "Technical Communication",
+        "credits": 2,
+        "description": "Writing reports, presenting and documenting software."
+      },
+      {
+        "id": 4,
+        "code": "CS201",
+        "title": "Database Systems",
+        "credits": 4,
+        "description": "Relational design, SQL, normalisation and transactions."
+      }
+    ],
+    "enrollments": [
+      {
+        "student_id": 1,
+        "course_id": 1,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 1,
+        "course_id": 2,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 1,
+        "course_id": 3,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 2,
+        "course_id": 1,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 2,
+        "course_id": 2,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 2,
+        "course_id": 3,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 3,
+        "course_id": 1,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 3,
+        "course_id": 2,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 3,
+        "course_id": 3,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 4,
+        "course_id": 1,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 4,
+        "course_id": 2,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 4,
+        "course_id": 3,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 5,
+        "course_id": 1,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 5,
+        "course_id": 2,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 5,
+        "course_id": 3,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 6,
+        "course_id": 1,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 6,
+        "course_id": 2,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 6,
+        "course_id": 3,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 7,
+        "course_id": 1,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 7,
+        "course_id": 2,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 7,
+        "course_id": 3,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 8,
+        "course_id": 1,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 8,
+        "course_id": 2,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 8,
+        "course_id": 3,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 9,
+        "course_id": 2,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 9,
+        "course_id": 3,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 9,
+        "course_id": 4,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 10,
+        "course_id": 2,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 10,
+        "course_id": 3,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 10,
+        "course_id": 4,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 11,
+        "course_id": 2,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 11,
+        "course_id": 3,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 11,
+        "course_id": 4,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 12,
+        "course_id": 2,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 12,
+        "course_id": 3,
+        "enrolled_on": "2026-09-21"
+      },
+      {
+        "student_id": 12,
+        "course_id": 4,
+        "enrolled_on": "2026-09-21"
+      }
+    ],
+    "attendance": [
+      {
+        "student_id": 1,
+        "course_id": 1,
+        "date": "2026-10-07",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 1,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 1,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 1,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 1,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 1,
+        "date": "2026-10-14",
+        "status": "late"
+      },
+      {
+        "student_id": 1,
+        "course_id": 1,
+        "date": "2026-10-15",
+        "status": "absent"
+      },
+      {
+        "student_id": 1,
+        "course_id": 1,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 1,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 1,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 2,
+        "date": "2026-10-07",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 2,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 2,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 2,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 2,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 2,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 2,
+        "date": "2026-10-15",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 2,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 2,
+        "date": "2026-10-19",
+        "status": "late"
+      },
+      {
+        "student_id": 1,
+        "course_id": 2,
+        "date": "2026-10-20",
+        "status": "absent"
+      },
+      {
+        "student_id": 1,
+        "course_id": 3,
+        "date": "2026-10-07",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 3,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 3,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 3,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 3,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 3,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 3,
+        "date": "2026-10-15",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 3,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 3,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 1,
+        "course_id": 3,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 1,
+        "date": "2026-10-07",
+        "status": "absent"
+      },
+      {
+        "student_id": 2,
+        "course_id": 1,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 1,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 1,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 1,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 1,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 1,
+        "date": "2026-10-15",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 1,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 1,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 1,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 2,
+        "date": "2026-10-07",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 2,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 2,
+        "date": "2026-10-09",
+        "status": "late"
+      },
+      {
+        "student_id": 2,
+        "course_id": 2,
+        "date": "2026-10-12",
+        "status": "absent"
+      },
+      {
+        "student_id": 2,
+        "course_id": 2,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 2,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 2,
+        "date": "2026-10-15",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 2,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 2,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 2,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 3,
+        "date": "2026-10-07",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 3,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 3,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 3,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 3,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 3,
+        "date": "2026-10-14",
+        "status": "late"
+      },
+      {
+        "student_id": 2,
+        "course_id": 3,
+        "date": "2026-10-15",
+        "status": "absent"
+      },
+      {
+        "student_id": 2,
+        "course_id": 3,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 3,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 2,
+        "course_id": 3,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 1,
+        "date": "2026-10-07",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 1,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 1,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 1,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 1,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 1,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 1,
+        "date": "2026-10-15",
+        "status": "late"
+      },
+      {
+        "student_id": 3,
+        "course_id": 1,
+        "date": "2026-10-16",
+        "status": "absent"
+      },
+      {
+        "student_id": 3,
+        "course_id": 1,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 1,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 2,
+        "date": "2026-10-07",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 2,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 2,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 2,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 2,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 2,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 2,
+        "date": "2026-10-15",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 2,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 2,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 2,
+        "date": "2026-10-20",
+        "status": "late"
+      },
+      {
+        "student_id": 3,
+        "course_id": 3,
+        "date": "2026-10-07",
+        "status": "absent"
+      },
+      {
+        "student_id": 3,
+        "course_id": 3,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 3,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 3,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 3,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 3,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 3,
+        "date": "2026-10-15",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 3,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 3,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 3,
+        "course_id": 3,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 1,
+        "date": "2026-10-07",
+        "status": "late"
+      },
+      {
+        "student_id": 4,
+        "course_id": 1,
+        "date": "2026-10-08",
+        "status": "absent"
+      },
+      {
+        "student_id": 4,
+        "course_id": 1,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 1,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 1,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 1,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 1,
+        "date": "2026-10-15",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 1,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 1,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 1,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 2,
+        "date": "2026-10-07",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 2,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 2,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 2,
+        "date": "2026-10-12",
+        "status": "late"
+      },
+      {
+        "student_id": 4,
+        "course_id": 2,
+        "date": "2026-10-13",
+        "status": "absent"
+      },
+      {
+        "student_id": 4,
+        "course_id": 2,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 2,
+        "date": "2026-10-15",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 2,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 2,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 2,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 3,
+        "date": "2026-10-07",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 3,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 3,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 3,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 3,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 3,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 3,
+        "date": "2026-10-15",
+        "status": "late"
+      },
+      {
+        "student_id": 4,
+        "course_id": 3,
+        "date": "2026-10-16",
+        "status": "absent"
+      },
+      {
+        "student_id": 4,
+        "course_id": 3,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 4,
+        "course_id": 3,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 1,
+        "date": "2026-10-07",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 1,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 1,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 1,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 1,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 1,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 1,
+        "date": "2026-10-15",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 1,
+        "date": "2026-10-16",
+        "status": "late"
+      },
+      {
+        "student_id": 5,
+        "course_id": 1,
+        "date": "2026-10-19",
+        "status": "absent"
+      },
+      {
+        "student_id": 5,
+        "course_id": 1,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 2,
+        "date": "2026-10-07",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 2,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 2,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 2,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 2,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 2,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 2,
+        "date": "2026-10-15",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 2,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 2,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 2,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 3,
+        "date": "2026-10-07",
+        "status": "late"
+      },
+      {
+        "student_id": 5,
+        "course_id": 3,
+        "date": "2026-10-08",
+        "status": "absent"
+      },
+      {
+        "student_id": 5,
+        "course_id": 3,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 3,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 3,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 3,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 3,
+        "date": "2026-10-15",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 3,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 3,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 5,
+        "course_id": 3,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 1,
+        "date": "2026-10-07",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 1,
+        "date": "2026-10-08",
+        "status": "late"
+      },
+      {
+        "student_id": 6,
+        "course_id": 1,
+        "date": "2026-10-09",
+        "status": "absent"
+      },
+      {
+        "student_id": 6,
+        "course_id": 1,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 1,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 1,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 1,
+        "date": "2026-10-15",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 1,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 1,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 1,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 2,
+        "date": "2026-10-07",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 2,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 2,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 2,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 2,
+        "date": "2026-10-13",
+        "status": "late"
+      },
+      {
+        "student_id": 6,
+        "course_id": 2,
+        "date": "2026-10-14",
+        "status": "absent"
+      },
+      {
+        "student_id": 6,
+        "course_id": 2,
+        "date": "2026-10-15",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 2,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 2,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 2,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 3,
+        "date": "2026-10-07",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 3,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 3,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 3,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 3,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 3,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 3,
+        "date": "2026-10-15",
+        "status": "present"
+      },
+      {
+        "student_id": 6,
+        "course_id": 3,
+        "date": "2026-10-16",
+        "status": "late"
+      },
+      {
+        "student_id": 6,
+        "course_id": 3,
+        "date": "2026-10-19",
+        "status": "absent"
+      },
+      {
+        "student_id": 6,
+        "course_id": 3,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 1,
+        "date": "2026-10-07",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 1,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 1,
+        "date": "2026-10-09",
+        "status": "late"
+      },
+      {
+        "student_id": 8,
+        "course_id": 1,
+        "date": "2026-10-12",
+        "status": "absent"
+      },
+      {
+        "student_id": 8,
+        "course_id": 1,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 1,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 1,
+        "date": "2026-10-15",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 1,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 1,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 1,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 2,
+        "date": "2026-10-07",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 2,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 2,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 2,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 2,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 2,
+        "date": "2026-10-14",
+        "status": "late"
+      },
+      {
+        "student_id": 8,
+        "course_id": 2,
+        "date": "2026-10-15",
+        "status": "absent"
+      },
+      {
+        "student_id": 8,
+        "course_id": 2,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 2,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 2,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 3,
+        "date": "2026-10-07",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 3,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 3,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 3,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 3,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 3,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 3,
+        "date": "2026-10-15",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 3,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 8,
+        "course_id": 3,
+        "date": "2026-10-19",
+        "status": "late"
+      },
+      {
+        "student_id": 8,
+        "course_id": 3,
+        "date": "2026-10-20",
+        "status": "absent"
+      },
+      {
+        "student_id": 9,
+        "course_id": 2,
+        "date": "2026-10-07",
+        "status": "absent"
+      },
+      {
+        "student_id": 9,
+        "course_id": 2,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 2,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 2,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 2,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 2,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 2,
+        "date": "2026-10-15",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 2,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 2,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 2,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 3,
+        "date": "2026-10-07",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 3,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 3,
+        "date": "2026-10-09",
+        "status": "late"
+      },
+      {
+        "student_id": 9,
+        "course_id": 3,
+        "date": "2026-10-12",
+        "status": "absent"
+      },
+      {
+        "student_id": 9,
+        "course_id": 3,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 3,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 3,
+        "date": "2026-10-15",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 3,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 3,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 3,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 4,
+        "date": "2026-10-07",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 4,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 4,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 4,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 4,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 4,
+        "date": "2026-10-14",
+        "status": "late"
+      },
+      {
+        "student_id": 9,
+        "course_id": 4,
+        "date": "2026-10-15",
+        "status": "absent"
+      },
+      {
+        "student_id": 9,
+        "course_id": 4,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 4,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 9,
+        "course_id": 4,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 2,
+        "date": "2026-10-07",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 2,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 2,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 2,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 2,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 2,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 2,
+        "date": "2026-10-15",
+        "status": "late"
+      },
+      {
+        "student_id": 10,
+        "course_id": 2,
+        "date": "2026-10-16",
+        "status": "absent"
+      },
+      {
+        "student_id": 10,
+        "course_id": 2,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 2,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 3,
+        "date": "2026-10-07",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 3,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 3,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 3,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 3,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 3,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 3,
+        "date": "2026-10-15",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 3,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 3,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 3,
+        "date": "2026-10-20",
+        "status": "late"
+      },
+      {
+        "student_id": 10,
+        "course_id": 4,
+        "date": "2026-10-07",
+        "status": "absent"
+      },
+      {
+        "student_id": 10,
+        "course_id": 4,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 4,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 4,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 4,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 4,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 4,
+        "date": "2026-10-15",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 4,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 4,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 10,
+        "course_id": 4,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 2,
+        "date": "2026-10-07",
+        "status": "late"
+      },
+      {
+        "student_id": 11,
+        "course_id": 2,
+        "date": "2026-10-08",
+        "status": "absent"
+      },
+      {
+        "student_id": 11,
+        "course_id": 2,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 2,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 2,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 2,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 2,
+        "date": "2026-10-15",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 2,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 2,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 2,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 3,
+        "date": "2026-10-07",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 3,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 3,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 3,
+        "date": "2026-10-12",
+        "status": "late"
+      },
+      {
+        "student_id": 11,
+        "course_id": 3,
+        "date": "2026-10-13",
+        "status": "absent"
+      },
+      {
+        "student_id": 11,
+        "course_id": 3,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 3,
+        "date": "2026-10-15",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 3,
+        "date": "2026-10-16",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 3,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 3,
+        "date": "2026-10-20",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 4,
+        "date": "2026-10-07",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 4,
+        "date": "2026-10-08",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 4,
+        "date": "2026-10-09",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 4,
+        "date": "2026-10-12",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 4,
+        "date": "2026-10-13",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 4,
+        "date": "2026-10-14",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 4,
+        "date": "2026-10-15",
+        "status": "late"
+      },
+      {
+        "student_id": 11,
+        "course_id": 4,
+        "date": "2026-10-16",
+        "status": "absent"
+      },
+      {
+        "student_id": 11,
+        "course_id": 4,
+        "date": "2026-10-19",
+        "status": "present"
+      },
+      {
+        "student_id": 11,
+        "course_id": 4,
+        "date": "2026-10-20",
+        "status": "present"
+      }
+    ]
+  },
+  "queries": {
+    "default": {
+      "query": {},
+      "ids": [5, 8, 4, 10, 12, 7, 2, 9, 1, 3],
+      "total": 12
+    },
+    "search-last-name": {
+      "query": {
+        "search": "sharma"
+      },
+      "ids": [1],
+      "total": 1
+    },
+    "search-full-name": {
+      "query": {
+        "search": "aarav sharma"
+      },
+      "ids": [1],
+      "total": 1
+    },
+    "search-roll-number": {
+      "query": {
+        "search": "23cs"
+      },
+      "ids": [10, 9, 11],
+      "total": 3
+    },
+    "search-email": {
+      "query": {
+        "search": "example.edu"
+      },
+      "ids": [5, 8, 4, 10, 12, 2, 9, 1, 6],
+      "total": 9
+    },
+    "search-percent": {
+      "query": {
+        "search": "%"
+      },
+      "ids": [],
+      "total": 0
+    },
+    "search-underscore": {
+      "query": {
+        "search": "_"
+      },
+      "ids": [],
+      "total": 0
+    },
+    "search-quote": {
+      "query": {
+        "search": "' OR '1'='1"
+      },
+      "ids": [],
+      "total": 0
+    },
+    "class": {
+      "query": {
+        "class_name": "BCA 1-B"
+      },
+      "ids": [5, 8, 7, 6],
+      "total": 4
+    },
+    "status": {
+      "query": {
+        "status": "graduated"
+      },
+      "ids": [12],
+      "total": 1
+    },
+    "class-and-status": {
+      "query": {
+        "class_name": "BCA 1-B",
+        "status": "active"
+      },
+      "ids": [5, 8, 6],
+      "total": 3
+    },
+    "sort-roll": {
+      "query": {
+        "sort": "roll"
+      },
+      "ids": [12, 9, 10, 11, 1, 2, 3, 4, 5, 6],
+      "total": 12
+    },
+    "sort-class-descending": {
+      "query": {
+        "sort": "class",
+        "descending": true
+      },
+      "ids": [12, 11, 9, 10, 6, 7, 8, 5, 3, 1],
+      "total": 12
+    },
+    "sort-admitted": {
+      "query": {
+        "sort": "admitted"
+      },
+      "ids": [12, 9, 10, 11, 1, 2, 3, 4, 5, 6],
+      "total": 12
+    },
+    "sort-admitted-descending": {
+      "query": {
+        "sort": "admitted",
+        "descending": true
+      },
+      "ids": [8, 7, 6, 5, 4, 3, 2, 1, 11, 10],
+      "total": 12
+    },
+    "sort-unknown": {
+      "query": {
+        "sort": "password"
+      },
+      "ids": [5, 8, 4, 10, 12, 7, 2, 9, 1, 3],
+      "total": 12
+    },
+    "page-2": {
+      "query": {
+        "page": 2
+      },
+      "ids": [6, 11],
+      "total": 12
+    },
+    "page-past-end": {
+      "query": {
+        "page": 9
+      },
+      "ids": [],
+      "total": 12
+    }
+  },
+  "statistics": {
+    "students": 12,
+    "by_status": {
+      "active": 10,
+      "inactive": 1,
+      "graduated": 1
+    },
+    "courses": 4,
+    "enrollments": 36,
+    "attendance_rate": 91.3,
+    "marks_last_30_days": 300,
+    "by_class": [
+      {
+        "class_name": "BCA 1-A",
+        "count": 4
+      },
+      {
+        "class_name": "BCA 1-B",
+        "count": 4
+      },
+      {
+        "class_name": "BCA 2-A",
+        "count": 3
+      },
+      {
+        "class_name": "BCA 3-A",
+        "count": 1
+      }
+    ],
+    "by_course": [
+      {
+        "id": 1,
+        "code": "CS101",
+        "title": "Introduction to Programming",
+        "students": 8,
+        "marked": 70,
+        "attended": 63
+      },
+      {
+        "id": 4,
+        "code": "CS201",
+        "title": "Database Systems",
+        "students": 4,
+        "marked": 30,
+        "attended": 27
+      },
+      {
+        "id": 3,
+        "code": "EN103",
+        "title": "Technical Communication",
+        "students": 12,
+        "marked": 100,
+        "attended": 92
+      },
+      {
+        "id": 2,
+        "code": "MA102",
+        "title": "Discrete Mathematics",
+        "students": 12,
+        "marked": 100,
+        "attended": 92
+      }
+    ],
+    "newest": [
+      {
+        "id": 8,
+        "roll_number": "24CS008",
+        "first_name": "Ananya",
+        "last_name": "Gupta",
+        "class_name": "BCA 1-B",
+        "admission_date": "2024-07-15"
+      },
+      {
+        "id": 7,
+        "roll_number": "24CS007",
+        "first_name": "Arjun",
+        "last_name": "Nair",
+        "class_name": "BCA 1-B",
+        "admission_date": "2024-07-15"
+      },
+      {
+        "id": 6,
+        "roll_number": "24CS006",
+        "first_name": "Sara",
+        "last_name": "Thomas",
+        "class_name": "BCA 1-B",
+        "admission_date": "2024-07-15"
+      },
+      {
+        "id": 5,
+        "roll_number": "24CS005",
+        "first_name": "Rohan",
+        "last_name": "Das",
+        "class_name": "BCA 1-B",
+        "admission_date": "2024-07-15"
+      },
+      {
+        "id": 4,
+        "roll_number": "24CS004",
+        "first_name": "Meera",
+        "last_name": "Iyer",
+        "class_name": "BCA 1-A",
+        "admission_date": "2024-07-15"
+      }
+    ]
+  }
+}

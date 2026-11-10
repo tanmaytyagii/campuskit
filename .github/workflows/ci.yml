@@ -73,6 +73,34 @@ jobs:
           path: apps/web/playwright-report
           retention-days: 7
 
+  # The same end-to-end tests in desktop Firefox and WebKit (Safari's engine).
+  e2e-browsers:
+    name: End-to-end tests (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [firefox, webkit]
+    env:
+      CAMPUSKIT_E2E_BROWSERS: ${{ matrix.browser }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @campuskit/web exec playwright install --with-deps ${{ matrix.browser }}
+      - run: pnpm --filter @campuskit/web exec playwright test --project=${{ matrix.browser }}
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-${{ matrix.browser }}
+          path: apps/web/playwright-report
+          retention-days: 7
+
   changed-templates:
     name: Find the templates to verify
     runs-on: ubuntu-latest

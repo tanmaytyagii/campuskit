@@ -9,9 +9,15 @@ import type { LoadedDemo } from './define.ts';
 import { attendanceDemo } from './demos/attendance/definition.ts';
 import { expenseDemo } from './demos/expenses/definition.ts';
 import { resultsDemo } from './demos/results/definition.ts';
+import { studentsDemo } from './demos/students/definition.ts';
 import type { DemoDefinition } from './types.ts';
 
-export const DEMOS: readonly DemoDefinition[] = [attendanceDemo, expenseDemo, resultsDemo];
+export const DEMOS: readonly DemoDefinition[] = [
+  attendanceDemo,
+  expenseDemo,
+  studentsDemo,
+  resultsDemo,
+];
 
 export const DEMO_LOADERS: Readonly<Record<string, () => Promise<LoadedDemo>>> = {
   'attendance-system': () =>
@@ -20,6 +26,8 @@ export const DEMO_LOADERS: Readonly<Record<string, () => Promise<LoadedDemo>>> =
     ),
   'expense-tracker': () =>
     import('./demos/expenses/ExpenseDemo.tsx').then((module) => module.expenseImplementation),
+  'student-management-system': () =>
+    import('./demos/students/StudentsDemo.tsx').then((module) => module.studentsImplementation),
   'student-result-analyzer': () =>
     import('./demos/results/ResultsDemo.tsx').then((module) => module.resultsImplementation),
 };

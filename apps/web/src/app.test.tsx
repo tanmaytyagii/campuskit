@@ -36,7 +36,7 @@ describe('site shell and navigation', () => {
     expect(
       within(categories).getByRole('link', { name: /AI and machine learning.*No projects yet/ }),
     ).toHaveAttribute('href', '/docs/adding-a-template');
-    expect(within(categories).getByRole('link', { name: /Python.*1 project$/ })).toHaveAttribute(
+    expect(within(categories).getByRole('link', { name: /Python.*2 projects$/ })).toHaveAttribute(
       'href',
       '/projects?language=Python',
     );

@@ -31,6 +31,16 @@ const PAGES = [
   '/projects/expense-tracker/demo?feature=transactions',
   '/projects/student-result-analyzer/demo?feature=dataset',
   '/projects/student-result-analyzer/demo?feature=subjects',
+  '/projects/student-management-system',
+  '/projects/student-management-system/demo',
+  '/projects/student-management-system/demo?feature=students',
+  '/projects/student-management-system/demo?feature=attendance',
+  '/projects/student-management-system/demo?feature=database',
+  '/my-projects',
+  '/dashboard',
+  '/welcome',
+  '/settings',
+  '/assistant',
   '/projects/attendance-system/present?slide=demo-add-student',
   '/projects/expense-tracker/present?slide=workflow',
   '/projects/student-result-analyzer/ready',
@@ -116,6 +126,126 @@ for (const scheme of ['light', 'dark'] as const) {
       await page.goto('/projects/student-result-analyzer/demo');
       await page.getByText('File with mistakes', { exact: true }).click();
       await expect(page.getByText('Name is empty on line(s) 4.')).toBeVisible();
+      expect(await violations(page)).toEqual([]);
+    });
+
+    test('the Flask simulation’s forms, record page and confirmation have no accessibility violations', async ({
+      page,
+    }) => {
+      await page.goto('/projects/student-management-system/demo?feature=students');
+      const demo = page.getByRole('region', { name: 'Student Management System demo' });
+      await demo.getByRole('button', { name: 'Add a student' }).click();
+      const form = page.getByRole('dialog', { name: 'Add a student' });
+      await settled(form);
+      await form.getByRole('button', { name: 'Add student' }).click();
+      await expect(form.getByText('Enter the first name.')).toBeVisible();
+      expect(await violations(page)).toEqual([]);
+      await form.getByRole('button', { name: 'Cancel' }).click();
+
+      await demo.getByRole('button', { name: 'Aarav Sharma' }).click();
+      await expect(demo.getByRole('heading', { level: 2, name: 'Aarav Sharma' })).toBeFocused();
+      expect(await violations(page)).toEqual([]);
+      await demo.getByRole('button', { name: 'Delete' }).click();
+      const confirm = page.getByRole('alertdialog', { name: 'Delete Aarav Sharma?' });
+      await settled(confirm);
+      expect(await violations(page)).toEqual([]);
+    });
+
+    test('My projects with a restore preview and a restored project has no accessibility violations', async ({
+      page,
+    }) => {
+      await page.goto('/my-projects');
+      await page.getByLabel('Backup file (.json)').setInputFiles({
+        name: 'campuskit-progress-2026-10-29.json',
+        mimeType: 'application/json',
+        buffer: Buffer.from(
+          JSON.stringify({
+            format: 'campuskit-progress',
+            version: 1,
+            exportedOn: '2026-10-29',
+            projects: { 'expense-tracker': { checklist: ['a', 'b'] } },
+          }),
+        ),
+      });
+      const dialog = page.getByRole('dialog', { name: 'Restore this backup?' });
+      await settled(dialog);
+      expect(await violations(page)).toEqual([]);
+      // And the page with a project's progress on it.
+      await dialog.getByRole('button', { name: 'Restore this backup' }).click();
+      await expect(page.getByRole('article', { name: 'Personal Expense Tracker' })).toContainText(
+        /\d+ of \d+ ticked/,
+      );
+      expect(await violations(page)).toEqual([]);
+    });
+
+    test('a student project in the list and on its own page has no accessibility violations', async ({
+      page,
+    }) => {
+      await page.goto('/my-projects');
+      await page.getByRole('button', { name: 'New project' }).click();
+      const dialog = page.getByRole('dialog', { name: 'New project' });
+      await settled(dialog);
+      expect(await violations(page)).toEqual([]);
+      await dialog.getByRole('textbox', { name: 'Title' }).fill('Library Seat Finder');
+      await dialog.getByRole('textbox', { name: /^Tags/ }).fill('team, final year');
+      await dialog.getByRole('button', { name: 'Create project' }).click();
+      const milestones = page.getByRole('region', { name: 'Milestones' });
+      await milestones.getByRole('textbox', { name: 'New milestone' }).fill('First demo');
+      await milestones.getByLabel(/^Due date/).fill('2020-01-01');
+      await milestones.getByRole('button', { name: 'Add' }).click();
+      await expect(milestones.getByText('overdue', { exact: false })).toBeVisible();
+      expect(await violations(page)).toEqual([]);
+      await page.getByRole('link', { name: 'README and viva sheet' }).click();
+      await expect(page.getByRole('region', { name: 'Preview: README' })).toBeVisible();
+      expect(await violations(page)).toEqual([]);
+      await page.getByRole('radio', { name: 'Viva preparation sheet' }).check();
+      await expect(
+        page.getByRole('region', { name: 'Preview: Viva preparation sheet' }),
+      ).toBeVisible();
+      expect(await violations(page)).toEqual([]);
+      await page.goto('/my-projects');
+      await expect(page.getByRole('article', { name: 'Library Seat Finder' })).toBeVisible();
+      expect(await violations(page)).toEqual([]);
+    });
+
+    test('the command palette and the shortcut list have no accessibility violations', async ({
+      page,
+    }) => {
+      await page.goto('/projects');
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+      await page.keyboard.press('ControlOrMeta+k');
+      const palette = page.getByRole('dialog', { name: 'Go to anything' });
+      await settled(palette);
+      await expect(palette.getByRole('combobox')).toBeFocused();
+      await palette.getByRole('combobox').fill('python');
+      expect(await violations(page)).toEqual([]);
+      await page.keyboard.press('Escape');
+      await page.keyboard.press('?');
+      const shortcuts = page.getByRole('dialog', { name: 'Keyboard shortcuts' });
+      await settled(shortcuts);
+      expect(await violations(page)).toEqual([]);
+    });
+
+    test('a mock viva and the viva progress page have no accessibility violations', async ({
+      page,
+    }) => {
+      await page.goto('/projects/attendance-system/viva');
+      await page.getByRole('button', { name: 'Start a mock viva' }).click();
+      await expect(page.getByText(/Time left for this answer/)).toBeVisible();
+      expect(await violations(page)).toEqual([]);
+      await page.getByRole('button', { name: /I don’t know yet/ }).click();
+      for (const criterion of [
+        'Correctness',
+        'Conceptual understanding',
+        'Explanation clarity',
+        'Awareness of limitations',
+      ])
+        await page.getByRole('group', { name: criterion }).getByText('Partly').click();
+      await page.getByRole('button', { name: 'Save rating and continue' }).click();
+      await page.goto('/viva/progress');
+      await expect(
+        page.getByRole('region', { name: 'Student Attendance System', exact: true }),
+      ).toContainText('Topics that need work');
       expect(await violations(page)).toEqual([]);
     });
 

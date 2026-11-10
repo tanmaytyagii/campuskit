@@ -7,7 +7,7 @@ import { useState } from 'react';
 
 import { useBundleLoader } from '../../lib/bundle-context.tsx';
 import { downloadFile } from '../../lib/download.ts';
-import { buildZip, initialFormValues, planProject } from '../generator/logic.ts';
+import { initialFormValues, planProject } from '../generator/logic.ts';
 
 export type QuickDownloadState =
   | { status: 'idle' }
@@ -22,7 +22,11 @@ export function useQuickDownload(project: ProjectManifest) {
   async function download() {
     setState({ status: 'working' });
     try {
-      const bundle = await loader(project.id);
+      // The ZIP code loads on first use, so the project page itself stays small.
+      const [bundle, { buildZip }] = await Promise.all([
+        loader(project.id),
+        import('../generator/zip.ts'),
+      ]);
       const result = await buildZip(planProject(project, bundle, initialFormValues(project)));
       downloadFile(result.zip, result.fileName, 'application/zip');
       setState({ status: 'done', fileName: result.fileName });

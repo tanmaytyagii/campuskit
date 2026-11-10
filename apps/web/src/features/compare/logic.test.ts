@@ -25,8 +25,13 @@ describe('goal suggestions', () => {
       'attendance-system',
     ]);
     expect(ids(suggestForGoal(goal('python'), catalog, verified).projects)).toEqual([
+      'student-management-system',
       'student-result-analyzer',
     ]);
+    expect(ids(suggestForGoal(goal('database'), catalog, verified).projects)).toEqual([
+      'student-management-system',
+    ]);
+    // A Flask app is a web app too, but it runs on a server, so it isn't a frontend project.
     expect(ids(suggestForGoal(goal('frontend'), catalog, verified).projects)).toEqual([
       'attendance-system',
       'expense-tracker',
@@ -37,7 +42,9 @@ describe('goal suggestions', () => {
     const ai = suggestForGoal(goal('ai-ml'), catalog, verified);
     expect(ai.note).toMatch(/no AI or machine learning project yet/);
     expect(ids(ai.projects)).toEqual(['student-result-analyzer']);
-    const database = suggestForGoal(goal('database'), catalog, verified);
+    // Without the database template, the database goal falls back too.
+    const withoutDatabase = catalog.filter((item) => item.stack.persistence !== 'database');
+    const database = suggestForGoal(goal('database'), withoutDatabase, verified);
     expect(database.note).toMatch(/No project uses a database yet/);
     expect(ids(database.projects)).toEqual(['attendance-system', 'expense-tracker']);
   });
@@ -46,7 +53,11 @@ describe('goal suggestions', () => {
     const result = suggestForGoal(goal('software-engineering'), catalog, (item) =>
       item.id === 'expense-tracker' ? 'awaiting-verification' : 'verified',
     );
-    expect(ids(result.projects)).toEqual(['attendance-system', 'student-result-analyzer']);
+    expect(ids(result.projects)).toEqual([
+      'attendance-system',
+      'student-management-system',
+      'student-result-analyzer',
+    ]);
   });
 });
 

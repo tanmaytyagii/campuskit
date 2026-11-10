@@ -1,6 +1,10 @@
 import { useLayoutEffect, useRef } from 'react';
 import { Outlet, ScrollRestoration, useLocation } from 'react-router';
 
+import { GlobalShortcuts } from '../../features/navigation/GlobalShortcuts.tsx';
+import { useLocale, useT } from '../../lib/i18n.ts';
+import { Toaster } from '../ui/Toast.tsx';
+import { OfflineNotice } from './OfflineNotice.tsx';
 import { SiteFooter } from './SiteFooter.tsx';
 import { SiteHeader } from './SiteHeader.tsx';
 
@@ -11,6 +15,8 @@ import { SiteHeader } from './SiteHeader.tsx';
  * learning studio section moving focus to its own heading).
  */
 export function Layout() {
+  const t = useT();
+  const locale = useLocale();
   const location = useLocation();
   const main = useRef<HTMLElement>(null);
   const previousPath = useRef(location.pathname);
@@ -32,13 +38,24 @@ export function Layout() {
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-4 focus:py-2 focus:shadow-lift"
       >
-        Skip to content
+        {t('skip.content')}
       </a>
       <SiteHeader />
-      <main id="main" ref={main} tabIndex={-1} className="outline-none">
+      <OfflineNotice />
+      {/* Pages are in English (the dashboard marks its own language): screen readers then
+          pronounce them correctly when the menus are in another language. */}
+      <main
+        id="main"
+        ref={main}
+        tabIndex={-1}
+        lang={locale === 'en' ? undefined : 'en'}
+        className="outline-none"
+      >
         <Outlet />
       </main>
       <SiteFooter />
+      <Toaster />
+      <GlobalShortcuts />
       <ScrollRestoration />
     </>
   );

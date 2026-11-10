@@ -162,6 +162,10 @@ test('demos stay within the screen on phones, including charts and tables', asyn
     // Screen-reader-only notes in the table cells once widened the page here.
     '/projects/attendance-system/demo?feature=summary',
     '/projects/attendance-system/ready',
+    // Wide tables of the Flask simulation: the student list, the sheet and the raw tables.
+    '/projects/student-management-system/demo?feature=students',
+    '/projects/student-management-system/demo?feature=attendance',
+    '/projects/student-management-system/demo?feature=database',
   ]) {
     await page.goto(path);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();

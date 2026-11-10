@@ -12,8 +12,9 @@ import {
   type ReportInfo,
   type SectionId,
 } from '@campuskit/project-catalog';
-import { Check, Copy, Download, Eye, RotateCcw, Trash } from 'lucide-react';
+import { Check, Copy, Download, Eye, FileText, Printer, RotateCcw, Trash } from 'lucide-react';
 import { useEffect, useId, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useSearchParams } from 'react-router';
 
 import { MarkdownView } from '../../components/MarkdownView.tsx';
@@ -199,12 +200,41 @@ function ReportEditor({
     setNotice('Cleared your saved work for this project and started a fresh draft.');
   }
 
-  const fileName = `${
+  const baseName =
     (info.title.trim() || project?.id || 'project')
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '') || 'project'
-  }-report-draft.md`;
+      .replace(/^-|-$/g, '') || 'project';
+  const fileName = `${baseName}-report-draft.md`;
+
+  async function downloadDocx() {
+    try {
+      // Loaded on first use, so the workspace itself stays small.
+      const { DOCX_MIME_TYPE, markdownToDocx } = await import('../../lib/docx.ts');
+      const bytes = await markdownToDocx(report, {
+        title: info.title.trim() || project?.name || 'Project report',
+        date: today,
+      });
+      downloadFile(bytes, `${baseName}-report-draft.docx`, DOCX_MIME_TYPE);
+    } catch {
+      setNotice('The Word file couldn’t be made. Download the Markdown file instead.');
+    }
+  }
+
+  // Printing shows only the report (see .print-report in index.css); the browser's print
+  // dialog can save it as a PDF.
+  const [printing, setPrinting] = useState(false);
+  useEffect(() => {
+    if (!printing) return undefined;
+    document.body.classList.add('printing-report');
+    const finish = () => setPrinting(false);
+    window.addEventListener('afterprint', finish, { once: true });
+    window.print();
+    return () => {
+      window.removeEventListener('afterprint', finish);
+      document.body.classList.remove('printing-report');
+    };
+  }, [printing]);
 
   return (
     <div className="space-y-8">
@@ -464,6 +494,20 @@ function ReportEditor({
               </Button>
               <Button
                 variant="secondary"
+                onClick={() => void downloadDocx()}
+                icon={<FileText aria-hidden="true" className="size-4" />}
+              >
+                Download Word (.docx)
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setPrinting(true)}
+                icon={<Printer aria-hidden="true" className="size-4" />}
+              >
+                Print or save as PDF
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={() => void copy(report)}
                 icon={
                   copyState === 'copied' ? (
@@ -528,6 +572,14 @@ function ReportEditor({
       >
         <MarkdownView markdown={report} headingOffset={2} />
       </Dialog>
+      {printing
+        ? createPortal(
+            <div className="print-report">
+              <MarkdownView markdown={report} />
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

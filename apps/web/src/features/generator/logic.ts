@@ -6,7 +6,6 @@ import { generationOptions, type ProjectManifest } from '@campuskit/project-cata
 import {
   deriveProjectSlug,
   generateProject,
-  packageProject,
   parsePointer,
   replacementText,
   resolveValueRef,
@@ -140,20 +139,6 @@ export function planProject(
     input: toEngineInput(manifest, values),
     ...generationOptions(manifest, todayIso(now)),
   });
-}
-
-export interface GeneratedZip {
-  project: GeneratedProject;
-  zip: Uint8Array;
-  fileName: string;
-}
-
-export async function buildZip(
-  project: GeneratedProject,
-  now: Date = new Date(),
-): Promise<GeneratedZip> {
-  const zip = await packageProject(project, now);
-  return { project, zip, fileName: `${project.rootFolder}.zip` };
 }
 
 /**

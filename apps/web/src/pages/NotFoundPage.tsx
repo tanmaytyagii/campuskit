@@ -12,7 +12,7 @@ const PLACES = [
 ];
 
 export function NotFoundPage() {
-  useDocumentTitle('Page not found');
+  useDocumentTitle('Page not found', { remember: false });
   return (
     <div className="container-page grid gap-12 py-16 md:py-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)] lg:items-center">
       <div className="max-w-xl space-y-4">

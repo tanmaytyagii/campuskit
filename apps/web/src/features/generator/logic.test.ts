@@ -5,7 +5,6 @@ import { describe, expect, it } from 'vitest';
 import { diskBundleLoader } from '../../test/render.tsx';
 import {
   appPreviewModel,
-  buildZip,
   initialFormValues,
   optionFiles,
   optionsForStep,
@@ -18,6 +17,7 @@ import {
   unavailableOptions,
   validateOptions,
 } from './logic.ts';
+import { buildZip } from './zip.ts';
 
 function project(id: string) {
   const found = getProjectById(id);
@@ -193,7 +193,11 @@ describe('customization studio helpers', () => {
     expect(missing).toContainEqual({
       label: 'Institution name',
       group: 'identity',
-      offeredBy: ['Student Attendance System', 'Student Result Analyzer'],
+      offeredBy: [
+        'Student Attendance System',
+        'Student Management System',
+        'Student Result Analyzer',
+      ],
     });
     expect(missing.some((item) => item.group === 'behaviour')).toBe(false);
   });

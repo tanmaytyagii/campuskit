@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Delete {{ course.code }}{% endblock %}
+{% block content %}
+  <h1>Delete {{ course.code }} {{ course.title }}?</h1>
+  <div class="panel warning">
+    <p>This permanently deletes the course, the {{ roster | length }} {{ 'enrollment' if roster | length == 1 else 'enrollments' }} in it and all of its attendance marks. The students themselves are kept.</p>
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <p class="actions">
+        <button type="submit" class="button-danger">Delete course</button>
+        <a href="{{ url_for('courses.show_course', course_id=course.id) }}">Cancel</a>
+      </p>
+    </form>
+  </div>
+{% endblock %}

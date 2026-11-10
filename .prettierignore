@@ -12,6 +12,8 @@ __pycache__
 .scratch
 # Python sources are formatted with standard PEP 8 conventions, not Prettier.
 *.py
+# Jinja templates: Prettier's HTML parser can't read {% %} tags inside elements.
+templates/student-management-system/studentms/templates/
 # Generated from the Zod schema by `pnpm --filter @campuskit/project-catalog schema`.
 packages/project-catalog/manifest.schema.json
 # Written by `pnpm verify:generated --record`.

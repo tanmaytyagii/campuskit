@@ -1,5 +1,167 @@
 # Changelog
 
+## 6.0.0-rc.1 (31 October 2026, release candidate)
+
+A release candidate for CampusKit 6.0. It adds:
+
+- a project workspace for the student's own projects;
+- a dashboard, a command palette and recently visited pages;
+- onboarding and settings;
+- mock vivas and a viva progress page;
+- offline use as an installable app;
+- an optional AI assistant that uses the student's own key and asks before every request;
+- a README and viva-sheet generator;
+- menus in Hindi.
+
+Everything from 5.0 works as before. Backups from 5.0 still restore, and typed viva answers are still never saved.
+
+Not in this release:
+
+- new templates;
+- translating the workspace, onboarding and content pages;
+- a second AI provider;
+- Tooltip and Card components.
+
+The Hindi text hasn't been reviewed by a native speaker yet. See `CAMPUSKIT_6_ROADMAP.md` and `QA_REPORT.md`.
+
+### Project workspace
+
+- **Your own projects** on My projects:
+  - title, description, category, status, tags, technology, an optional template link, favourite and pinned;
+  - notes saved as you type;
+  - milestones with due dates, links, and a timeline of what changed;
+  - search, filters, sorting and an archive.
+- **A page for each project** (`/my-projects/:id`): change the status quickly, track milestones and progress, edit, duplicate, archive and restore. A project can be deleted for good only from the archive, and only after a confirmation.
+- **Never silently discarded:** saved entries that can't be read are kept aside, with a notice offering to download or delete them.
+- **Backups, format version 2**, now include projects and the profile:
+  - a version 1 file is upgraded as it's read;
+  - restoring merges projects by id and first shows how many will be added, replaced, or replaced by an older copy;
+  - projects that exist only in this browser are kept.
+- **Documentation studio** (`/my-projects/:id/docs`): a README and a viva preparation sheet drafted from the project's own details.
+  - Parts without details are marked “To write” and listed above the preview.
+  - Content from a linked template is labelled as the template's.
+  - Download as Word or Markdown, or print and save as PDF.
+
+### Navigation and dashboard
+
+- **Command palette** (Ctrl+K or ⌘K, or the header button):
+  - goes to pages, your projects, every template's pages, documents and actions;
+  - follows the ARIA combobox pattern and works by keyboard only;
+  - `?` lists the keyboard shortcuts.
+- **Recently visited pages**, in the palette and on the dashboard.
+- **Dashboard** (`/dashboard`), with real figures only: projects, deadlines in the next 14 days and overdue ones, recent activity, quick actions, and viva practice due for review.
+
+### Onboarding and settings
+
+- **A welcome guide** (`/welcome`) with three skippable steps: level, interests, and suggested templates, each with the reason it was suggested. It can also start a project labelled as a sample.
+- **Settings** (`/settings`):
+  - profile, theme and language;
+  - store every template for offline use;
+  - reopen the welcome guide;
+  - delete everything CampusKit saved in this browser, after a confirmation.
+
+### Viva practice
+
+- **Mock viva:** 8 questions taken from each topic in turn, with an optional 2-minute timer per answer that only informs (it never submits).
+- **Viva progress** (`/viva/progress`):
+  - ratings over the last 14 days;
+  - each template's topics: practised, confident, needs work;
+  - weak topics and questions below confident;
+  - a revision report as Word or Markdown.
+
+  A topic never counts as known because a question was opened: only the student's own ratings count.
+
+### Offline and installable
+
+- A web app manifest and icons; CampusKit can be installed.
+- A service worker:
+  - stores the site and keeps saved work, the dashboard and viva practice working offline after one visit;
+  - updates on request ("Reload to update");
+  - handles only same-origin GET requests.
+- The AI assistant's SDK isn't stored for offline use, because the assistant needs a connection.
+
+### Optional AI assistant
+
+- `/assistant`: explain a template's architecture, a piece of code or an error message; write practice viva questions; plan what to learn; review documentation.
+- The student's own Anthropic API key:
+  - kept in memory, or until the tab closes if they choose;
+  - never in localStorage, backups or the code.
+- Before every request, a review shows the provider, address, model and the exact text to be sent. Nothing is sent until the student agrees.
+- A request limit per tab, changeable by the student. Offline or without a key nothing can be sent, and links point to the human-written guides instead.
+- Answers are labelled "Written by AI" and are never saved.
+- Uses `claude-opus-5-5` through the official `@anthropic-ai/sdk`, with the API's server-side refusal fallback turned on.
+- The Content Security Policy allows connections to `https://api.anthropic.com` and nowhere else outside the site.
+
+### Language
+
+- Hindi for the menus, footer, command palette, shortcut list, dashboard and the language setting, chosen in Settings.
+- Pages that are still in English are marked `lang="en"`, so screen readers pronounce them correctly.
+
+### Fixes found while testing
+
+- Cached scripts missed offline when a server answered `Vary: Origin`.
+- Task lists in Markdown rendered unlabelled checkboxes.
+- AI answers' headings skipped a level.
+- `workspaceStore.reload()` read storage too early.
+- The header crowded at 1024 px.
+
+### Tooling
+
+- Firefox and WebKit end-to-end jobs in CI (`CAMPUSKIT_E2E_BROWSERS`).
+- A Content Security Policy unit test.
+- New dependency: `@anthropic-ai/sdk` 1.3.0 (exact), loaded only when an AI request is sent.
+
+## 5.0.0-rc.1 (31 October 2026, release candidate)
+
+A release candidate for CampusKit 5.0: a fourth template with a server and a database, a Demo Studio simulation of it, a student workspace with backups, spaced viva review and Word or PDF report export, a smaller first page load, and checks that run after every deployment. Saved progress from 2.0 to 4.0 loads as before, and typed viva answers are still never saved.
+
+Not in this release: more templates (library, quiz, notebook), “Extend your project” guides, more generator options, offline use (PWA) and a Hindi interface.
+
+### New template: Student Management System (Flask and SQLite)
+
+- Students, courses, enrollments and attendance in one SQLite file: add, view, edit and delete students and courses; search, filter, sort and page the student list; mark attendance for a course and day; dashboard and statistics pages.
+- Written for explaining in a viva:
+  - parameterized SQL everywhere, with sorting from a fixed list of columns;
+  - foreign keys with `ON DELETE CASCADE`, `UNIQUE` and `CHECK` constraints, and an upsert for attendance;
+  - CSRF tokens on every form, a Content Security Policy with no scripts at all, and escaped output;
+  - a secret key kept out of the code (`SECRET_KEY`, or `instance/secret_key`, created readable by its owner only);
+  - requests must use `127.0.0.1` or `localhost` in the address, which blocks DNS rebinding, and `FLASK_DEBUG=1` is refused when other computers could reach the app;
+  - an app factory, blueprints and commands to back up, reset and refill the database.
+- 69 pytest tests, a learning guide (architecture, code walkthrough, checklist, 25 viva questions, troubleshooting), screenshots and fictional sample data.
+- Verified on macOS (both generated variants). Linux and Windows run in CI.
+- Bugs found while building it, fixed before release, each with a regression test:
+  - the first start re-seeded any empty database, so `reset-db --empty` didn't last;
+  - `str.isdigit()` accepted “²” (a crash) and Arabic-Indic digits, which were read as numbers.
+
+### Demo Studio
+
+- The new template has an interactive demo, labelled as an **educational simulation**: the browser runs no Python and no SQL. Its screens show the dashboard, the student list, a student's record with their courses, courses, the attendance sheet and the database tables. Every change shows the SQL statement the real app would run, with its parameters, including statements the database refuses.
+- The simulation's validation, sample data, searching, sorting, paging, statistics and rounding are tested against results recorded from the template's Python code (`pnpm demo:fixtures:students`).
+- Demos now declare one of three fidelities: `template-logic`, `browser-port` or the new `simulation`. The notice and the Demos page word each one differently.
+
+### Student workspace
+
+- **My projects** (`/my-projects`): every project started in this browser, with checklist and viva progress, the guided demo, report, demonstration and readiness status, and a suggested next step. A project's saved progress can be deleted after a confirmation.
+- **Backup and restore:** a JSON file with each project's saved progress. A file is checked whole before anything changes; the page shows what it holds next to what the browser has now; restoring replaces only the projects in the file. Files from newer versions and malformed files are refused with the reason. Typed viva answers are still never saved, so they are never in a backup.
+- **Spaced review** in viva practice: questions come back after a delay that depends on the student's own rating, shown as a rule on the page. Older saved ratings keep working.
+- **Report export as Word (.docx)**, made in the browser, and **Print or save as PDF**, which prints only the report, in black on white.
+- A saved report draft whose details aren't text is now ignored instead of breaking the report builder.
+
+### Performance
+
+- The first visit loads less JavaScript than in 4.0.0, despite the new template, demo and workspace: 661.3 kB in 18 files (200.8 kB gzipped), down from 733.0 kB in 10 files (221.5 kB gzipped). The entry script is 374.1 kB (was 484.5 kB). Measured on production builds of both versions, counting the entry script and every script it preloads.
+- The ZIP code (JSZip) now loads only when a project or a Word file is made: the template engine's packaging moved to its own module (`packaging.ts`, re-exported as before), the bundle loader imports the schema from a new `@campuskit/template-engine/spec` entry point, and the project page loads the ZIP builder on click.
+
+### Reliability
+
+- The generated-project verifier names the command, the exit code or signal and the end of the output when a step fails, and stops a command and its child processes after a time limit. Apps with a `run.py` (Flask) are started and checked: health check, customized home page title and, for database apps, the SQLite file.
+- After each GitHub Pages deployment, a smoke job checks the live site in Chromium: the new build is being served, its assets load, every project page and demo opens, the generator works and a downloaded ZIP opens (`pnpm smoke <url>`).
+
+### Accessibility
+
+- The readiness check announces the new score when an item is ticked.
+- [Accessibility testing](docs/accessibility-testing.md) explains what the automated checks cover and gives manual test scripts for VoiceOver and NVDA.
+
 ## 4.0.0 (25 October 2026)
 
 CampusKit now covers the last stretch before a submission: students can try every project in an interactive demo, rehearse demonstrating it, present it with slides built from the project, and check what is left to do. The tagline is now “Explore it. Build it. Understand it. Demonstrate it.”

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% from "_macros.html" import percent %}
+{% block title %}{{ student.first_name }} {{ student.last_name }}{% endblock %}
+{% block content %}
+  <p class="breadcrumb"><a href="{{ url_for('students.list_students') }}">Students</a></p>
+  <div class="page-heading">
+    <h1>{{ student.first_name }} {{ student.last_name }}</h1>
+    <p class="actions">
+      <a class="button" href="{{ url_for('students.edit_student', student_id=student.id) }}">Edit</a>
+      <a class="button button-danger" href="{{ url_for('students.delete_student', student_id=student.id) }}">Delete</a>
+    </p>
+  </div>
+  <dl class="details panel">
+    <div><dt>Roll number</dt><dd>{{ student.roll_number }}</dd></div>
+    <div><dt>Class</dt><dd>{{ student.class_name }}</dd></div>
+    <div><dt>Status</dt><dd><span class="badge badge-{{ student.status }}">{{ student.status | capitalize }}</span></dd></div>
+    <div><dt>Email</dt><dd>{{ student.email or "Not given" }}</dd></div>
+    <div><dt>Admission date</dt><dd>{{ student.admission_date }}</dd></div>
+    <div><dt>Last updated</dt><dd>{{ student.updated_at }} (UTC)</dd></div>
+  </dl>
+
+  <section class="panel" aria-labelledby="courses-heading">
+    <h2 id="courses-heading">Courses</h2>
+    {% if courses %}
+      <div class="table-scroll" role="region" aria-label="Courses table" tabindex="0">
+        <table>
+          <thead><tr><th scope="col">Course</th><th scope="col">Credits</th><th scope="col">Attendance</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr></thead>
+          <tbody>
+            {% for course in courses %}
+              <tr>
+                <th scope="row"><a href="{{ url_for('courses.show_course', course_id=course.id) }}">{{ course.code }} {{ course.title }}</a></th>
+                <td>{{ course.credits }}</td>
+                <td>{{ percent(course.attended, course.marked) }}{% if course.marked %} <span class="muted">({{ course.attended }} of {{ course.marked }})</span>{% endif %}</td>
+                <td>
+                  <form method="post" action="{{ url_for('students.unenroll', student_id=student.id, course_id=course.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="button-link">Remove from {{ course.code }}</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p>Not enrolled in any course yet.</p>
+    {% endif %}
+    {% if available %}
+      <form method="post" action="{{ url_for('students.enroll', student_id=student.id) }}" class="inline-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="field">
+          <label for="course_id">Enroll in a course</label>
+          <select id="course_id" name="course_id">
+            {% for course in available %}<option value="{{ course.id }}">{{ course.code }} {{ course.title }}</option>{% endfor %}
+          </select>
+        </div>
+        <button type="submit">Enroll</button>
+      </form>
+    {% endif %}
+  </section>
+{% endblock %}

@@ -227,7 +227,7 @@ describe('project generator', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Institution name (offered by Student Attendance System and Student Result Analyzer)',
+        'Institution name (offered by Student Attendance System, Student Management System and Student Result Analyzer)',
       ),
     ).toBeInTheDocument();
   });

@@ -60,6 +60,12 @@ describe('readiness center', () => {
       done: ['tests'],
     });
     expect(screen.getByText('27%')).toBeInTheDocument();
+    // The new score is announced, not only drawn.
+    expect(
+      screen.getByText(/^Your readiness is now 27%: [\d.]+ of \d+ items\.$/, {
+        selector: '[role="status"]',
+      }),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Clear my confirmations' }));
     const dialog = await screen.findByRole('alertdialog', { name: 'Clear your confirmations?' });

@@ -108,3 +108,75 @@ export async function waitForHealth(
     `${url} did not answer within ${timeoutMs / 1000} seconds${outputNote(output.text())}`,
   );
 }
+
+/** A command that couldn't start, failed or ran out of time. */
+export class CommandError extends Error {}
+
+export interface CommandOptions {
+  cwd: string;
+  env?: NodeJS.ProcessEnv;
+  /** Needed on Windows for .cmd scripts such as npm. */
+  shell?: boolean;
+  /** The command is stopped, with every process it started, after this long. */
+  timeoutMs?: number;
+}
+
+/** A time limit in words: "15 minutes", "0.5 seconds". */
+export function duration(ms: number): string {
+  return ms >= 60_000 ? `${ms / 60_000} minutes` : `${ms / 1000} seconds`;
+}
+
+/** How a finished process ended, in words. */
+export function describeExit(code: number | null, signal: NodeJS.Signals | null): string {
+  return code === null
+    ? `was stopped by signal ${signal ?? 'unknown'}`
+    : `exited with code ${code}`;
+}
+
+/**
+ * Runs a command to the end and returns everything it printed. A failure says which command,
+ * how it ended and how its output ended, so the verification report shows the cause.
+ */
+export function runCommand(
+  command: string,
+  commandArgs: string[],
+  { cwd, env, shell = false, timeoutMs = 15 * 60_000 }: CommandOptions,
+): Promise<string> {
+  const shown = [command, ...commandArgs].join(' ');
+  return new Promise((resolvePromise, reject) => {
+    const child = spawn(command, commandArgs, {
+      cwd,
+      env: { ...process.env, ...env },
+      stdio: ['ignore', 'pipe', 'pipe'],
+      shell,
+    });
+    let output = '';
+    let timedOut = false;
+    child.stdout?.on('data', (chunk: Buffer) => (output += chunk.toString()));
+    child.stderr?.on('data', (chunk: Buffer) => (output += chunk.toString()));
+    const timer = setTimeout(() => {
+      timedOut = true;
+      void stopProcess(child);
+    }, timeoutMs);
+    child.once('error', (error) => {
+      clearTimeout(timer);
+      reject(new CommandError(`Could not run "${shown}" in ${cwd}: ${error.message}`));
+    });
+    child.once('close', (code, signal) => {
+      clearTimeout(timer);
+      if (code === 0 && !timedOut) resolvePromise(output);
+      else if (timedOut)
+        reject(
+          new CommandError(
+            `"${shown}" did not finish within ${duration(timeoutMs)} and was stopped${outputNote(output.slice(-3000))}`,
+          ),
+        );
+      else
+        reject(
+          new CommandError(
+            `"${shown}" ${describeExit(code, signal)}${outputNote(output.slice(-3000))}`,
+          ),
+        );
+    });
+  });
+}

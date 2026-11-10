@@ -2,12 +2,8 @@ import JSZip from 'jszip';
 import { describe, expect, it } from 'vitest';
 
 import { utf8Decode } from './encoding.ts';
-import {
-  generateProject,
-  generateProjectZip,
-  GETTING_STARTED_FILE,
-  packageProject,
-} from './generate.ts';
+import { generateProject, GETTING_STARTED_FILE } from './generate.ts';
+import { generateProjectZip, packageProject } from './packaging.ts';
 import { OptionValidationError } from './options.ts';
 import { UnsafePathError } from './paths.ts';
 import { sampleBundle, sampleGuide, sampleSpec, textFile } from './test-fixtures.ts';

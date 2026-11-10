@@ -19,6 +19,8 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: read
+    outputs:
+      entry: ${{ steps.entry.outputs.entry }}
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
@@ -36,6 +38,13 @@ jobs:
           CAMPUSKIT_BASE: ${{ endsWith(github.event.repository.name, '.github.io') && '/' || format('/{0}/', github.event.repository.name) }}
       - name: Serve the app for unknown paths (single-page app fallback)
         run: cp apps/web/dist/index.html apps/web/dist/404.html
+      # The smoke test waits until the site serves this file, so it checks the new deployment.
+      - name: Note the build's entry script
+        id: entry
+        run: |
+          entry=$(grep -oE 'assets/index-[A-Za-z0-9_-]+\.js' apps/web/dist/index.html | head -n 1)
+          test -n "$entry"
+          echo "entry=$entry" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-pages-artifact@v5
         with:
           path: apps/web/dist
@@ -50,9 +59,41 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
     steps:
       # Fails with a clear message when Pages is not enabled for the repository
       # (Settings → Pages → Source: GitHub Actions).
       - uses: actions/configure-pages@v6
       - id: deployment
         uses: actions/deploy-pages@v5
+
+  # Checks the live site after the deployment: headings on every project page, the generator,
+  # the demos and the 404 page, every asset, and a project ZIP built in the browser
+  # (scripts/smoke-site.ts). It only reads, so it gets no deployment permissions.
+  smoke:
+    needs: [build, deploy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @campuskit/web exec playwright install --with-deps chromium
+      - run: pnpm smoke "$PAGE_URL" --expect-entry "$ENTRY"
+        env:
+          PAGE_URL: ${{ needs.deploy.outputs.page_url }}
+          ENTRY: ${{ needs.build.outputs.entry }}
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: smoke-report
+          path: smoke-report
+          if-no-files-found: ignore
+          retention-days: 14

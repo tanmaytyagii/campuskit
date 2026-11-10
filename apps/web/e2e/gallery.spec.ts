@@ -4,12 +4,12 @@ test('filters are kept in the address, survive a reload and work with Back', asy
   page,
 }, testInfo) => {
   await page.goto('/projects');
-  await expect(page.getByRole('status').filter({ hasText: 'projects' })).toHaveText('3 projects');
+  await expect(page.getByRole('status').filter({ hasText: 'projects' })).toHaveText('4 projects');
 
   await page.getByRole('searchbox', { name: 'Search', exact: true }).fill('react');
   await expect(page).toHaveURL(/\?q=react$/);
   await expect(page.getByRole('status').filter({ hasText: 'projects' })).toHaveText(
-    'Showing 2 of 3 projects',
+    'Showing 2 of 4 projects',
   );
 
   if (isMobile(testInfo.project.name)) {
@@ -31,13 +31,13 @@ test('filters are kept in the address, survive a reload and work with Back', asy
   await page.reload();
   await expect(page.getByRole('searchbox', { name: 'Search', exact: true })).toHaveValue('react');
   await expect(page.getByRole('status').filter({ hasText: 'projects' })).toHaveText(
-    'Showing 1 of 3 projects',
+    'Showing 1 of 4 projects',
   );
 
   await page.goBack();
   await expect(page).toHaveURL(/\?q=react$/);
   await expect(page.getByRole('status').filter({ hasText: 'projects' })).toHaveText(
-    'Showing 2 of 3 projects',
+    'Showing 2 of 4 projects',
   );
 });
 
@@ -47,7 +47,7 @@ test('a search with no results offers a way out', async ({ page }) => {
     page.getByRole('heading', { name: 'No projects match these filters' }),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Reset filters' }).last().click();
-  await expect(page.getByRole('status').filter({ hasText: 'projects' })).toHaveText('3 projects');
+  await expect(page.getByRole('status').filter({ hasText: 'projects' })).toHaveText('4 projects');
 });
 
 test('home search suggestions open a project', async ({ page }) => {

@@ -519,3 +519,44 @@ html:has([data-presentation]) {
     scroll-behavior: auto !important;
   }
 }
+
+/* The report workspace prints only the report: a clean document on white paper, in either theme. */
+.print-report {
+  display: none;
+}
+
+@media print {
+  body.printing-report > :not(.print-report) {
+    display: none !important;
+  }
+
+  body.printing-report {
+    background: #fff;
+  }
+
+  body.printing-report .print-report {
+    display: block;
+    color: #000;
+    font-size: 11pt;
+  }
+
+  body.printing-report .print-report * {
+    color: #000 !important;
+    background: transparent !important;
+  }
+
+  body.printing-report .print-report :is(h1, h2, h3, h4) {
+    break-after: avoid;
+  }
+
+  body.printing-report .print-report :is(table, pre, blockquote, li) {
+    break-inside: avoid;
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}

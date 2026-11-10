@@ -78,6 +78,13 @@ pnpm test
 
 If you change the port itself (`apps/web/src/features/demo/demos/results/`), also run `pnpm demo:compare`. It checks the port against the Python code on generated files (see [Demo Studio](docs/demo-studio.md#comparing-with-generated-files)).
 
+The Flask template's demo is a simulation, tested the same way. If you change `validation.py`, `repository.py`, `db.py` or `schema.sql`, regenerate what it is compared with:
+
+```bash
+CAMPUSKIT_PYTHON=python3 pnpm demo:fixtures:students   # needs the template's requirements.txt (Flask)
+pnpm test
+```
+
 ## When CI fails
 
 - **Format check:** run `pnpm format` and commit the result.

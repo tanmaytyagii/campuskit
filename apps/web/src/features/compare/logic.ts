@@ -44,9 +44,11 @@ export const GOALS: readonly Goal[] = [
     id: 'frontend',
     label: 'A frontend development project',
     rule: {
-      description: 'It is a web app in the Web development category.',
+      description: 'It is a web app in the Web development category that runs in the browser.',
       matches: (project) =>
-        project.category === 'web-development' && project.projectType === 'web-app',
+        project.category === 'web-development' &&
+        project.projectType === 'web-app' &&
+        project.stack.backend === 'none',
     },
   },
   {

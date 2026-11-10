@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% from "_macros.html" import percent %}
+{% block title %}{{ course.code }} {{ course.title }}{% endblock %}
+{% block content %}
+  <p class="breadcrumb"><a href="{{ url_for('courses.list_courses') }}">Courses</a></p>
+  <div class="page-heading">
+    <h1>{{ course.code }} {{ course.title }}</h1>
+    <p class="actions">
+      <a class="button" href="{{ url_for('attendance.mark', course_id=course.id) }}">Mark attendance</a>
+      <a class="button button-secondary" href="{{ url_for('courses.edit_course', course_id=course.id) }}">Edit</a>
+      <a class="button button-danger" href="{{ url_for('courses.delete_course', course_id=course.id) }}">Delete</a>
+    </p>
+  </div>
+  <p>{{ course.credits }} credits.{% if course.description %} {{ course.description }}{% endif %}</p>
+
+  <section class="panel" aria-labelledby="roster-heading">
+    <h2 id="roster-heading">Students ({{ roster | length }})</h2>
+    {% if roster %}
+      <div class="table-scroll" role="region" aria-label="Students table" tabindex="0">
+        <table>
+          <thead><tr><th scope="col">Name</th><th scope="col">Roll number</th><th scope="col">Class</th><th scope="col">Attendance</th></tr></thead>
+          <tbody>
+            {% for student in roster %}
+              <tr>
+                <th scope="row"><a href="{{ url_for('students.show_student', student_id=student.id) }}">{{ student.first_name }} {{ student.last_name }}</a></th>
+                <td>{{ student.roll_number }}</td><td>{{ student.class_name }}</td>
+                <td>{{ percent(student.attended, student.marked) }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p>No students are enrolled yet. Enroll them from each student’s page.</p>
+    {% endif %}
+  </section>
+
+  <section class="panel" aria-labelledby="days-heading">
+    <h2 id="days-heading">Recent attendance</h2>
+    {% if days %}
+      <ul class="plain-list">
+        {% for day in days %}
+          <li><a href="{{ url_for('attendance.mark', course_id=course.id, date=day.date) }}">{{ day.date }}</a>:
+            {{ day.attended }} of {{ day.marked }} attended</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No attendance has been marked yet.</p>
+    {% endif %}
+  </section>
+{% endblock %}

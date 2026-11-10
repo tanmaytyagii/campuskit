@@ -1,6 +1,7 @@
 import { getProjectById } from '@campuskit/project-catalog';
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import JSZip from 'jszip';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { downloadFile } from '../lib/download.ts';
@@ -45,6 +46,40 @@ describe('submission workspace', () => {
     expect(mimeType).toBe('text/markdown');
     expect(text).toContain('**Team:** Asha K.');
     expect(text).toContain('Draft started with CampusKit');
+  });
+
+  it('downloads the draft as a Word document', async () => {
+    const user = userEvent.setup();
+    renderRoute('/learn/report?project=attendance-system');
+    await user.type(await screen.findByRole('textbox', { name: 'Team members' }), 'Asha K.');
+    await user.click(screen.getByRole('button', { name: 'Download Word (.docx)' }));
+
+    await waitFor(() => expect(download).toHaveBeenCalled());
+    const [bytes, fileName, mimeType] = download.mock.calls[0] ?? [];
+    expect(fileName).toBe('student-attendance-system-report-draft.docx');
+    expect(mimeType).toBe(
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    );
+    const zip = await JSZip.loadAsync(bytes as Uint8Array);
+    const document = await zip.file('word/document.xml')?.async('string');
+    expect(document).toContain('Asha K.');
+    expect(document).toContain('<w:pStyle w:val="Heading1"/>');
+  });
+
+  it('prints only the report, for paper or a PDF', async () => {
+    const print = vi.fn();
+    window.print = print;
+    const user = userEvent.setup();
+    renderRoute('/learn/report?project=attendance-system');
+    await user.click(await screen.findByRole('button', { name: 'Print or save as PDF' }));
+
+    expect(print).toHaveBeenCalledOnce();
+    expect(document.body).toHaveClass('printing-report');
+    const printed = document.body.querySelector(':scope > .print-report');
+    expect(printed).toHaveTextContent('Draft started with CampusKit');
+    window.dispatchEvent(new Event('afterprint'));
+    await waitFor(() => expect(document.body).not.toHaveClass('printing-report'));
+    expect(document.body.querySelector('.print-report')).toBeNull();
   });
 
   it('offers blank prompts for a student’s own project', async () => {

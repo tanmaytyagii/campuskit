@@ -1,6 +1,6 @@
 {
   "name": "campuskit",
-  "version": "4.0.0",
+  "version": "6.0.0-rc.1",
   "private": true,
   "description": "CampusKit — a free, open-source student project factory. Explore it. Build it. Understand it. Demonstrate it.",
   "license": "MIT",
@@ -29,6 +29,8 @@
     "screenshots": "tsx scripts/capture-screenshots.ts",
     "demo:fixtures": "tsx scripts/update-demo-fixtures.ts",
     "demo:compare": "tsx scripts/compare-analyzer.ts",
+    "demo:fixtures:students": "tsx scripts/update-sms-fixture.ts",
+    "smoke": "tsx scripts/smoke-site.ts",
     "check": "pnpm validate && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
   "devDependencies": {

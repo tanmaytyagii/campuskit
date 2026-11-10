@@ -2,8 +2,8 @@
  * Every demo's metadata is checked against the real template: the files and
  * functions it names exist, its learning links resolve, its tour and guided
  * steps point at real screens, and its claim about what runs is true (a
- * template-logic demo imports each file it lists; a browser port has each
- * file in its parity fixture).
+ * template-logic demo imports each file it lists; a browser port or a
+ * simulation has each file in its parity fixture).
  */
 import { readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -18,6 +18,7 @@ import {
 import { describe, expect, it } from 'vitest';
 
 import analyzerFixture from './demos/results/analyzer.fixture.json';
+import smsFixture from './demos/students/sms.fixture.json';
 import { DEMO_LOADERS, DEMOS, getDemo, loadDemo } from './registry.ts';
 import type { LearnRefs } from './types.ts';
 
@@ -25,7 +26,13 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../../../.
 const demoFolders: Record<string, string> = {
   'attendance-system': 'attendance',
   'expense-tracker': 'expenses',
+  'student-management-system': 'students',
   'student-result-analyzer': 'results',
+};
+/** The template files each parity fixture was recorded from, for demos that don't import them. */
+const fixtureSources: Record<string, Record<string, string>> = {
+  'student-management-system': smsFixture.sources,
+  'student-result-analyzer': analyzerFixture.sources,
 };
 
 function readTemplateFile(directory: string, file: string): string {
@@ -120,8 +127,8 @@ describe('demo registry', () => {
               `templates/${directory.replace(/^templates\//, '')}/${file}`,
             );
         } else {
-          for (const file of demo.runs.files)
-            expect(Object.keys(analyzerFixture.sources), file).toContain(file);
+          const recorded = Object.keys(fixtureSources[demo.projectId] ?? {});
+          for (const file of demo.runs.files) expect(recorded, file).toContain(file);
         }
       });
 

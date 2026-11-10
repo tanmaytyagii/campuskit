@@ -1,0 +1,34 @@
+{# Form fields with a label, an optional hint and an error linked to the input. #}
+{% macro field(name, label, form, errors, type="text", hint=None, required=False, autocomplete="off", attrs={}) %}
+  {% set described = [] %}
+  {% if hint %}{% set _ = described.append(name ~ "-hint") %}{% endif %}
+  {% if errors.get(name) %}{% set _ = described.append(name ~ "-error") %}{% endif %}
+  <div class="field{% if errors.get(name) %} field-invalid{% endif %}">
+    <label for="{{ name }}">{{ label }}{% if not required %} <span class="optional">(optional)</span>{% endif %}</label>
+    {% if hint %}<p class="hint" id="{{ name }}-hint">{{ hint }}</p>{% endif %}
+    <input id="{{ name }}" name="{{ name }}" type="{{ type }}" value="{{ form.get(name) or '' }}"
+      autocomplete="{{ autocomplete }}" {% if required %}required{% endif %}
+      {% if described %}aria-describedby="{{ described | join(' ') }}"{% endif %}
+      {% if errors.get(name) %}aria-invalid="true"{% endif %}
+      {% for key, value in attrs.items() %}{{ key }}="{{ value }}" {% endfor %}>
+    {% if errors.get(name) %}<p class="error" id="{{ name }}-error">{{ errors[name] }}</p>{% endif %}
+  </div>
+{% endmacro %}
+
+{# A list of the form's errors at the top, each linking to its field. #}
+{% macro error_summary(errors, labels) %}
+  {% if errors %}
+    <div class="error-summary" role="alert" aria-labelledby="error-summary-title">
+      <h2 id="error-summary-title">Please fix {{ errors | length }} {{ 'problem' if errors | length == 1 else 'problems' }}</h2>
+      <ul>
+        {% for name, message in errors.items() %}
+          <li><a href="#{{ name }}">{{ labels.get(name, name) }}: {{ message }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+{% endmacro %}
+
+{% macro percent(part, whole) -%}
+  {%- if whole -%}{{ "%.1f" | format(100 * part / whole) }}%{%- else -%}No marks yet{%- endif -%}
+{%- endmacro %}

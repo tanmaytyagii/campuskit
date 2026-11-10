@@ -17,6 +17,7 @@ describe('catalog', () => {
     expect(catalog.map((project) => project.id)).toEqual([
       'attendance-system',
       'expense-tracker',
+      'student-management-system',
       'student-result-analyzer',
     ]);
     expect(getProjectBySlug('expense-tracker')?.name).toBe('Personal Expense Tracker');

@@ -8,8 +8,16 @@ import {
   type VivaProgress,
 } from '../../lib/progress.ts';
 import {
+  addDays,
   checkConcepts,
+  dueDate,
+  dueQuestions,
+  intervalDays,
   mentions,
+  mockQuestions,
+  topicStats,
+  weakTopics,
+  nextReviewDate,
   QUICK_PRACTICE_SIZE,
   reviewQuestions,
   selectedQuestionIds,
@@ -132,5 +140,119 @@ describe('key ideas', () => {
       { label: 'One', mentioned: true },
       { label: 'Two', mentioned: false },
     ]);
+  });
+});
+
+describe('spaced review', () => {
+  const rate = (progress: VivaProgress, id: string, rating: Ratings['correctness'], day: string) =>
+    recordRatings(progress, id, all(rating), day);
+
+  it('adds calendar days across months, years and daylight-saving changes', () => {
+    expect(addDays('2026-10-30', 3)).toBe('2026-11-02');
+    expect(addDays('2026-12-30', 2)).toBe('2027-01-01');
+    expect(addDays('2028-02-28', 1)).toBe('2028-02-29');
+    expect(addDays('2026-03-28', 2)).toBe('2026-03-30');
+  });
+
+  it('brings a question back sooner the less sure the student was', () => {
+    const day = '2026-10-20';
+    const missed = rate(EMPTY_VIVA_PROGRESS, 'a', 'not-yet', day).questions.a;
+    const partly = rate(EMPTY_VIVA_PROGRESS, 'a', 'partly', day).questions.a;
+    const confident = rate(EMPTY_VIVA_PROGRESS, 'a', 'confident', day).questions.a;
+    if (!missed || !partly || !confident) throw new Error('not recorded');
+    expect([intervalDays(missed), intervalDays(partly), intervalDays(confident)]).toEqual([
+      1, 2, 3,
+    ]);
+    expect(dueDate(missed)).toBe('2026-10-21');
+    expect(dueDate(confident)).toBe('2026-10-23');
+  });
+
+  it('waits 3, 7, 14, then 30 days while the answers stay confident, and starts again after a miss', () => {
+    let progress = EMPTY_VIVA_PROGRESS;
+    let day = '2026-10-01';
+    const intervals: number[] = [];
+    for (let review = 0; review < 5; review += 1) {
+      progress = rate(progress, 'a', 'confident', day);
+      const entry = progress.questions.a;
+      if (!entry) throw new Error('not recorded');
+      intervals.push(intervalDays(entry));
+      day = dueDate(entry);
+    }
+    expect(intervals).toEqual([3, 7, 14, 30, 30]);
+    progress = rate(progress, 'a', 'partly', day);
+    expect(progress.questions.a?.confidentStreak).toBe(0);
+    progress = rate(progress, 'a', 'confident', addDays(day, 2));
+    expect(intervalDays(progress.questions.a!)).toBe(3);
+  });
+
+  it('counts a streak in days, so rating twice on one day doesn’t skip ahead', () => {
+    let progress = rate(EMPTY_VIVA_PROGRESS, 'a', 'confident', '2026-10-01');
+    progress = rate(progress, 'a', 'confident', '2026-10-01');
+    expect(progress.questions.a?.confidentStreak).toBe(1);
+    progress = rate(progress, 'a', 'not-yet', '2026-10-01');
+    progress = rate(progress, 'a', 'confident', '2026-10-01');
+    expect(progress.questions.a?.confidentStreak).toBe(1);
+  });
+
+  it('treats progress saved before streaks existed as a first confident review', () => {
+    const saved = rate(EMPTY_VIVA_PROGRESS, 'a', 'confident', '2026-10-01').questions.a!;
+    const { confidentStreak: _omitted, ...old } = saved;
+    expect(intervalDays(old)).toBe(3);
+  });
+
+  it('offers the questions that are due, the longest overdue first', () => {
+    let progress = rate(EMPTY_VIVA_PROGRESS, 'a', 'confident', '2026-10-01'); // due 10-04
+    progress = rate(progress, 'b', 'not-yet', '2026-10-05'); // due 10-06
+    progress = rate(progress, 'c', 'partly', '2026-10-04'); // due 10-06
+    progress = rate(progress, 'd', 'confident', '2026-10-06'); // due 10-09
+    expect(dueQuestions(questions, progress, '2026-10-03').map((item) => item.id)).toEqual([]);
+    expect(dueQuestions(questions, progress, '2026-10-06').map((item) => item.id)).toEqual([
+      'a',
+      'b',
+      'c',
+    ]);
+    expect(nextReviewDate(questions, progress, '2026-10-06')).toBe('2026-10-09');
+    expect(nextReviewDate(questions, EMPTY_VIVA_PROGRESS, '2026-10-06')).toBeNull();
+    expect(
+      selectQuestions(questions, progress, { kind: 'due' }, () => 0, '2026-10-09').map(
+        (item) => item.id,
+      ),
+    ).toEqual(['a', 'b', 'c', 'd']);
+  });
+});
+
+describe('mock viva and topics', () => {
+  it('takes questions from each topic in turn, the ones that need work first', () => {
+    // a, b, c are testing questions; d to g are basics.
+    let progress = recordRatings(EMPTY_VIVA_PROGRESS, 'b', all('not-yet'), '2026-10-01');
+    progress = recordRatings(progress, 'e', all('not-yet'), '2026-10-01');
+    progress = recordRatings(progress, 'a', all('confident'), '2026-10-01');
+    const picked = mockQuestions(questions, progress, () => 0, 4).map((item) => item.id);
+    expect(picked).toHaveLength(4);
+    expect(picked[0]).toBe('e');
+    expect(picked[1]).toBe('b');
+    // Alternates between topics while both have questions left, confident ones last.
+    expect(picked.slice(0, 4).filter((id) => ['a', 'b', 'c'].includes(id))).toEqual(['b', 'c']);
+  });
+
+  it('stops when every question is taken', () => {
+    expect(mockQuestions(questions.slice(0, 2), EMPTY_VIVA_PROGRESS, () => 0, 8)).toHaveLength(2);
+  });
+
+  it('counts practice by topic and calls a topic weak only from ratings', () => {
+    let progress = recordRatings(EMPTY_VIVA_PROGRESS, 'a', all('partly'), '2026-10-01');
+    progress = recordRatings(progress, 'b', all('confident'), '2026-10-01');
+    progress = recordRatings(progress, 'd', all('confident'), '2026-10-01');
+    progress = recordRatings(progress, 'e', all('confident'), '2026-10-01');
+    progress = recordRatings(progress, 'f', all('not-yet'), '2026-10-01');
+    const stats = topicStats(questions, progress);
+    expect(stats).toEqual([
+      { category: 'basics', total: 4, practised: 3, confident: 2, needsWork: 1 },
+      { category: 'testing', total: 3, practised: 2, confident: 1, needsWork: 1 },
+    ]);
+    // Half below confident counts as weak; a third doesn't.
+    expect(weakTopics(stats).map((topic) => topic.category)).toEqual(['testing']);
+    // Never practised is not weak.
+    expect(weakTopics(topicStats(questions, EMPTY_VIVA_PROGRESS))).toEqual([]);
   });
 });

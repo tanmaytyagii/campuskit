@@ -247,7 +247,7 @@
         },
         "localUrl": {
           "type": "string",
-          "pattern": "^http:\\/\\/localhost:\\d{2,5}\\/$"
+          "pattern": "^http:\\/\\/(localhost|127\\.0\\.0\\.1):\\d{2,5}\\/$"
         },
         "notes": {
           "maxItems": 8,

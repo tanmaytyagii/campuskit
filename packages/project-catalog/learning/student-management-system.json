@@ -1,0 +1,1771 @@
+{
+  "schemaVersion": 1,
+  "templateId": "student-management-system",
+  "audience": {
+    "summary": "For students who know basic Python and want to build a real database application: a Flask web app on top of a SQLite database, with the SQL written by hand so every query can be read and explained.",
+    "knowledge": [
+      "Python functions, dictionaries and modules.",
+      "Basic HTML: forms, links and tables.",
+      "What a table, a row and a column are in a database; SQL is explained as you go.",
+      "Using a terminal to run commands."
+    ]
+  },
+  "architecture": {
+    "summary": "A server-rendered Flask app. Each request is matched to a view function, which validates the input, reads or writes the SQLite database through one data-access module, and renders an HTML template. Settings come from app_config.json and environment variables. Every form carries a CSRF token, and every query passes values as parameters.",
+    "layers": [
+      {
+        "id": "startup",
+        "label": "Start-up",
+        "description": "run.py and create_app() build the app: settings, database, security checks, pages and error pages."
+      },
+      {
+        "id": "web",
+        "label": "Pages",
+        "description": "Flask blueprints with one view function per page, and the Jinja templates and CSS they render."
+      },
+      {
+        "id": "rules",
+        "label": "Rules",
+        "description": "Validation of form input and the CSRF and security-header checks that run on every request."
+      },
+      {
+        "id": "data",
+        "label": "Data",
+        "description": "The data-access module with every SQL query, the connection and commands, and the schema."
+      }
+    ],
+    "components": [
+      {
+        "id": "startup",
+        "name": "Application factory",
+        "layer": "startup",
+        "kind": "configuration",
+        "responsibility": "run.py calls create_app(), which loads .env and app_config.json, chooses the database path and secret key, registers the database commands, security checks, blueprints and error pages, and prepares the database.",
+        "files": ["run.py", "studentms/__init__.py"],
+        "symbols": [
+          {
+            "file": "studentms/__init__.py",
+            "name": "create_app"
+          }
+        ]
+      },
+      {
+        "id": "config",
+        "name": "Settings",
+        "layer": "startup",
+        "kind": "configuration",
+        "responsibility": "Reads and checks app_config.json (name, institution, page size, sample data), loads KEY=VALUE lines from .env without replacing variables that are already set, and creates the secret key once in instance/secret_key.",
+        "files": ["studentms/config.py", "app_config.json", ".env.example"],
+        "symbols": [
+          {
+            "file": "studentms/config.py",
+            "name": "load_config"
+          },
+          {
+            "file": "studentms/config.py",
+            "name": "load_env_file"
+          },
+          {
+            "file": "studentms/config.py",
+            "name": "secret_key"
+          }
+        ]
+      },
+      {
+        "id": "views",
+        "name": "Routes (view functions)",
+        "layer": "web",
+        "kind": "server",
+        "responsibility": "One blueprint per area. Each function reads the request, calls validation and the repository, then renders a template or redirects with a flash message (Post/Redirect/Get). Deleting is a GET confirmation page plus a POST.",
+        "files": [
+          "studentms/views/students.py",
+          "studentms/views/courses.py",
+          "studentms/views/attendance.py",
+          "studentms/views/dashboard.py",
+          "studentms/views/__init__.py"
+        ],
+        "symbols": [
+          {
+            "file": "studentms/views/students.py",
+            "name": "new_student"
+          },
+          {
+            "file": "studentms/views/students.py",
+            "name": "list_students"
+          },
+          {
+            "file": "studentms/views/attendance.py",
+            "name": "mark"
+          },
+          {
+            "file": "studentms/views/dashboard.py",
+            "name": "health"
+          }
+        ]
+      },
+      {
+        "id": "templates",
+        "name": "Templates and styles",
+        "layer": "web",
+        "kind": "interface",
+        "responsibility": "Jinja templates extend base.html, which has the navigation, flash messages and skip link. _macros.html builds labelled form fields with errors linked by aria-describedby. Jinja escapes everything it inserts. style.css holds the accent colour.",
+        "files": [
+          "studentms/templates/base.html",
+          "studentms/templates/_macros.html",
+          "studentms/templates/students/list.html",
+          "studentms/templates/students/form.html",
+          "studentms/static/style.css"
+        ],
+        "symbols": []
+      },
+      {
+        "id": "validation",
+        "name": "Validation",
+        "layer": "rules",
+        "kind": "logic",
+        "responsibility": "Pure functions that clean form input (trimming, upper-casing roll numbers) and return the values and a dictionary of errors by field. No Flask and no database, so they are easy to test.",
+        "files": ["studentms/validation.py"],
+        "symbols": [
+          {
+            "file": "studentms/validation.py",
+            "name": "validate_student"
+          },
+          {
+            "file": "studentms/validation.py",
+            "name": "validate_course"
+          },
+          {
+            "file": "studentms/validation.py",
+            "name": "validate_attendance_date"
+          }
+        ]
+      },
+      {
+        "id": "security",
+        "name": "CSRF and security headers",
+        "layer": "rules",
+        "kind": "logic",
+        "responsibility": "Gives each session a random token that every form must send back; a POST without it is refused with 400. Adds a Content-Security-Policy that allows no scripts, and other security headers, to every response.",
+        "files": ["studentms/security.py"],
+        "symbols": [
+          {
+            "file": "studentms/security.py",
+            "name": "csrf_token"
+          },
+          {
+            "file": "studentms/security.py",
+            "name": "check_csrf"
+          },
+          {
+            "file": "studentms/security.py",
+            "name": "CONTENT_SECURITY_POLICY"
+          }
+        ]
+      },
+      {
+        "id": "repository",
+        "name": "Data access",
+        "layer": "data",
+        "kind": "storage",
+        "responsibility": "Every SQL query: searching, filtering, sorting and paging students, creating, updating and deleting rows, enrollments, the attendance upsert and statistics. Values always go in as parameters; ORDER BY columns come from a fixed dictionary.",
+        "files": ["studentms/repository.py"],
+        "symbols": [
+          {
+            "file": "studentms/repository.py",
+            "name": "list_students"
+          },
+          {
+            "file": "studentms/repository.py",
+            "name": "create_student"
+          },
+          {
+            "file": "studentms/repository.py",
+            "name": "save_attendance"
+          },
+          {
+            "file": "studentms/repository.py",
+            "name": "SORT_COLUMNS"
+          }
+        ]
+      },
+      {
+        "id": "database",
+        "name": "Connection and commands",
+        "layer": "data",
+        "kind": "storage",
+        "responsibility": "Opens connections with foreign keys on and rows by column name, creates the tables, adds the fictional sample data to a new database file, and provides the init-db, seed-db, reset-db and backup-db commands.",
+        "files": ["studentms/db.py"],
+        "symbols": [
+          {
+            "file": "studentms/db.py",
+            "name": "connect"
+          },
+          {
+            "file": "studentms/db.py",
+            "name": "get_db"
+          },
+          {
+            "file": "studentms/db.py",
+            "name": "prepare_database"
+          },
+          {
+            "file": "studentms/db.py",
+            "name": "backup_db"
+          }
+        ]
+      },
+      {
+        "id": "schema",
+        "name": "Database schema",
+        "layer": "data",
+        "kind": "data",
+        "responsibility": "Four tables: students and courses, enrollments joining them (many-to-many, primary key on both ids) and attendance, which refers to an enrollment. Foreign keys cascade deletes; UNIQUE and CHECK constraints back up the validation.",
+        "files": ["studentms/schema.sql"],
+        "symbols": []
+      },
+      {
+        "id": "tests",
+        "name": "Tests",
+        "layer": "data",
+        "kind": "tests",
+        "responsibility": "pytest tests on a temporary database with a fixed date: validation, configuration, queries and constraints, every page through Flask's test client with real CSRF tokens, the database commands and the security behaviour.",
+        "files": [
+          "tests/conftest.py",
+          "tests/test_database.py",
+          "tests/test_pages.py",
+          "tests/test_security.py"
+        ],
+        "symbols": [
+          {
+            "file": "tests/conftest.py",
+            "name": "make_app"
+          },
+          {
+            "file": "tests/conftest.py",
+            "name": "post_form"
+          }
+        ]
+      }
+    ],
+    "connections": [
+      {
+        "from": "startup",
+        "to": "config",
+        "label": "Loads the settings and secret key"
+      },
+      {
+        "from": "startup",
+        "to": "database",
+        "label": "Prepares the database on start"
+      },
+      {
+        "from": "startup",
+        "to": "security",
+        "label": "Registers the checks for every request"
+      },
+      {
+        "from": "startup",
+        "to": "views",
+        "label": "Registers the blueprints"
+      },
+      {
+        "from": "security",
+        "to": "views",
+        "label": "Refuses a POST without the CSRF token before the view runs"
+      },
+      {
+        "from": "views",
+        "to": "validation",
+        "label": "Checks the submitted form"
+      },
+      {
+        "from": "views",
+        "to": "repository",
+        "label": "Reads and writes data"
+      },
+      {
+        "from": "views",
+        "to": "templates",
+        "label": "Renders the page"
+      },
+      {
+        "from": "repository",
+        "to": "database",
+        "label": "Uses the request's connection"
+      },
+      {
+        "from": "database",
+        "to": "schema",
+        "label": "Creates the tables from"
+      },
+      {
+        "from": "tests",
+        "to": "startup",
+        "label": "Builds a fresh app per test"
+      }
+    ],
+    "flows": [
+      {
+        "id": "add-student",
+        "title": "Adding a student",
+        "steps": [
+          {
+            "component": "templates",
+            "text": "students/form.html renders the form with a hidden csrf_token field and a labelled input for each field."
+          },
+          {
+            "component": "security",
+            "text": "When the form is posted, check_csrf() compares the token with the one in the session and refuses the request if they differ."
+          },
+          {
+            "component": "views",
+            "text": "new_student() passes the form to validate_student()."
+          },
+          {
+            "component": "validation",
+            "text": "validate_student() cleans the values and returns errors by field, for example a future admission date."
+          },
+          {
+            "component": "repository",
+            "text": "With no errors, create_student() runs an INSERT with named parameters. A UNIQUE failure on the roll number becomes a form error."
+          },
+          {
+            "component": "views",
+            "text": "The view flashes “Added …” and redirects to the student's page, so reloading doesn't submit the form again."
+          }
+        ]
+      },
+      {
+        "id": "mark-attendance",
+        "title": "Marking attendance",
+        "steps": [
+          {
+            "component": "views",
+            "text": "mark() validates the date: not in the future, written as YYYY-MM-DD."
+          },
+          {
+            "component": "repository",
+            "text": "attendance_sheet() joins enrollments, students and that day's marks, with a LEFT JOIN so unmarked students appear too."
+          },
+          {
+            "component": "templates",
+            "text": "attendance/mark.html shows present, late and absent radio buttons for each student."
+          },
+          {
+            "component": "views",
+            "text": "On POST, mark() keeps only fields named status-<id> with a known status."
+          },
+          {
+            "component": "repository",
+            "text": "save_attendance() skips students who don't take the course and upserts each mark with INSERT … ON CONFLICT DO UPDATE."
+          }
+        ]
+      },
+      {
+        "id": "delete-student",
+        "title": "Deleting a student",
+        "steps": [
+          {
+            "component": "views",
+            "text": "The Delete link opens a confirmation page (GET) that counts the enrollments and attendance marks that will go too."
+          },
+          {
+            "component": "security",
+            "text": "The confirmation form posts the CSRF token; only that POST deletes."
+          },
+          {
+            "component": "repository",
+            "text": "delete_student() runs one DELETE on students."
+          },
+          {
+            "component": "schema",
+            "text": "ON DELETE CASCADE removes the student's enrollments, and through them their attendance, because connect() turned foreign keys on."
+          }
+        ]
+      }
+    ]
+  },
+  "walkthrough": [
+    {
+      "id": "run",
+      "title": "Starting the app",
+      "file": "run.py",
+      "role": "The file you run: builds the app and starts Flask's development server.",
+      "explanation": "run.py imports create_app() and builds the app at import time, so `flask --app studentms` commands and run.py use the same set-up. When run directly, it reads HOST (default 127.0.0.1, so only this computer can connect) and PORT (default 5000) and calls app.run(). Debug mode is off unless FLASK_DEBUG=1, because the debugger would let anyone who can reach the app run code.",
+      "symbols": [
+        {
+          "name": "app",
+          "explanation": "The Flask application object, created by create_app()."
+        }
+      ],
+      "related": ["studentms/__init__.py", ".env.example"],
+      "tests": []
+    },
+    {
+      "id": "factory",
+      "title": "The application factory",
+      "file": "studentms/__init__.py",
+      "role": "create_app() builds and configures the Flask app.",
+      "explanation": "create_app() loads .env, creates the Flask object with instance/ as its instance folder and sets the configuration: the parsed app_config.json (APP), the database path, debug mode, cookie settings (HttpOnly, SameSite=Lax) and a 1 MB limit on request bodies. Tests pass overrides such as a temporary DATABASE and a fixed TODAY. It then registers the teardown that closes connections, the database commands, the security checks, prepares the database, registers the four blueprints, makes the settings available to every template and sets one error page for 400, 404, 405, 413 and 500.",
+      "symbols": [
+        {
+          "name": "create_app",
+          "explanation": "Builds the app; called by run.py, the flask command and every test."
+        },
+        {
+          "name": "_error_page",
+          "explanation": "Renders errors/error.html with the status code; for 500 it logs the exception first."
+        }
+      ],
+      "related": ["studentms/config.py", "studentms/db.py", "studentms/security.py"],
+      "tests": ["tests/conftest.py"]
+    },
+    {
+      "id": "config",
+      "title": "Settings and the secret key",
+      "file": "studentms/config.py",
+      "role": "Reads app_config.json and .env, and provides the secret key.",
+      "explanation": "parse_config() turns the JSON into a frozen AppConfig dataclass and raises ConfigError with a clear message for each wrong value; True is rejected as a page size because bool is a subclass of int in Python. load_env_file() is a small .env reader: it skips comments and blank lines and uses os.environ.setdefault, so real environment variables win. secret_key() returns SECRET_KEY if set, otherwise reads or creates a random 64-character key in instance/secret_key with owner-only permissions.",
+      "symbols": [
+        {
+          "name": "AppConfig",
+          "explanation": "The checked settings: app_name, institution_name, author_name, students_per_page, seed_demo_data."
+        },
+        {
+          "name": "parse_config",
+          "explanation": "Validates a dict from the JSON file."
+        },
+        {
+          "name": "load_env_file",
+          "explanation": "Reads .env without overwriting variables that are already set."
+        },
+        {
+          "name": "secret_key",
+          "explanation": "SECRET_KEY, or a random key created once in instance/secret_key."
+        }
+      ],
+      "related": ["app_config.json", ".env.example"],
+      "tests": ["tests/test_config.py"]
+    },
+    {
+      "id": "schema",
+      "title": "The database schema",
+      "file": "studentms/schema.sql",
+      "role": "The tables, relationships and constraints.",
+      "explanation": "Every statement uses IF NOT EXISTS, so the file can run on every start without losing data. students and courses have INTEGER PRIMARY KEY AUTOINCREMENT ids; roll_number, email and code are UNIQUE COLLATE NOCASE. enrollments has a composite primary key (student_id, course_id) and foreign keys with ON DELETE CASCADE. attendance has the key (student_id, course_id, date) and a composite foreign key to enrollments, so a mark can't exist for a student who doesn't take the course. CHECK constraints limit status values and credits. Indexes speed up filtering by class, sorting by name and looking up a course's marks by date.",
+      "symbols": [],
+      "related": ["studentms/db.py"],
+      "tests": ["tests/test_database.py"]
+    },
+    {
+      "id": "db",
+      "title": "Connections, sample data and commands",
+      "file": "studentms/db.py",
+      "role": "Opens connections, creates the tables, seeds sample data and defines the database commands.",
+      "explanation": "connect() sets row_factory = sqlite3.Row (so code can write row[\"first_name\"]) and runs PRAGMA foreign_keys = ON, which SQLite needs on every connection for cascades to work. get_db() keeps one connection per request in Flask's g object; close_db() closes it after the request. prepare_database() runs at start-up: it creates missing tables and seeds only a database file that didn't exist before, so a database emptied on purpose stays empty. seed_db() builds deterministic sample attendance from a formula. backup_db() uses SQLite's backup API, which is safe while the app runs; reset-db always backs up first and asks for --yes.",
+      "symbols": [
+        {
+          "name": "connect",
+          "explanation": "Opens a connection with rows by column name and foreign keys on."
+        },
+        {
+          "name": "get_db",
+          "explanation": "The current request's connection, opened on first use."
+        },
+        {
+          "name": "prepare_database",
+          "explanation": "Creates tables, and seeds a new database file when seed_demo_data is true."
+        },
+        {
+          "name": "seed_db",
+          "explanation": "Adds the fictional courses, students, enrollments and ten school days of marks."
+        },
+        {
+          "name": "backup_db",
+          "explanation": "Copies the database into a timestamped file in instance/backups."
+        },
+        {
+          "name": "register_commands",
+          "explanation": "Defines the init-db, seed-db, reset-db and backup-db commands for flask --app studentms."
+        }
+      ],
+      "related": ["studentms/schema.sql", "studentms/repository.py"],
+      "tests": ["tests/test_database.py", "tests/test_commands.py"]
+    },
+    {
+      "id": "repository",
+      "title": "Every SQL query",
+      "file": "studentms/repository.py",
+      "role": "All reading and writing of data, always with parameters.",
+      "explanation": "list_students() builds a WHERE clause from the search and filters, counts the matches, then fetches one page with LIMIT ? OFFSET ?. The search matches the full name with first_name || ' ' || last_name, and like_pattern() escapes % and _ with ESCAPE '\\'. Sorting picks SQL from SORT_COLUMNS because ORDER BY can't take a parameter. create_student() and update_student() catch sqlite3.IntegrityError and turn a UNIQUE failure into a DuplicateError for the form. save_attendance() upserts marks. statistics() computes every dashboard figure with COUNT, SUM and GROUP BY; ATTENDED counts present and late.",
+      "symbols": [
+        {
+          "name": "list_students",
+          "explanation": "One page of matching students and the total count."
+        },
+        {
+          "name": "like_pattern",
+          "explanation": "A LIKE pattern that matches the text anywhere, with % and _ matched literally."
+        },
+        {
+          "name": "SORT_COLUMNS",
+          "explanation": "The only ORDER BY clauses allowed."
+        },
+        {
+          "name": "DuplicateError",
+          "explanation": "A unique value is already used; carries the field name for the form."
+        },
+        {
+          "name": "save_attendance",
+          "explanation": "Upserts one mark per enrolled student for the day."
+        },
+        {
+          "name": "statistics",
+          "explanation": "Counts and attendance rates for the dashboard and statistics page."
+        }
+      ],
+      "related": ["studentms/schema.sql", "studentms/views/students.py"],
+      "tests": ["tests/test_database.py"]
+    },
+    {
+      "id": "validation",
+      "title": "Validating forms",
+      "file": "studentms/validation.py",
+      "role": "Checks and cleans what people type.",
+      "explanation": "Each validator takes the submitted form (any mapping, so tests can pass a plain dict) and returns a Result with cleaned values and errors by field name. _clean() trims text and collapses inner spaces. Roll numbers are upper-cased and must match ROLL_PATTERN; an empty email becomes None so the UNIQUE constraint ignores it; admission dates must be real calendar dates (parse_date rejects 2023-02-29) and not in the future. validate_course() checks the code pattern and that credits are a whole number from 1 to 10.",
+      "symbols": [
+        {
+          "name": "Result",
+          "explanation": "values and errors, with ok when there are no errors."
+        },
+        {
+          "name": "validate_student",
+          "explanation": "Checks every student field and cleans the values."
+        },
+        {
+          "name": "validate_course",
+          "explanation": "Checks the course code, title, credits and description."
+        },
+        {
+          "name": "parse_date",
+          "explanation": "A real date written as YYYY-MM-DD, or None."
+        }
+      ],
+      "related": ["studentms/views/students.py", "studentms/views/courses.py"],
+      "tests": ["tests/test_validation.py"]
+    },
+    {
+      "id": "security",
+      "title": "CSRF protection and headers",
+      "file": "studentms/security.py",
+      "role": "Stops forged form submissions and adds security headers.",
+      "explanation": "csrf_token() stores a random token in the signed session the first time a page needs it; templates put it in a hidden field. check_csrf() runs before every request and aborts a POST with 400 unless the form's token matches the session's, compared with hmac.compare_digest so the time taken reveals nothing. add_security_headers() sets a Content-Security-Policy that allows only this app's own styles and no scripts at all, plus nosniff and a same-origin referrer policy.",
+      "symbols": [
+        {
+          "name": "csrf_token",
+          "explanation": "The session's token, created on first use; available in templates."
+        },
+        {
+          "name": "check_csrf",
+          "explanation": "Refuses a POST without the right token."
+        },
+        {
+          "name": "CONTENT_SECURITY_POLICY",
+          "explanation": "What the browser may load: this app's files only, and no scripts."
+        }
+      ],
+      "related": ["studentms/templates/_macros.html", "studentms/__init__.py"],
+      "tests": ["tests/test_security.py"]
+    },
+    {
+      "id": "students-views",
+      "title": "The student pages",
+      "file": "studentms/views/students.py",
+      "role": "List, add, view, edit and delete students, and manage their enrollments.",
+      "explanation": "list_students() turns query-string values into a StudentQuery, accepting only known statuses and sort keys, and redirects past the last page to the last one. new_student() and edit_student() share the form template: on POST they validate, save and redirect, or render the form again with status 400 and the errors. delete_student() shows a confirmation page on GET and deletes only on POST. enroll() and unenroll() are POST-only and flash what happened.",
+      "symbols": [
+        {
+          "name": "list_students",
+          "explanation": "Search, filters, sorting and pages for the student list."
+        },
+        {
+          "name": "new_student",
+          "explanation": "Shows and handles the add-student form."
+        },
+        {
+          "name": "delete_student",
+          "explanation": "Confirmation on GET; the delete on POST."
+        },
+        {
+          "name": "enroll",
+          "explanation": "Adds the student to the chosen course."
+        }
+      ],
+      "related": [
+        "studentms/templates/students/list.html",
+        "studentms/templates/students/form.html",
+        "studentms/repository.py"
+      ],
+      "tests": ["tests/test_pages.py"]
+    },
+    {
+      "id": "attendance-views",
+      "title": "Marking attendance",
+      "file": "studentms/views/attendance.py",
+      "role": "The attendance sheet for a course and day.",
+      "explanation": "mark() reads the date from the query string or the form and refuses future dates with a flash message. On GET it renders the sheet: every active student taking the course, with today's mark or Present by default. On POST it collects fields named status-<student id>, ignoring anything else and unknown statuses, saves them and redirects back to the same day.",
+      "symbols": [
+        {
+          "name": "choose",
+          "explanation": "Lists the courses to mark."
+        },
+        {
+          "name": "mark",
+          "explanation": "Shows and saves the sheet for one course and day."
+        }
+      ],
+      "related": ["studentms/templates/attendance/mark.html", "studentms/repository.py"],
+      "tests": ["tests/test_pages.py"]
+    },
+    {
+      "id": "dashboard-views",
+      "title": "Dashboard, statistics and health",
+      "file": "studentms/views/dashboard.py",
+      "role": "The home page, the statistics page and the health check.",
+      "explanation": "index() and statistics() render figures from repository.statistics(), calculated from the data on every request. health() answers {\"status\": \"ok\"} only after reading the students table, so it proves the database works; scripts and CampusKit's verification use it to know the app has started.",
+      "symbols": [
+        {
+          "name": "index",
+          "explanation": "The dashboard."
+        },
+        {
+          "name": "health",
+          "explanation": "Answers 200 with JSON when the database can be read."
+        }
+      ],
+      "related": ["studentms/templates/dashboard.html", "studentms/templates/statistics.html"],
+      "tests": ["tests/test_pages.py"]
+    },
+    {
+      "id": "macros",
+      "title": "Accessible form fields",
+      "file": "studentms/templates/_macros.html",
+      "role": "Jinja macros for labelled fields, the error summary and percentages.",
+      "explanation": "field() renders a label, an optional hint and the input; when there is an error it adds aria-invalid=\"true\" and links the hint and error with aria-describedby, so screen readers read them with the field. error_summary() lists every problem at the top of the form with links to the fields. percent() shows “No marks yet” instead of dividing by zero.",
+      "symbols": [],
+      "related": ["studentms/templates/students/form.html", "studentms/static/style.css"],
+      "tests": ["tests/test_pages.py"]
+    },
+    {
+      "id": "conftest",
+      "title": "Test set-up",
+      "file": "tests/conftest.py",
+      "role": "Builds a fresh app with a temporary database for each test.",
+      "explanation": "make_app() calls create_app() with overrides: a test secret key, a database file in pytest's tmp_path, five students per page and a fixed date (21 October 2026), so tests never touch your real data and give the same result every day. csrf_from() opens a page and reads the token from its form with a regular expression, as a browser would, and post_form() submits a form with it.",
+      "symbols": [
+        {
+          "name": "make_app",
+          "explanation": "An app with its own temporary database and a fixed date."
+        },
+        {
+          "name": "csrf_from",
+          "explanation": "Reads the CSRF token from a page's form."
+        },
+        {
+          "name": "post_form",
+          "explanation": "Submits a form with a valid token."
+        }
+      ],
+      "related": ["tests/test_pages.py", "tests/test_security.py"],
+      "tests": ["tests/test_pages.py"]
+    }
+  ],
+  "checklist": [
+    {
+      "id": "setup-run",
+      "area": "setup",
+      "text": "Create the virtual environment, install requirements.txt and start the app with python run.py, then open http://127.0.0.1:5000/.",
+      "how": "Explain why the app listens on 127.0.0.1."
+    },
+    {
+      "id": "setup-tests",
+      "area": "setup",
+      "text": "Install requirements-dev.txt and run python -m pytest, then read the summary line."
+    },
+    {
+      "id": "arch-request",
+      "area": "architecture",
+      "text": "Follow one request, adding a student, from the form to the database and back, naming each file.",
+      "how": "Use the “Adding a student” flow in the architecture explorer."
+    },
+    {
+      "id": "arch-factory",
+      "area": "architecture",
+      "text": "Explain what create_app() does and why tests build their own app with it.",
+      "file": "studentms/__init__.py"
+    },
+    {
+      "id": "arch-layers",
+      "area": "architecture",
+      "text": "Explain why templates never run SQL and the repository never reads the request."
+    },
+    {
+      "id": "data-schema",
+      "area": "data",
+      "text": "Draw the four tables with their primary and foreign keys, and explain the many-to-many relationship.",
+      "file": "studentms/schema.sql"
+    },
+    {
+      "id": "data-cascade",
+      "area": "data",
+      "text": "Delete a student and explain why their attendance disappears too, including PRAGMA foreign_keys.",
+      "file": "studentms/db.py"
+    },
+    {
+      "id": "data-queries",
+      "area": "data",
+      "text": "Read list_students() and explain the WHERE clause, LIMIT and OFFSET, and why ORDER BY uses SORT_COLUMNS.",
+      "file": "studentms/repository.py"
+    },
+    {
+      "id": "data-upsert",
+      "area": "data",
+      "text": "Mark attendance twice for the same day and explain the INSERT … ON CONFLICT DO UPDATE statement.",
+      "file": "studentms/repository.py"
+    },
+    {
+      "id": "data-backup",
+      "area": "data",
+      "text": "Back up the database with flask --app studentms backup-db and explain how to restore it."
+    },
+    {
+      "id": "func-crud",
+      "area": "functionality",
+      "text": "Add, edit and delete a student and a course, and enroll a student in a course."
+    },
+    {
+      "id": "func-search",
+      "area": "functionality",
+      "text": "Search, filter, sort and page through the students, and explain how the query string keeps those choices."
+    },
+    {
+      "id": "val-forms",
+      "area": "validation",
+      "text": "Submit the student form with mistakes and explain how errors are found, shown and linked to their fields.",
+      "file": "studentms/validation.py"
+    },
+    {
+      "id": "val-duplicates",
+      "area": "validation",
+      "text": "Add a student with an existing roll number and explain how a UNIQUE constraint failure becomes a form error."
+    },
+    {
+      "id": "val-csrf",
+      "area": "validation",
+      "text": "Explain what CSRF is and how check_csrf() stops it.",
+      "file": "studentms/security.py"
+    },
+    {
+      "id": "val-injection",
+      "area": "validation",
+      "text": "Explain why searching for ' OR '1'='1 finds nothing, using SQL parameters."
+    },
+    {
+      "id": "test-pages",
+      "area": "testing",
+      "text": "Read one test in tests/test_pages.py and explain how it gets a CSRF token.",
+      "file": "tests/conftest.py"
+    },
+    {
+      "id": "test-isolation",
+      "area": "testing",
+      "text": "Explain why each test uses a temporary database and a fixed date."
+    },
+    {
+      "id": "limits-login",
+      "area": "limitations",
+      "text": "Explain why there is no login and what that means for who can change records."
+    },
+    {
+      "id": "limits-server",
+      "area": "limitations",
+      "text": "Explain why Flask's development server and SQLite suit one user on one computer, and what would change for many users."
+    },
+    {
+      "id": "improve-auth",
+      "area": "improvements",
+      "text": "Describe how you would add a login with hashed passwords."
+    },
+    {
+      "id": "improve-export",
+      "area": "improvements",
+      "text": "Describe how you would export a course's attendance as a CSV file."
+    }
+  ],
+  "viva": [
+    {
+      "id": "what",
+      "category": "basics",
+      "difficulty": "easy",
+      "question": "What does your project do?",
+      "answer": "It keeps student records in a SQLite database: students, courses, enrollments and daily attendance. You can add, edit and delete students and courses, search and filter the student list, mark attendance and see statistics, through a Flask web app that runs on your own computer.",
+      "keyConcepts": [
+        {
+          "label": "Student records",
+          "terms": ["student", "record"]
+        },
+        {
+          "label": "Courses and enrollments",
+          "terms": ["course", "enrol"]
+        },
+        {
+          "label": "Attendance",
+          "terms": ["attendance"]
+        },
+        {
+          "label": "Database",
+          "terms": ["database", "sqlite"]
+        }
+      ],
+      "files": ["README.md"],
+      "symbols": []
+    },
+    {
+      "id": "why-flask-sqlite",
+      "category": "technology",
+      "difficulty": "easy",
+      "question": "Why did you choose Flask and SQLite?",
+      "answer": "Flask is a small Python web framework where each URL maps to a Python function, which keeps the code easy to follow. SQLite is a full SQL database in one file and is built into Python, so there's no database server to install. Both suit one user on one computer.",
+      "keyConcepts": [
+        {
+          "label": "Flask is small and simple",
+          "terms": ["flask", "micro", "simple", "small"]
+        },
+        {
+          "label": "SQLite needs no server",
+          "terms": ["sqlite", "file", "no server", "built in"]
+        },
+        {
+          "label": "Fits one user",
+          "terms": ["one user", "single user", "local"]
+        }
+      ],
+      "files": ["requirements.txt"],
+      "symbols": []
+    },
+    {
+      "id": "schema",
+      "category": "data-structures",
+      "difficulty": "medium",
+      "question": "Explain the database design.",
+      "answer": "There are four tables. students and courses each have an integer id. enrollments links them, because a student takes many courses and a course has many students: a many-to-many relationship with the primary key (student_id, course_id). attendance has one row per student, course and day and refers to an enrollment, so a mark can only exist for an enrolled student.",
+      "keyConcepts": [
+        {
+          "label": "Four tables",
+          "terms": ["four tables", "students", "courses"]
+        },
+        {
+          "label": "Many-to-many through enrollments",
+          "terms": ["many-to-many", "many to many", "enrollment", "junction", "link"]
+        },
+        {
+          "label": "Composite primary key",
+          "terms": ["composite", "primary key", "student_id, course_id"]
+        },
+        {
+          "label": "Attendance refers to an enrollment",
+          "terms": ["attendance", "foreign key", "references"]
+        }
+      ],
+      "files": ["studentms/schema.sql"],
+      "symbols": []
+    },
+    {
+      "id": "primary-foreign",
+      "category": "data-structures",
+      "difficulty": "easy",
+      "question": "What is the difference between a primary key and a foreign key?",
+      "answer": "A primary key uniquely identifies each row of its own table, like students.id. A foreign key is a column that refers to the primary key of another table, like enrollments.student_id referring to students.id. The database refuses a foreign key value that doesn't exist in the other table.",
+      "keyConcepts": [
+        {
+          "label": "Primary key identifies a row",
+          "terms": ["primary key", "unique", "identif"]
+        },
+        {
+          "label": "Foreign key refers to another table",
+          "terms": ["foreign key", "refer", "another table"]
+        },
+        {
+          "label": "Integrity is enforced",
+          "terms": ["refuse", "enforce", "integrity", "must exist"]
+        }
+      ],
+      "files": ["studentms/schema.sql"],
+      "symbols": []
+    },
+    {
+      "id": "cascade",
+      "category": "implementation",
+      "difficulty": "medium",
+      "question": "What happens to a student's attendance when you delete the student?",
+      "answer": "It's deleted automatically. enrollments.student_id has ON DELETE CASCADE, so deleting the student deletes their enrollments, and attendance refers to enrollments with ON DELETE CASCADE too. SQLite only enforces this because connect() runs PRAGMA foreign_keys = ON on every connection. The confirmation page shows how many marks will go.",
+      "keyConcepts": [
+        {
+          "label": "ON DELETE CASCADE",
+          "terms": ["cascade"]
+        },
+        {
+          "label": "Foreign keys must be switched on",
+          "terms": ["pragma", "foreign_keys"]
+        },
+        {
+          "label": "Enrollments and attendance go too",
+          "terms": ["enrollment", "attendance"]
+        }
+      ],
+      "files": ["studentms/schema.sql", "studentms/db.py"],
+      "symbols": [
+        {
+          "file": "studentms/db.py",
+          "name": "connect"
+        }
+      ]
+    },
+    {
+      "id": "sql-injection",
+      "category": "security",
+      "difficulty": "medium",
+      "question": "How do you protect against SQL injection?",
+      "answer": "Every query passes values as parameters (? or :name), so SQLite treats them as data, never as part of the SQL. The only part built from input is the ORDER BY column, which can't be a parameter, so it is chosen from the fixed SORT_COLUMNS dictionary. A test searches for ' OR '1'='1 and checks nothing matches.",
+      "keyConcepts": [
+        {
+          "label": "Parameters, not string building",
+          "terms": ["parameter", "placeholder", "question mark"]
+        },
+        {
+          "label": "ORDER BY from a fixed list",
+          "terms": ["sort_columns", "whitelist", "allowlist", "fixed list", "order by"]
+        },
+        {
+          "label": "Tested",
+          "terms": ["test", "' or '1'='1"]
+        }
+      ],
+      "files": ["studentms/repository.py", "tests/test_database.py"],
+      "symbols": [
+        {
+          "file": "studentms/repository.py",
+          "name": "SORT_COLUMNS"
+        },
+        {
+          "file": "studentms/repository.py",
+          "name": "list_students"
+        }
+      ]
+    },
+    {
+      "id": "csrf",
+      "category": "security",
+      "difficulty": "hard",
+      "question": "What is CSRF and how does your app prevent it?",
+      "answer": "Cross-site request forgery is when another website makes your browser submit a form to this app, for example to delete a student, using your session. Each session gets a random token, every form includes it in a hidden field, and check_csrf() refuses any POST whose token doesn't match, with 400. The session cookie also uses SameSite=Lax.",
+      "keyConcepts": [
+        {
+          "label": "Forged request from another site",
+          "terms": ["another site", "other website", "forg", "cross-site"]
+        },
+        {
+          "label": "Secret token in every form",
+          "terms": ["token", "hidden"]
+        },
+        {
+          "label": "Checked on every POST",
+          "terms": ["post", "check_csrf", "refuse", "400"]
+        },
+        {
+          "label": "SameSite cookie",
+          "terms": ["samesite"]
+        }
+      ],
+      "files": ["studentms/security.py"],
+      "symbols": [
+        {
+          "file": "studentms/security.py",
+          "name": "check_csrf"
+        },
+        {
+          "file": "studentms/security.py",
+          "name": "csrf_token"
+        }
+      ]
+    },
+    {
+      "id": "validation",
+      "category": "implementation",
+      "difficulty": "medium",
+      "question": "How do you validate input?",
+      "answer": "validate_student() and validate_course() in validation.py are pure functions: they clean the input, for example trimming spaces and upper-casing roll numbers, and return the cleaned values and a dictionary of errors by field. The view shows the form again with the typed values, an error summary and a message under each field. The database repeats key rules with UNIQUE and CHECK constraints.",
+      "keyConcepts": [
+        {
+          "label": "Pure validation functions",
+          "terms": ["validate_student", "validation.py", "function"]
+        },
+        {
+          "label": "Errors by field",
+          "terms": ["error", "field", "dictionary"]
+        },
+        {
+          "label": "Form shown again with values",
+          "terms": ["again", "typed", "keep"]
+        },
+        {
+          "label": "Database constraints too",
+          "terms": ["unique", "check", "constraint"]
+        }
+      ],
+      "files": ["studentms/validation.py"],
+      "symbols": [
+        {
+          "file": "studentms/validation.py",
+          "name": "validate_student"
+        }
+      ]
+    },
+    {
+      "id": "duplicate",
+      "category": "implementation",
+      "difficulty": "medium",
+      "question": "What happens if two students get the same roll number?",
+      "answer": "The roll_number column is UNIQUE COLLATE NOCASE, so SQLite refuses the second insert, even if only the letter case differs. create_student() catches the IntegrityError, recognises the column from the message and raises DuplicateError, which the view shows as an error under the roll number field.",
+      "keyConcepts": [
+        {
+          "label": "UNIQUE constraint",
+          "terms": ["unique"]
+        },
+        {
+          "label": "Case-insensitive",
+          "terms": ["nocase", "case"]
+        },
+        {
+          "label": "IntegrityError becomes a form error",
+          "terms": ["integrityerror", "duplicateerror", "form error"]
+        }
+      ],
+      "files": ["studentms/repository.py", "studentms/schema.sql"],
+      "symbols": [
+        {
+          "file": "studentms/repository.py",
+          "name": "create_student"
+        },
+        {
+          "file": "studentms/repository.py",
+          "name": "DuplicateError"
+        }
+      ]
+    },
+    {
+      "id": "get-post-delete",
+      "category": "architecture",
+      "difficulty": "medium",
+      "question": "Why is deleting done with a POST form instead of a link?",
+      "answer": "GET requests must not change data: browsers prefetch links and crawlers follow them, and a link can't carry the CSRF token. The Delete link opens a confirmation page; only the form on it, sent with POST and the token, deletes.",
+      "keyConcepts": [
+        {
+          "label": "GET must be safe",
+          "terms": ["get", "safe", "must not change"]
+        },
+        {
+          "label": "POST for changes",
+          "terms": ["post"]
+        },
+        {
+          "label": "Confirmation step",
+          "terms": ["confirm"]
+        },
+        {
+          "label": "CSRF token",
+          "terms": ["csrf", "token"]
+        }
+      ],
+      "files": ["studentms/views/students.py"],
+      "symbols": [
+        {
+          "file": "studentms/views/students.py",
+          "name": "delete_student"
+        }
+      ]
+    },
+    {
+      "id": "prg",
+      "category": "architecture",
+      "difficulty": "medium",
+      "question": "What is the Post/Redirect/Get pattern and why do you use it?",
+      "answer": "After a successful POST the view redirects instead of rendering a page. If the user reloads, the browser repeats the GET, not the POST, so nothing is added twice. flash() carries the confirmation message to the next page.",
+      "keyConcepts": [
+        {
+          "label": "Redirect after POST",
+          "terms": ["redirect"]
+        },
+        {
+          "label": "Reload doesn't resubmit",
+          "terms": ["reload", "refresh", "twice", "resubmit"]
+        },
+        {
+          "label": "Flash message",
+          "terms": ["flash"]
+        }
+      ],
+      "files": ["studentms/views/students.py"],
+      "symbols": [
+        {
+          "file": "studentms/views/students.py",
+          "name": "new_student"
+        }
+      ]
+    },
+    {
+      "id": "search",
+      "category": "implementation",
+      "difficulty": "medium",
+      "question": "How does the student search work?",
+      "answer": "list_students() adds a WHERE condition that matches the full name, the roll number or the email with LIKE. The search text is turned into a pattern by like_pattern(), which escapes % and _ so they're matched literally. Class and status filters add more conditions, and the total is counted before one page is fetched with LIMIT and OFFSET.",
+      "keyConcepts": [
+        {
+          "label": "LIKE pattern",
+          "terms": ["like"]
+        },
+        {
+          "label": "Escaping wildcards",
+          "terms": ["escape", "percent", "wildcard"]
+        },
+        {
+          "label": "Filters combined with AND",
+          "terms": ["filter", "and", "where"]
+        },
+        {
+          "label": "Pages with LIMIT and OFFSET",
+          "terms": ["limit", "offset", "page"]
+        }
+      ],
+      "files": ["studentms/repository.py"],
+      "symbols": [
+        {
+          "file": "studentms/repository.py",
+          "name": "list_students"
+        },
+        {
+          "file": "studentms/repository.py",
+          "name": "like_pattern"
+        }
+      ]
+    },
+    {
+      "id": "pagination",
+      "category": "data-structures",
+      "difficulty": "easy",
+      "question": "How is pagination done?",
+      "answer": "With LIMIT and OFFSET: LIMIT is the page size from app_config.json and OFFSET is (page - 1) × page size. A separate COUNT(*) gives the total, from which the number of pages is calculated. Asking for a page past the end redirects to the last page.",
+      "keyConcepts": [
+        {
+          "label": "LIMIT",
+          "terms": ["limit"]
+        },
+        {
+          "label": "OFFSET",
+          "terms": ["offset"]
+        },
+        {
+          "label": "Total with COUNT",
+          "terms": ["count"]
+        }
+      ],
+      "files": ["studentms/repository.py", "studentms/views/students.py"],
+      "symbols": [
+        {
+          "file": "studentms/repository.py",
+          "name": "list_students"
+        }
+      ]
+    },
+    {
+      "id": "attendance-rate",
+      "category": "implementation",
+      "difficulty": "easy",
+      "question": "How is the attendance percentage calculated?",
+      "answer": "The number of marks that are present or late, divided by the number of marks recorded, times 100, rounded to one decimal place. In SQL it's SUM(CASE WHEN status IN ('present', 'late') THEN 1 ELSE 0 END). With no marks it shows “No marks yet” instead of 0%.",
+      "keyConcepts": [
+        {
+          "label": "Present and late count",
+          "terms": ["present", "late"]
+        },
+        {
+          "label": "Divided by marks recorded",
+          "terms": ["divide", "marks", "recorded", "total"]
+        },
+        {
+          "label": "No division by zero",
+          "terms": ["no marks", "zero"]
+        }
+      ],
+      "files": ["studentms/repository.py"],
+      "symbols": [
+        {
+          "file": "studentms/repository.py",
+          "name": "percent"
+        },
+        {
+          "file": "studentms/repository.py",
+          "name": "ATTENDED"
+        }
+      ]
+    },
+    {
+      "id": "upsert",
+      "category": "implementation",
+      "difficulty": "hard",
+      "question": "What is an upsert and where do you use it?",
+      "answer": "An insert that updates the existing row when the key already exists. save_attendance() uses INSERT … ON CONFLICT (student_id, course_id, date) DO UPDATE SET status = excluded.status, so marking the same day again changes the marks instead of failing.",
+      "keyConcepts": [
+        {
+          "label": "Insert or update",
+          "terms": ["insert", "update", "upsert"]
+        },
+        {
+          "label": "ON CONFLICT",
+          "terms": ["on conflict"]
+        },
+        {
+          "label": "Same day marked again",
+          "terms": ["same day", "again", "existing"]
+        }
+      ],
+      "files": ["studentms/repository.py"],
+      "symbols": [
+        {
+          "file": "studentms/repository.py",
+          "name": "save_attendance"
+        }
+      ]
+    },
+    {
+      "id": "factory",
+      "category": "architecture",
+      "difficulty": "medium",
+      "question": "What is create_app() and why use an application factory?",
+      "answer": "create_app() builds the Flask app: settings, database path, secret key, commands, security checks, blueprints and error pages. A factory lets each test build a fresh app with its own temporary database and a fixed date, instead of sharing one global app with real data.",
+      "keyConcepts": [
+        {
+          "label": "Builds and configures the app",
+          "terms": ["build", "configure", "create_app"]
+        },
+        {
+          "label": "Tests get their own app",
+          "terms": ["test", "fresh", "temporary"]
+        },
+        {
+          "label": "No shared global state",
+          "terms": ["global", "shared"]
+        }
+      ],
+      "files": ["studentms/__init__.py", "tests/conftest.py"],
+      "symbols": [
+        {
+          "file": "studentms/__init__.py",
+          "name": "create_app"
+        },
+        {
+          "file": "tests/conftest.py",
+          "name": "make_app"
+        }
+      ]
+    },
+    {
+      "id": "blueprints",
+      "category": "architecture",
+      "difficulty": "easy",
+      "question": "What are blueprints?",
+      "answer": "A blueprint groups related routes. The app has four: dashboard, students, courses and attendance, each in its own file under studentms/views/ with a URL prefix such as /students. create_app() registers them, which keeps each area's code together.",
+      "keyConcepts": [
+        {
+          "label": "Groups of routes",
+          "terms": ["group", "route"]
+        },
+        {
+          "label": "One per area",
+          "terms": ["students", "courses", "area", "file"]
+        },
+        {
+          "label": "Registered in create_app",
+          "terms": ["register"]
+        }
+      ],
+      "files": ["studentms/views/students.py", "studentms/__init__.py"],
+      "symbols": [
+        {
+          "file": "studentms/views/students.py",
+          "name": "bp"
+        }
+      ]
+    },
+    {
+      "id": "secret-key",
+      "category": "security",
+      "difficulty": "hard",
+      "question": "What is the secret key for and how is it kept safe?",
+      "answer": "Flask signs the session cookie with it; the session holds the CSRF token and flash messages, so anyone with the key could forge them. secret_key() uses SECRET_KEY from the environment if set, otherwise creates a random key once in instance/secret_key, readable only by your own account from the moment it is created. The instance folder is in .gitignore, so the key is never committed.",
+      "keyConcepts": [
+        {
+          "label": "Signs the session cookie",
+          "terms": ["sign", "session", "cookie"]
+        },
+        {
+          "label": "Random and not committed",
+          "terms": ["random", "gitignore", "not committed", "instance"]
+        },
+        {
+          "label": "Environment variable option",
+          "terms": ["environment", "secret_key"]
+        }
+      ],
+      "files": ["studentms/config.py", ".gitignore"],
+      "symbols": [
+        {
+          "file": "studentms/config.py",
+          "name": "secret_key"
+        }
+      ]
+    },
+    {
+      "id": "dns-rebinding",
+      "category": "security",
+      "difficulty": "hard",
+      "question": "The app only listens on 127.0.0.1. Can a website still reach it, and how does the app stop that?",
+      "answer": "Yes, with DNS rebinding: a website points a name it controls at 127.0.0.1, so its scripts can open this app's pages and, with a token from the page they read, send its forms. There is no login to stop them. create_app() sets Flask's TRUSTED_HOSTS from trusted_hosts(), so a request whose Host header isn't 127.0.0.1 or localhost is refused with 400 before any page runs. When HOST makes the app listen on the network, any name is accepted, because people may use any of the computer's addresses.",
+      "keyConcepts": [
+        {
+          "label": "DNS rebinding",
+          "terms": ["rebind", "dns"]
+        },
+        {
+          "label": "The Host header is checked",
+          "terms": ["host header", "trusted_hosts", "trusted hosts", "host"]
+        },
+        {
+          "label": "Only 127.0.0.1 and localhost",
+          "terms": ["127.0.0.1", "localhost"]
+        },
+        {
+          "label": "Refused before any page runs",
+          "terms": ["400", "refuse", "reject"]
+        }
+      ],
+      "files": ["studentms/config.py", "studentms/__init__.py"],
+      "symbols": [
+        {
+          "file": "studentms/config.py",
+          "name": "trusted_hosts"
+        },
+        {
+          "file": "studentms/__init__.py",
+          "name": "create_app"
+        }
+      ]
+    },
+    {
+      "id": "escaping",
+      "category": "security",
+      "difficulty": "medium",
+      "question": "What stops a student's name from running as a script in the page?",
+      "answer": "Jinja escapes everything inserted with {{ }}, so <script> becomes &lt;script&gt; and is shown as text; a test checks this. The Content-Security-Policy also has script-src 'none', so the browser wouldn't run a script even if one got in.",
+      "keyConcepts": [
+        {
+          "label": "Automatic escaping",
+          "terms": ["escape", "autoescape"]
+        },
+        {
+          "label": "Content-Security-Policy",
+          "terms": ["content-security-policy", "csp", "script-src"]
+        },
+        {
+          "label": "Tested",
+          "terms": ["test"]
+        }
+      ],
+      "files": ["studentms/security.py", "tests/test_security.py"],
+      "symbols": [
+        {
+          "file": "studentms/security.py",
+          "name": "CONTENT_SECURITY_POLICY"
+        }
+      ]
+    },
+    {
+      "id": "testing",
+      "category": "testing",
+      "difficulty": "medium",
+      "question": "How did you test the project?",
+      "answer": "With pytest. Each test builds the app with a temporary database and a fixed date. There are tests for every validation rule, the configuration, the queries, constraints and cascades, every page through Flask's test client including CSRF tokens, the database commands, and security: escaping, SQL injection attempts and headers.",
+      "keyConcepts": [
+        {
+          "label": "pytest",
+          "terms": ["pytest"]
+        },
+        {
+          "label": "Temporary database",
+          "terms": ["temporary", "tmp", "isolated"]
+        },
+        {
+          "label": "Test client for pages",
+          "terms": ["test client", "client", "pages"]
+        },
+        {
+          "label": "Security tests",
+          "terms": ["csrf", "injection", "escap", "security"]
+        }
+      ],
+      "files": ["tests/conftest.py", "tests/test_pages.py"],
+      "symbols": [
+        {
+          "file": "tests/conftest.py",
+          "name": "make_app"
+        }
+      ]
+    },
+    {
+      "id": "health",
+      "category": "testing",
+      "difficulty": "easy",
+      "question": "What is the /health route for?",
+      "answer": "It answers {\"status\": \"ok\"} after reading the students table, so a script can tell that the app has started and the database works. CampusKit's verification starts the generated app and waits for it.",
+      "keyConcepts": [
+        {
+          "label": "Checks the app is running",
+          "terms": ["running", "started", "up"]
+        },
+        {
+          "label": "Reads the database",
+          "terms": ["database"]
+        },
+        {
+          "label": "Used by scripts",
+          "terms": ["script", "automat", "verification"]
+        }
+      ],
+      "files": ["studentms/views/dashboard.py"],
+      "symbols": [
+        {
+          "file": "studentms/views/dashboard.py",
+          "name": "health"
+        }
+      ]
+    },
+    {
+      "id": "limitations",
+      "category": "limitations",
+      "difficulty": "easy",
+      "question": "What are the limitations of your project?",
+      "answer": "There's no login, so anyone who can open the app can change records. Flask's development server and SQLite suit one user on one computer, not a public website. Attendance is one mark per course per day, times are shown in UTC, and there's no import or export.",
+      "keyConcepts": [
+        {
+          "label": "No login",
+          "terms": ["login", "authentication"]
+        },
+        {
+          "label": "One user, development server",
+          "terms": ["development server", "one user", "single"]
+        },
+        {
+          "label": "Per day attendance",
+          "terms": ["per day", "lecture"]
+        }
+      ],
+      "files": ["README.md"],
+      "symbols": []
+    },
+    {
+      "id": "auth",
+      "category": "improvements",
+      "difficulty": "hard",
+      "question": "How would you add a login?",
+      "answer": "Add a users table with a username and a password hash from werkzeug.security.generate_password_hash, never the plain password. A login form checks the hash with check_password_hash and stores the user id in the session. A before_request check redirects anyone not logged in to the login page.",
+      "keyConcepts": [
+        {
+          "label": "Users table",
+          "terms": ["users table", "user"]
+        },
+        {
+          "label": "Password hashing",
+          "terms": ["hash"]
+        },
+        {
+          "label": "Session stores the user",
+          "terms": ["session"]
+        },
+        {
+          "label": "Check before each request",
+          "terms": ["before_request", "decorator", "redirect"]
+        }
+      ],
+      "files": ["studentms/security.py"],
+      "symbols": []
+    },
+    {
+      "id": "scale",
+      "category": "improvements",
+      "difficulty": "medium",
+      "question": "What would you change to let many people use it at once?",
+      "answer": "Run it with a production WSGI server such as Gunicorn or Waitress behind HTTPS, add a login with roles, and move to a database server like PostgreSQL, which handles many simultaneous writers better than one SQLite file. The repository functions would need little change because all SQL is in one place.",
+      "keyConcepts": [
+        {
+          "label": "Production server",
+          "terms": ["gunicorn", "waitress", "wsgi", "production"]
+        },
+        {
+          "label": "Database server",
+          "terms": ["postgres", "mysql", "database server"]
+        },
+        {
+          "label": "Login and HTTPS",
+          "terms": ["login", "https"]
+        },
+        {
+          "label": "SQL in one module",
+          "terms": ["repository", "one place"]
+        }
+      ],
+      "files": ["studentms/repository.py"],
+      "symbols": []
+    }
+  ],
+  "demo": [
+    "Start the app with python run.py and open the dashboard: explain where each figure comes from.",
+    "Search the students for a name, then filter by class and sort by admission date; point out how the address keeps the choices.",
+    "Add a student with a mistake in the roll number to show validation, then fix it and save.",
+    "Try the same roll number again to show the duplicate error from the UNIQUE constraint.",
+    "Enroll the new student in a course from their page.",
+    "Mark attendance for that course today, then change one mark and save again (the upsert).",
+    "Open the student's page and point out the attendance percentage.",
+    "Delete the student: show the confirmation page, which counts the marks that will go, then confirm.",
+    "Open the statistics page and explain the attendance rate.",
+    "Show the tests passing with python -m pytest."
+  ],
+  "preview": {
+    "layout": "top-navigation",
+    "navigation": ["Dashboard", "Students", "Courses", "Attendance", "Statistics"]
+  },
+  "troubleshooting": {
+    "include": [],
+    "entries": [
+      {
+        "id": "port-in-use",
+        "stage": "run",
+        "title": "“Address already in use” or the page shows something else on port 5000",
+        "symptom": "python run.py stops with OSError: [Errno 48] Address already in use (or [WinError 10048]), or http://127.0.0.1:5000/ opens a different program.",
+        "causes": [
+          "Another program uses port 5000. On macOS, AirPlay Receiver listens on it.",
+          "The app is already running in another terminal."
+        ],
+        "diagnose": [
+          {
+            "text": "Check whether another terminal is already running the app, and stop it with Ctrl+C.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "Start the app on another port, then open that port in the browser, for example http://127.0.0.1:5050/.",
+            "commands": [
+              {
+                "command": "$env:PORT=5050; python run.py",
+                "platform": "windows"
+              },
+              {
+                "command": "PORT=5050 python run.py",
+                "platform": "macos-linux"
+              }
+            ]
+          }
+        ],
+        "confirm": "The dashboard opens at the new address.",
+        "platforms": []
+      },
+      {
+        "id": "no-module-flask",
+        "stage": "run",
+        "title": "“ModuleNotFoundError: No module named 'flask'”",
+        "symptom": "python run.py or python -m pytest stops straight away with ModuleNotFoundError for flask or studentms.",
+        "causes": [
+          "The virtual environment isn't active in this terminal.",
+          "pip install -r requirements.txt hasn't been run in this environment.",
+          "The command was run from another folder, so studentms can't be found."
+        ],
+        "diagnose": [
+          {
+            "text": "The prompt starts with (.venv) when the environment is active. Check which Python runs.",
+            "commands": [
+              {
+                "command": "python -c \"import sys; print(sys.prefix)\"",
+                "platform": "all"
+              }
+            ]
+          }
+        ],
+        "fix": [
+          {
+            "text": "Open a terminal in the project folder, activate the environment and install the requirements.",
+            "commands": [
+              {
+                "command": ".venv\\Scripts\\Activate.ps1",
+                "platform": "windows"
+              },
+              {
+                "command": "source .venv/bin/activate",
+                "platform": "macos-linux"
+              },
+              {
+                "command": "pip install -r requirements.txt",
+                "platform": "all"
+              }
+            ]
+          }
+        ],
+        "confirm": "python run.py prints “Running on http://127.0.0.1:5000”.",
+        "platforms": []
+      },
+      {
+        "id": "form-expired",
+        "stage": "run",
+        "title": "“The form expired or didn’t come from this app”",
+        "symptom": "Submitting a form shows a page with status 400 saying the form expired or didn't come from this app.",
+        "causes": [
+          "The page was opened before the app restarted with a new secret key, so its CSRF token no longer matches.",
+          "Cookies are blocked for 127.0.0.1, so the session (and its token) isn't kept.",
+          "The form was changed and no longer includes the hidden csrf_token field."
+        ],
+        "diagnose": [
+          {
+            "text": "Reload the form page and submit it again. If it still fails, check that the browser allows cookies for 127.0.0.1.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "Go back, reload the page and submit again. If you edited a template, make sure every POST form includes <input type=\"hidden\" name=\"csrf_token\" value=\"{{ csrf_token() }}\">.",
+            "commands": []
+          }
+        ],
+        "confirm": "The form saves and shows a confirmation message.",
+        "platforms": []
+      },
+      {
+        "id": "database-locked",
+        "stage": "data",
+        "title": "“sqlite3.OperationalError: database is locked”",
+        "symptom": "Saving fails with a 500 error page, and the terminal shows sqlite3.OperationalError: database is locked.",
+        "causes": [
+          "Another program has instance/students.db open with unsaved changes, such as DB Browser for SQLite.",
+          "A second copy of the app is writing at the same moment."
+        ],
+        "diagnose": [
+          {
+            "text": "Close other programs that have the database open, or press Write Changes or Revert Changes in DB Browser for SQLite.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "Close the other program, then try again. Keep one copy of the app running at a time.",
+            "commands": []
+          }
+        ],
+        "confirm": "Saving works and shows a confirmation message.",
+        "platforms": []
+      },
+      {
+        "id": "start-over",
+        "stage": "data",
+        "title": "I want the sample data back, or an empty database",
+        "symptom": "The database has test records you don't want, or you want to start from the sample class again.",
+        "causes": ["Records added while trying out the app stay in instance/students.db."],
+        "diagnose": [
+          {
+            "text": "Decide whether to keep a copy: reset-db always saves a backup in instance/backups first.",
+            "commands": [
+              {
+                "command": "flask --app studentms backup-db",
+                "platform": "all"
+              }
+            ]
+          }
+        ],
+        "fix": [
+          {
+            "text": "Reset with the sample data, or with --empty for an empty database. Stop the app first.",
+            "commands": [
+              {
+                "command": "flask --app studentms reset-db --yes",
+                "platform": "all"
+              },
+              {
+                "command": "flask --app studentms reset-db --yes --empty",
+                "platform": "all"
+              }
+            ]
+          }
+        ],
+        "confirm": "After starting the app again, the dashboard shows 12 students (or the empty-database message).",
+        "platforms": []
+      },
+      {
+        "id": "config-error",
+        "stage": "run",
+        "title": "“ConfigError: … must be …” when starting",
+        "symptom": "python run.py stops with studentms.config.ConfigError, for example \"students_per_page\" must be a whole number from 5 to 50.",
+        "causes": [
+          "A value in app_config.json is the wrong type or out of range.",
+          "app_config.json isn't valid JSON, for example because of a missing comma or quote."
+        ],
+        "diagnose": [
+          {
+            "text": "The message names the setting, or the line for a JSON syntax error.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "Correct the value in app_config.json: text in quotes, whole numbers without quotes, true or false in lower case.",
+            "commands": []
+          }
+        ],
+        "confirm": "python run.py starts and the dashboard opens.",
+        "platforms": []
+      },
+      {
+        "id": "activate-blocked",
+        "stage": "install",
+        "title": "PowerShell won't run Activate.ps1",
+        "symptom": "On Windows, .venv\\Scripts\\Activate.ps1 fails with “running scripts is disabled on this system”.",
+        "causes": ["PowerShell's execution policy blocks scripts by default."],
+        "diagnose": [
+          {
+            "text": "The error mentions about_Execution_Policies.",
+            "commands": []
+          }
+        ],
+        "fix": [
+          {
+            "text": "Allow scripts you run for your own account (Set-ExecutionPolicy -Scope CurrentUser RemoteSigned, once), or use Command Prompt and run .venv\\Scripts\\activate.bat instead.",
+            "commands": [
+              {
+                "command": ".venv\\Scripts\\activate.bat",
+                "platform": "windows"
+              }
+            ]
+          }
+        ],
+        "confirm": "The prompt starts with (.venv).",
+        "platforms": ["windows"]
+      }
+    ]
+  }
+}

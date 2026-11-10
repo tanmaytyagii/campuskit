@@ -101,6 +101,14 @@ export function MarkdownView({
     h4: heading(4, headingOffset),
     // Code blocks scroll sideways on small screens, so they must be focusable.
     pre: ({ children }) => <CodeBlock>{children}</CodeBlock>,
+    // Task list items ("- [x] Done"): a read-only checkbox has no label of its own, so the state
+    // is shown as a symbol with its meaning as the accessible name.
+    input: ({ type, checked }) =>
+      type === 'checkbox' ? (
+        <span role="img" aria-label={checked ? 'Done' : 'Not done'} className="mr-1.5">
+          {checked ? '☑' : '☐'}
+        </span>
+      ) : null,
     a: ({ href = '', children }) => {
       const target = href.startsWith('#')
         ? ({ kind: 'internal', to: href } as const)

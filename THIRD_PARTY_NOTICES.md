@@ -21,17 +21,20 @@ The source copies of the last three files are in `apps/web/public/licenses/`.
 
 ## Libraries included in the website build
 
-| Component                                                                                           | Licence                                                                        |
-| --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| React, React DOM and scheduler                                                                      | MIT                                                                            |
-| React Router                                                                                        | MIT                                                                            |
-| react-markdown, remark-gfm and their unified, remark, micromark, mdast, hast and vfile dependencies | MIT                                                                            |
-| Lucide icons (`lucide-react`)                                                                       | ISC                                                                            |
-| Zod                                                                                                 | MIT                                                                            |
-| JSZip                                                                                               | Dual-licensed MIT or GPL-3.0-or-later; CampusKit uses it under the MIT License |
-| pako (inside JSZip's browser build)                                                                 | MIT, with parts ported from zlib under the zlib licence                        |
-| Tailwind CSS (the generated stylesheet)                                                             | MIT                                                                            |
-| Small utilities such as `@ungap/structured-clone`, `extend` and `style-to-js`                       | ISC or MIT                                                                     |
+| Component                                                                                                  | Licence                                                                        |
+| ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| React, React DOM and scheduler                                                                             | MIT                                                                            |
+| React Router                                                                                               | MIT                                                                            |
+| react-markdown, remark-gfm and their unified, remark, micromark, mdast, hast and vfile dependencies        | MIT                                                                            |
+| Lucide icons (`lucide-react`)                                                                              | ISC                                                                            |
+| Zod                                                                                                        | MIT                                                                            |
+| JSZip                                                                                                      | Dual-licensed MIT or GPL-3.0-or-later; CampusKit uses it under the MIT License |
+| pako (inside JSZip's browser build)                                                                        | MIT, with parts ported from zlib under the zlib licence                        |
+| Anthropic TypeScript SDK (`@anthropic-ai/sdk`), loaded only when the optional AI assistant sends a request | Apache-2.0                                                                     |
+| OpenTelemetry API (`@opentelemetry/api`, used by the Anthropic SDK)                                        | Apache-2.0                                                                     |
+| `standardwebhooks`, `@stablelib/base64` and `fast-sha256` (bundled with the Anthropic SDK)                 | MIT, MIT and Unlicense                                                         |
+| Tailwind CSS (the generated stylesheet)                                                                    | MIT                                                                            |
+| Small utilities such as `@ungap/structured-clone`, `extend` and `style-to-js`                              | ISC or MIT                                                                     |
 
 To list every production dependency with its licence:
 

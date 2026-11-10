@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Courses{% endblock %}
+{% block content %}
+  <div class="page-heading">
+    <h1>Courses</h1>
+    <a class="button" href="{{ url_for('courses.new_course') }}">Add a course</a>
+  </div>
+  {% if courses %}
+    <div class="table-scroll" role="region" aria-label="Courses" tabindex="0">
+      <table>
+        <thead><tr><th scope="col">Code</th><th scope="col">Title</th><th scope="col">Credits</th><th scope="col">Students</th></tr></thead>
+        <tbody>
+          {% for course in courses %}
+            <tr>
+              <th scope="row"><a href="{{ url_for('courses.show_course', course_id=course.id) }}">{{ course.code }}</a></th>
+              <td>{{ course.title }}</td><td>{{ course.credits }}</td><td>{{ course.student_count }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>No courses yet. <a href="{{ url_for('courses.new_course') }}">Add the first one</a>.</p>
+  {% endif %}
+{% endblock %}

@@ -1,25 +1,28 @@
-import { Menu, Search, X } from 'lucide-react';
+import { Command, Menu, Search, X } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router';
 
+import { openCommandPalette } from '../../features/navigation/GlobalShortcuts.tsx';
+import { PALETTE_KEYS } from '../../features/navigation/ShortcutsDialog.tsx';
 import { cn } from '../../lib/cn.ts';
+import { useT } from '../../lib/i18n.ts';
 import { ThemeToggle } from './ThemeToggle.tsx';
 import { Wordmark } from './Wordmark.tsx';
 
 export const NAV_ITEMS = [
-  { to: '/projects', label: 'Projects' },
-  { to: '/demos', label: 'Demos' },
-  { to: '/generate', label: 'Generator' },
-  { to: '/learn', label: 'Learn' },
-  { to: '/viva', label: 'Viva practice' },
-  { to: '/compare', label: 'Compare' },
-  { to: '/docs', label: 'Docs' },
+  { to: '/projects', label: 'nav.projects' },
+  { to: '/demos', label: 'nav.demos' },
+  { to: '/generate', label: 'nav.generator' },
+  { to: '/learn', label: 'nav.learn' },
+  { to: '/viva', label: 'nav.viva' },
+  { to: '/compare', label: 'nav.compare' },
+  { to: '/docs', label: 'nav.docs' },
 ] as const;
 
 /** Desktop links: the current section is marked by a violet bar on the header's lower edge. */
 function desktopNavClasses({ isActive }: { isActive: boolean }) {
   return cn(
-    'relative rounded-md px-3 py-2 text-[0.9375rem] font-semibold transition-colors',
+    'relative rounded-md px-2.5 py-2 text-[0.9375rem] font-semibold whitespace-nowrap transition-colors xl:px-3',
     'after:absolute after:inset-x-3 after:-bottom-[13px] after:h-0.5 after:rounded-full',
     isActive
       ? 'text-ink after:bg-violet'
@@ -37,6 +40,7 @@ function mobileNavClasses({ isActive }: { isActive: boolean }) {
 /** A plain search form: submitting opens the project gallery filtered by the text. */
 function HeaderSearch({ className, onSearch }: { className?: string; onSearch?: () => void }) {
   const navigate = useNavigate();
+  const t = useT();
   const [text, setText] = useState('');
   const id = useId();
 
@@ -50,12 +54,12 @@ function HeaderSearch({ className, onSearch }: { className?: string; onSearch?: 
   return (
     <form
       role="search"
-      aria-label="Sitewide"
+      aria-label={t('header.searchRegion')}
       onSubmit={submit}
       className={cn('relative', className)}
     >
       <label htmlFor={id} className="sr-only">
-        Search projects
+        {t('header.search')}
       </label>
       <Search
         aria-hidden="true"
@@ -67,7 +71,7 @@ function HeaderSearch({ className, onSearch }: { className?: string; onSearch?: 
         value={text}
         maxLength={100}
         onChange={(event) => setText(event.target.value)}
-        placeholder="Search projects"
+        placeholder={t('header.search')}
         className="h-9 w-full rounded-lg border border-line-strong bg-surface pr-3 pl-9 text-sm text-ink transition-colors placeholder:text-ink-3 hover:border-control"
       />
     </form>
@@ -76,6 +80,7 @@ function HeaderSearch({ className, onSearch }: { className?: string; onSearch?: 
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const t = useT();
   const location = useLocation();
   const [lastPath, setLastPath] = useState(location.pathname);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -103,14 +108,14 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-line bg-canvas/90 backdrop-blur supports-[backdrop-filter]:bg-canvas/80">
       <div className="container-page flex h-16 items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-6 xl:gap-8">
-          <Link to="/" className="shrink-0 rounded-lg" aria-label="CampusKit home">
+          <Link to="/" className="shrink-0 rounded-lg" aria-label={t('header.home')}>
             <Wordmark />
           </Link>
 
-          <nav aria-label="Main" className="hidden items-center gap-0.5 lg:flex">
+          <nav aria-label={t('nav.main')} className="hidden items-center gap-0.5 lg:flex">
             {NAV_ITEMS.map((item) => (
               <NavLink key={item.to} to={item.to} className={desktopNavClasses}>
-                {item.label}
+                {t(item.label)}
               </NavLink>
             ))}
           </nav>
@@ -124,8 +129,24 @@ export function SiteHeader() {
             className="hidden size-9 items-center justify-center rounded-lg border border-line-strong bg-surface text-ink-2 hover:border-control hover:text-ink lg:inline-flex xl:hidden"
           >
             <Search aria-hidden="true" className="size-4" />
-            <span className="sr-only">Search projects</span>
+            <span className="sr-only">{t('header.search')}</span>
           </Link>
+          <button
+            type="button"
+            onClick={openCommandPalette}
+            aria-keyshortcuts="Control+K Meta+K"
+            title={`${t('header.palette')} (${PALETTE_KEYS})`}
+            className="inline-flex h-9 items-center gap-2 rounded-lg border border-line-strong bg-surface px-2.5 text-ink-2 transition-colors hover:border-control hover:text-ink"
+          >
+            <Command aria-hidden="true" className="size-4" />
+            <span className="sr-only">{t('header.palette')}</span>
+            <kbd
+              aria-hidden="true"
+              className="hidden font-mono text-xs whitespace-nowrap 2xl:inline"
+            >
+              {PALETTE_KEYS}
+            </kbd>
+          </button>
           {/* On small screens the theme switch lives in the menu instead. */}
           <div className="hidden sm:block">
             <ThemeToggle />
@@ -143,7 +164,7 @@ export function SiteHeader() {
             ) : (
               <Menu aria-hidden="true" className="size-5" />
             )}
-            <span className="sr-only">{open ? 'Close menu' : 'Open menu'}</span>
+            <span className="sr-only">{open ? t('header.closeMenu') : t('header.openMenu')}</span>
           </button>
         </div>
       </div>
@@ -155,15 +176,15 @@ export function SiteHeader() {
       >
         <div className="container-page space-y-4 py-4">
           <HeaderSearch onSearch={() => setOpen(false)} />
-          <nav aria-label="Main" className="grid gap-1 sm:grid-cols-2">
+          <nav aria-label={t('nav.main')} className="grid gap-1 sm:grid-cols-2">
             {NAV_ITEMS.map((item) => (
               <NavLink key={item.to} to={item.to} className={mobileNavClasses}>
-                {item.label}
+                {t(item.label)}
               </NavLink>
             ))}
           </nav>
           <div className="flex items-center justify-between border-t border-line pt-4 sm:hidden">
-            <span className="text-sm font-semibold text-ink-2">Theme</span>
+            <span className="text-sm font-semibold text-ink-2">{t('header.theme')}</span>
             <ThemeToggle />
           </div>
         </div>

@@ -192,3 +192,15 @@ test.describe('site navigation', () => {
     await expect(page.getByRole('radio', { name: 'Dark theme' })).toBeChecked();
   });
 });
+
+test('the command palette goes anywhere with the keyboard alone', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await page.keyboard.press('ControlOrMeta+k');
+  const input = page.getByRole('dialog', { name: 'Go to anything' }).getByRole('combobox');
+  await expect(input).toBeFocused();
+  await page.keyboard.type('result analyzer demo');
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/projects\/student-result-analyzer\/demo$/);
+  await expect(page.getByRole('dialog', { name: 'Go to anything' })).toHaveCount(0);
+});

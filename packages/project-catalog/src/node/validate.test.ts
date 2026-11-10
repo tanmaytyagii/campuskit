@@ -20,7 +20,7 @@ describe('validateCatalog on the real repository', () => {
       registeredFiles,
     });
     expect(report.issues).toEqual([]);
-    expect(report.manifests).toHaveLength(3);
+    expect(report.manifests).toHaveLength(4);
   });
 });
 

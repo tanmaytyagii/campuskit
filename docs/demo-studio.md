@@ -13,10 +13,11 @@ The code is in `apps/web/src/features/demo/`, `apps/web/src/features/presentatio
 
 A demo must never pretend to be more than it is. Each one declares its **fidelity**:
 
-| Fidelity         | Meaning                                                                                                                                                                                                        | Used by                     |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| `template-logic` | The screens are re-created with CampusKit's components, but calculations, validation, data updates and sample data come from the template's own TypeScript modules, imported unchanged.                        | Attendance, Expense tracker |
-| `browser-port`   | The template isn't JavaScript, so its logic is re-implemented in TypeScript. The port is compared with output produced by the real code, and the page says that the browser doesn't run the original language. | Result analyzer (Python)    |
+| Fidelity         | Meaning                                                                                                                                                                                                                                                                                                                          | Used by                            |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| `template-logic` | The screens are re-created with CampusKit's components, but calculations, validation, data updates and sample data come from the template's own TypeScript modules, imported unchanged.                                                                                                                                          | Attendance, Expense tracker        |
+| `browser-port`   | The template isn't JavaScript, so its logic is re-implemented in TypeScript. The port is compared with output produced by the real code, and the page says that the browser doesn't run the original language.                                                                                                                   | Result analyzer (Python)           |
+| `simulation`     | The template is a server app that a browser can't run. Its pages and database are simulated in TypeScript: the rules, sample data and queries are tested against results recorded from the real code, every change shows the SQL statement the real app would run, and the page says that the browser runs no Python and no SQL. | Student management (Flask, SQLite) |
 
 Only dependency-free template modules can be imported. A template's React components import `react` from the template's own `node_modules`, which doesn't exist in a clean checkout, so screens are always re-created. When a rule the demo needs lives inside a component file (the expense form's checks are in `TransactionForm.tsx`), the demo mirrors it and a test compares the mirror with the template source, so it can't drift silently.
 
@@ -55,7 +56,7 @@ Each guided step says what to **say**, what to **do** and what should **happen**
    - every file and function it names exists (with `findSymbolLine`, as the learning guides use);
    - every walkthrough, architecture and viva link resolves in the learning guide;
    - the tour and guided steps open real screens;
-   - each file listed under "runs" is really imported (or is in the parity fixture, for a port);
+   - each file listed under "runs" is really imported (or is in the parity fixture, for a port or a simulation);
    - stored state survives a JSON round trip;
    - checks belong to real steps.
 4. Add component tests for the main flows, as in `DemoStudioPage.test.tsx`.
@@ -98,6 +99,29 @@ CAMPUSKIT_PYTHON=python3 pnpm demo:compare --cases 1000 --shapes 300 --seed 1
 ```
 
 Run it after changing the port or the analyzer. When it finds a difference, fix the port and add a small file showing it to `EXTRA_CASES` in `scripts/python/analyzer_parity.py`, so the parity test keeps it fixed.
+
+## The student management simulation
+
+The Flask template needs Python and a SQLite file, so `demos/students/` simulates it. The page calls it an educational simulation and says that the browser runs no Python and no SQL.
+
+- **`model.ts`** holds the data as the four tables of `schema.sql` and reproduces:
+  - `validation.py`: every message, Python's whitespace and `len()`, upper- and lower-casing, digits 0 to 9 only, and real calendar dates, years 1 to 99 included;
+  - `seed_db()`: the same 12 students, 4 courses, enrollments and ten school days of attendance before today;
+  - `list_students()`: `LIKE` with `%` and `_` escaped (and ASCII-only case folding, as SQLite does), the class and status filters, the fixed list of sort columns with `COLLATE NOCASE`, and pages of 10;
+  - `statistics()` and `percent()`, including Python's rounding of ties to the even digit (13 of 16 is 81.2%, not 81.3%);
+  - the database rules: `UNIQUE COLLATE NOCASE`, `AUTOINCREMENT` never reusing an id, `ON DELETE CASCADE` and the attendance upsert.
+- **The SQL log:** every change records the statement the real app runs, simplified from `repository.py`, with its parameters written as a Python tuple, and the result, a refused `UNIQUE` constraint included. Attendance is saved with `executemany()`, so the log shows the first row of parameters and how many rows ran.
+- **Not modelled:** the `created_at` and `updated_at` timestamps, sessions, CSRF tokens and the request and redirect cycle. The screens are re-created; the flash messages are the template's own.
+
+`scripts/python/sms_parity.py` runs the template's own code (validation, `seed_db()`, 18 student queries, the statistics and `percent()`) on an in-memory SQLite database and prints the results. `model.test.ts` compares the simulation with them case by case, and fails if `validation.py`, `repository.py`, `db.py` or `schema.sql` change until the fixture is regenerated:
+
+```bash
+pip install -r templates/student-management-system/requirements.txt   # once, in the Python you use
+CAMPUSKIT_PYTHON=python3 pnpm demo:fixtures:students
+pnpm test
+```
+
+When a test finds a difference, fix `model.ts` and add the case to the parity script, so it stays fixed.
 
 ## Presentation mode
 

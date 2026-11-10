@@ -114,6 +114,11 @@ pnpm verify:generated library-manager
 
 This generates the project the way the website does, extracts the ZIP into a temporary folder, checks the customized files and the excluded ones, installs the dependencies and runs the tests and the build in that copy. It needs Node.js for npm templates and Python 3.11 or newer for pip templates.
 
+A pip template is installed into a virtual environment from `requirements-dev.txt` (or `requirements.txt`), then `python -m pytest` runs. After that the verifier starts the app, so follow one of these conventions:
+
+- **Streamlit:** an `app.py`, started with `streamlit run app.py` until its health check answers.
+- **Flask or another web server:** a `run.py` that reads `HOST` and `PORT` from the environment and answers `GET /health` with status 200. The home page's `<title>` must end with `| <project name>`, so the verifier can see the customized name. If the manifest's `stack.persistence` is `database`, the first start must create the SQLite file in `instance/`.
+
 When it passes, record the result:
 
 ```bash

@@ -1,0 +1,452 @@
+{
+  "$schema": "../manifest.schema.json",
+  "schemaVersion": 1,
+  "id": "student-management-system",
+  "slug": "student-management-system",
+  "name": "Student Management System",
+  "tagline": "Keep student records, courses, enrollments and attendance in a SQLite database, with a Flask web interface.",
+  "description": "A Python web application built with Flask and SQLite. It manages students, courses, enrollments and daily attendance, with search, filters, sorting, pages and statistics. Every query uses SQL parameters, every form is protected against cross-site request forgery, and the database enforces its relationships with foreign keys and cascading deletes. The pages need no JavaScript, and the database is one file on your own computer.",
+  "category": "web-development",
+  "projectType": "web-app",
+  "tags": ["python", "flask", "sqlite", "sql", "crud", "database", "web-app", "attendance"],
+  "audience": ["school", "college"],
+  "difficulty": "intermediate",
+  "languages": ["Python", "SQL", "HTML", "CSS"],
+  "frameworks": ["Flask"],
+  "version": "1.0.0",
+  "addedOn": "2026-10-30",
+  "updatedOn": "2026-10-30",
+  "featured": true,
+  "features": [
+    "Add, view, edit and delete students, with validation of every field and a confirmation page before anything is deleted.",
+    "Search students by name, roll number or email; filter by class and status; sort by name, roll number, class or admission date; move through pages.",
+    "Add, edit and delete courses, and see the students and attendance in each one.",
+    "Enroll students in courses and remove them; a student's attendance in a course goes with the enrollment.",
+    "Mark each student present, late or absent for a course on any day up to today, and change the marks later.",
+    "Statistics calculated from the data: students by status and class, and attendance per course.",
+    "CSRF protection on every form, SQL parameters for every query, escaped output and security headers.",
+    "Database commands to back up, reset and refill the database, and a fictional sample class for the first run."
+  ],
+  "limitations": [
+    "There is no login: anyone who can open the app can change the records.",
+    "Designed for one person on one computer, with Flask's development server and SQLite.",
+    "Attendance has one mark per course per day, not per lecture.",
+    "Times such as “Last updated” are shown in UTC.",
+    "There is no import or export; back up by copying the database file."
+  ],
+  "learningObjectives": [
+    "Design a relational database with primary keys, foreign keys, a many-to-many relationship and constraints.",
+    "Write SQL for CRUD operations, joins, aggregates and upserts, safely with parameters.",
+    "Build a server-rendered web app with Flask routes, blueprints, templates and forms.",
+    "Validate input and protect forms against cross-site request forgery.",
+    "Test a web app and its database with pytest and Flask's test client."
+  ],
+  "ideasForExtension": [
+    "Add a login with hashed passwords, so only staff can change records.",
+    "Import students from a CSV file, with validation of every row.",
+    "Export the attendance of a course as a CSV file.",
+    "Add a timetable with lectures, and mark attendance per lecture."
+  ],
+  "prerequisites": [
+    {
+      "name": "Python",
+      "version": "3.11 or newer",
+      "url": "https://www.python.org/downloads/",
+      "note": "On Windows, tick “Add python.exe to PATH” during installation."
+    },
+    {
+      "name": "A modern web browser",
+      "note": "The app runs at http://127.0.0.1:5000/ on your own computer."
+    }
+  ],
+  "setup": {
+    "steps": [
+      {
+        "title": "Create and activate a virtual environment",
+        "commands": [
+          {
+            "command": "python -m venv .venv",
+            "platform": "windows"
+          },
+          {
+            "command": ".venv\\Scripts\\Activate.ps1",
+            "platform": "windows"
+          },
+          {
+            "command": "python3 -m venv .venv",
+            "platform": "macos-linux"
+          },
+          {
+            "command": "source .venv/bin/activate",
+            "platform": "macos-linux"
+          }
+        ],
+        "note": "If PowerShell blocks the activation script, run Set-ExecutionPolicy -Scope CurrentUser RemoteSigned once and try again."
+      },
+      {
+        "title": "Install the dependencies",
+        "commands": [
+          {
+            "command": "pip install -r requirements.txt",
+            "platform": "all"
+          }
+        ],
+        "note": "Needs an internet connection the first time. Flask and its dependencies are a few megabytes."
+      },
+      {
+        "title": "Start the app",
+        "commands": [
+          {
+            "command": "python run.py",
+            "platform": "all"
+          }
+        ],
+        "note": "Open http://127.0.0.1:5000/ in your browser. The first start creates instance/students.db with the sample data. Press Ctrl+C in the terminal to stop."
+      },
+      {
+        "title": "Run the tests",
+        "commands": [
+          {
+            "command": "pip install -r requirements-dev.txt",
+            "platform": "all"
+          },
+          {
+            "command": "python -m pytest",
+            "platform": "all"
+          }
+        ]
+      }
+    ],
+    "localUrl": "http://127.0.0.1:5000/",
+    "notes": [
+      "The database is the file instance/students.db. Back it up with flask --app studentms backup-db, and start again with flask --app studentms reset-db --yes.",
+      "Change the app name, institution, page size and sample data in app_config.json, and the port or database location in a .env file (see .env.example).",
+      "If port 5000 is busy (on macOS, AirPlay Receiver uses it), set PORT to another number before python run.py.",
+      "Activate the virtual environment again each time you open a new terminal."
+    ]
+  },
+  "testing": {
+    "tools": ["pytest", "Flask test client"],
+    "commands": [
+      {
+        "command": "pip install -r requirements-dev.txt",
+        "platform": "all"
+      },
+      {
+        "command": "python -m pytest",
+        "platform": "all"
+      }
+    ],
+    "covers": [
+      "Every validation rule for students, courses and attendance dates.",
+      "Configuration, .env loading and the secret key.",
+      "Queries: search, filters, sorting, pages, enrollments, attendance upserts and statistics.",
+      "Database constraints, unique values and cascading deletes.",
+      "Every page through Flask's test client: adding, editing and deleting students and courses, enrolling and marking attendance.",
+      "The backup, reset and seed commands, and security: CSRF tokens, escaping, SQL injection attempts and headers."
+    ]
+  },
+  "environment": {
+    "variables": [
+      {
+        "name": "SECRET_KEY",
+        "required": false,
+        "description": "Signs the session cookie. Leave it unset and the app creates a random key in instance/secret_key.",
+        "example": ""
+      },
+      {
+        "name": "PORT",
+        "required": false,
+        "description": "The port the app listens on (default 5000).",
+        "example": "5050"
+      },
+      {
+        "name": "DATABASE_PATH",
+        "required": false,
+        "description": "Where the database file is (default instance/students.db).",
+        "example": "instance/students.db"
+      }
+    ]
+  },
+  "stack": {
+    "backend": "local-server",
+    "persistence": "database",
+    "summary": "python run.py starts Flask's development server on your own computer. Each page is made on the server from the SQLite database file instance/students.db and sent to your browser as HTML; nothing leaves your computer."
+  },
+  "network": {
+    "installNeedsInternet": true,
+    "runsOffline": true,
+    "externalServices": [],
+    "notes": "pip install downloads Flask once. The app then runs locally and makes no network requests."
+  },
+  "media": {
+    "cover": "docs/screenshots/dashboard.png",
+    "screenshots": [
+      {
+        "file": "docs/screenshots/dashboard.png",
+        "alt": "Dashboard with the number of students, courses and enrollments, attendance over the last 30 days, the newest students and attendance by course",
+        "caption": "Dashboard with the sample data"
+      },
+      {
+        "file": "docs/screenshots/students.png",
+        "alt": "Student list filtered to one class, with search, class, status, sort and order controls above a table of students",
+        "caption": "Searching and filtering students"
+      },
+      {
+        "file": "docs/screenshots/student.png",
+        "alt": "A student's page with their details, their three courses with attendance percentages, and a form to enroll in another course",
+        "caption": "A student and their courses"
+      },
+      {
+        "file": "docs/screenshots/attendance.png",
+        "alt": "Attendance sheet for a course with a present, late or absent choice for each student",
+        "caption": "Marking attendance"
+      },
+      {
+        "file": "docs/screenshots/validation.png",
+        "alt": "The add-student form showing a summary of four problems and a message under each field",
+        "caption": "Form validation"
+      }
+    ]
+  },
+  "docs": [
+    {
+      "title": "README",
+      "file": "README.md",
+      "kind": "readme"
+    },
+    {
+      "title": "Architecture",
+      "file": "docs/ARCHITECTURE.md",
+      "kind": "architecture"
+    },
+    {
+      "title": "Viva questions",
+      "file": "docs/VIVA_QUESTIONS.md",
+      "kind": "viva"
+    }
+  ],
+  "template": {
+    "directory": "templates/student-management-system",
+    "packageManager": "pip"
+  },
+  "customization": {
+    "options": [
+      {
+        "id": "projectName",
+        "label": "Project name",
+        "description": "The name in the header, the browser tab and the README.",
+        "group": "identity",
+        "type": "text",
+        "required": true,
+        "default": "Student Management System",
+        "minLength": 3,
+        "maxLength": 60,
+        "placeholder": "e.g. Campus Records"
+      },
+      {
+        "id": "institutionName",
+        "label": "Institution name",
+        "description": "Shown under the name in the header. Leave empty to hide it.",
+        "group": "identity",
+        "type": "text",
+        "required": false,
+        "default": "",
+        "minLength": 2,
+        "maxLength": 80,
+        "placeholder": "e.g. Riverside College"
+      },
+      {
+        "id": "authorName",
+        "label": "Your name",
+        "description": "Shown in the footer as “Built by …” and in the README. Leave empty to hide it.",
+        "group": "identity",
+        "type": "text",
+        "required": false,
+        "default": "",
+        "minLength": 2,
+        "maxLength": 60,
+        "placeholder": "e.g. Arjun Nair"
+      },
+      {
+        "id": "studentsPerPage",
+        "label": "Students per page",
+        "description": "How many students each page of the student list shows.",
+        "group": "behaviour",
+        "type": "number",
+        "default": 10,
+        "min": 5,
+        "max": 50,
+        "step": 5,
+        "integer": true
+      },
+      {
+        "id": "seedDemoData",
+        "label": "Include the sample data",
+        "description": "Fills a new database with 12 fictional students, 4 courses and two weeks of attendance on the first start. Turn off to start empty.",
+        "group": "data",
+        "type": "boolean",
+        "default": true
+      },
+      {
+        "id": "theme",
+        "label": "Accent colour",
+        "description": "The colour of links, buttons and the current page, in the light and dark themes.",
+        "group": "appearance",
+        "type": "select",
+        "default": "indigo",
+        "choices": [
+          {
+            "value": "indigo",
+            "label": "Indigo",
+            "swatch": "#4338CA"
+          },
+          {
+            "value": "teal",
+            "label": "Teal",
+            "swatch": "#0F766E"
+          },
+          {
+            "value": "crimson",
+            "label": "Crimson",
+            "swatch": "#B91C1C"
+          },
+          {
+            "value": "green",
+            "label": "Green",
+            "swatch": "#15803D"
+          }
+        ]
+      }
+    ],
+    "edits": [
+      {
+        "kind": "json-set",
+        "label": "App name",
+        "file": "app_config.json",
+        "pointer": "/app_name",
+        "value": {
+          "option": "projectName"
+        }
+      },
+      {
+        "kind": "json-set",
+        "label": "Institution name",
+        "file": "app_config.json",
+        "pointer": "/institution_name",
+        "value": {
+          "option": "institutionName"
+        }
+      },
+      {
+        "kind": "json-set",
+        "label": "Author name",
+        "file": "app_config.json",
+        "pointer": "/author_name",
+        "value": {
+          "option": "authorName"
+        }
+      },
+      {
+        "kind": "json-set",
+        "label": "Students per page",
+        "file": "app_config.json",
+        "pointer": "/students_per_page",
+        "value": {
+          "option": "studentsPerPage"
+        }
+      },
+      {
+        "kind": "json-set",
+        "label": "Sample data on first start",
+        "file": "app_config.json",
+        "pointer": "/seed_demo_data",
+        "value": {
+          "option": "seedDemoData"
+        }
+      },
+      {
+        "kind": "replace",
+        "label": "Accent colour (light theme)",
+        "file": "studentms/static/style.css",
+        "find": "#4338ca",
+        "escape": "none",
+        "expectedCount": 1,
+        "value": {
+          "option": "theme",
+          "map": {
+            "indigo": "#4338ca",
+            "teal": "#0f766e",
+            "crimson": "#b91c1c",
+            "green": "#15803d"
+          }
+        }
+      },
+      {
+        "kind": "replace",
+        "label": "Accent colour (dark theme)",
+        "file": "studentms/static/style.css",
+        "find": "#a5b4fc",
+        "escape": "none",
+        "expectedCount": 1,
+        "value": {
+          "option": "theme",
+          "map": {
+            "indigo": "#a5b4fc",
+            "teal": "#5eead4",
+            "crimson": "#fca5a5",
+            "green": "#86efac"
+          }
+        }
+      },
+      {
+        "kind": "replace",
+        "label": "README title and introduction",
+        "file": "README.md",
+        "find": "Student Management System",
+        "escape": "markdown",
+        "expectedCount": 2,
+        "value": {
+          "option": "projectName"
+        }
+      },
+      {
+        "kind": "replace",
+        "label": "README institution",
+        "file": "README.md",
+        "find": "_Add your institution_",
+        "escape": "markdown",
+        "expectedCount": 1,
+        "value": {
+          "option": "institutionName",
+          "whenEmpty": "_Add your institution_"
+        }
+      },
+      {
+        "kind": "replace",
+        "label": "README author",
+        "file": "README.md",
+        "find": "_Add your name_",
+        "escape": "markdown",
+        "expectedCount": 1,
+        "value": {
+          "option": "authorName",
+          "whenEmpty": "_Add your name_"
+        }
+      }
+    ]
+  },
+  "license": {
+    "spdx": "MIT",
+    "file": "LICENSE",
+    "attribution": "Created by CampusKit contributors. Keep the LICENSE file when you share or submit the project.",
+    "thirdParty": [
+      {
+        "name": "Flask",
+        "license": "BSD-3-Clause",
+        "url": "https://flask.palletsprojects.com/"
+      }
+    ]
+  },
+  "repositoryUrl": null
+}

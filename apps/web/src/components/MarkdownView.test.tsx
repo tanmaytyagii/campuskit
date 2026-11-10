@@ -32,4 +32,15 @@ describe('MarkdownView', () => {
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
     expect(document.querySelector('[onerror]')).toBeNull();
   });
+
+  it('shows task list items as done or not done, without unlabelled checkboxes', () => {
+    render(
+      <MemoryRouter>
+        <MarkdownView markdown={'- [x] Seat map page\n- [ ] Write the report'} />
+      </MemoryRouter>,
+    );
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Done' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Not done' })).toBeInTheDocument();
+  });
 });

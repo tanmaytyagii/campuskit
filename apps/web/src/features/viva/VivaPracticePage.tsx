@@ -9,12 +9,14 @@ import {
   type VivaQuestion,
 } from '@campuskit/project-catalog';
 import {
+  CalendarClock,
   CircleCheck,
   CircleDashed,
   ExternalLink,
   ListFilter,
   RotateCcw,
   Shuffle,
+  Timer,
   Trash,
   Zap,
 } from 'lucide-react';
@@ -33,7 +35,8 @@ import { Skeleton } from '../../components/ui/Spinner.tsx';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.ts';
 import { useLearningGuide } from '../../hooks/useLearningGuide.ts';
 import { cn } from '../../lib/cn.ts';
-import { todayIso } from '../../lib/format.ts';
+import { formatIsoDate, todayIso } from '../../lib/format.ts';
+import { appendLog } from '../../lib/viva-log.ts';
 import {
   CRITERIA,
   CRITERIA_LABELS,
@@ -57,6 +60,10 @@ import { NotFoundPage } from '../../pages/NotFoundPage.tsx';
 import { sourceHref, studioHref } from '../learning/links.ts';
 import {
   checkConcepts,
+  dueQuestions,
+  MOCK_SECONDS,
+  MOCK_SIZE,
+  nextReviewDate,
   QUICK_PRACTICE_SIZE,
   reviewQuestions,
   selectedQuestionIds,
@@ -82,6 +89,8 @@ const MODE_LABELS: Record<PracticeMode['kind'], string> = {
   topic: 'Practice by topic',
   mixed: 'Mixed practice',
   review: 'Review',
+  due: 'Spaced review',
+  mock: 'Mock viva',
   selected: 'Selected questions',
 };
 
@@ -167,7 +176,7 @@ function Practice({ project, guide }: { project: ProjectManifest; guide: Learnin
   const selectedIds = selectedQuestionIds(params.get('questions'), guide.viva);
 
   function start(mode: PracticeMode) {
-    const questions = selectQuestions(guide.viva, progress, mode);
+    const questions = selectQuestions(guide.viva, progress, mode, Math.random, todayIso());
     if (questions.length === 0) return;
     setPhase({ kind: 'session', mode, questions, index: 0, results: [] });
   }
@@ -178,6 +187,15 @@ function Practice({ project, guide }: { project: ProjectManifest; guide: Learnin
       const next = recordRatings(progress, result.questionId, ratings, todayIso());
       setProgress(next);
       writeVivaProgress(project.id, next);
+      const outcome = next.questions[result.questionId]?.outcome;
+      if (outcome)
+        appendLog({
+          projectId: project.id,
+          questionId: result.questionId,
+          outcome,
+          on: todayIso(),
+          mock: phase.mode.kind === 'mock',
+        });
     }
     const results = [...phase.results, result];
     if (phase.index + 1 < phase.questions.length) {
@@ -226,6 +244,7 @@ function Practice({ project, guide }: { project: ProjectManifest; guide: Learnin
             />
           </div>
         </div>
+        {phase.mode.kind === 'mock' ? <MockTimer key={`timer-${phase.index}`} /> : null}
         <QuestionCard
           key={`${question.id}-${phase.index}`}
           project={project}
@@ -291,6 +310,9 @@ function ModeChooser({
   const questionIds = guide.viva.map((question) => question.id);
   const summary = summarizeViva(progress, questionIds);
   const reviewCount = reviewQuestions(guide.viva, progress).length;
+  const today = todayIso();
+  const dueCount = dueQuestions(guide.viva, progress, today).length;
+  const nextReview = nextReviewDate(guide.viva, progress, today);
   const categories = VIVA_CATEGORIES.filter((category) =>
     guide.viva.some((question) => question.category === category),
   );
@@ -440,6 +462,50 @@ function ModeChooser({
             onClick={() => onStart({ kind: 'mixed' })}
           >
             Start mixed practice
+          </Button>
+        </section>
+
+        <section aria-labelledby="mode-mock" className={card}>
+          <ModeIcon icon={<Timer className="size-5" />} />
+          <h2 id="mode-mock" className="type-h3 text-ink">
+            Mock viva
+          </h2>
+          <p className="flex-1 text-sm text-ink-2">
+            {Math.min(MOCK_SIZE, guide.viva.length)} questions across the topics, the way an
+            examiner moves between them, starting with the ones that need work. A{' '}
+            {MOCK_SECONDS / 60}-minute timer for each answer is a guide only: nothing happens when
+            it ends, and you can hide it.
+          </p>
+          <Button
+            variant="secondary"
+            className="mt-2 self-start"
+            onClick={() => onStart({ kind: 'mock' })}
+          >
+            Start a mock viva
+          </Button>
+        </section>
+
+        <section aria-labelledby="mode-due" className={card}>
+          <ModeIcon icon={<CalendarClock className="size-5" />} />
+          <h2 id="mode-due" className="type-h3 text-ink">
+            Spaced review
+          </h2>
+          <p className="flex-1 text-sm text-ink-2">
+            {dueCount > 0
+              ? `${dueCount} ${dueCount === 1 ? 'question is' : 'questions are'} due today. `
+              : nextReview
+                ? `Nothing is due today. The next review is on ${formatIsoDate(nextReview)}. `
+                : 'Questions come back here after you practise them. '}
+            “Not yet” brings a question back the next day, “Partly” after two days, and confident
+            answers after 3, 7, 14, then 30 days.
+          </p>
+          <Button
+            variant="secondary"
+            className="mt-2 self-start"
+            disabled={dueCount === 0}
+            onClick={() => onStart({ kind: 'due' })}
+          >
+            Start spaced review
           </Button>
         </section>
 
@@ -856,5 +922,44 @@ function SessionSummary({
         </ButtonLink>
       </div>
     </section>
+  );
+}
+
+/**
+ * A countdown for each mock viva answer. It is information only (WCAG 2.2.1): when it reaches
+ * zero it says so once, nothing is submitted, and it can be hidden.
+ */
+function MockTimer() {
+  const [left, setLeft] = useState(MOCK_SECONDS);
+  const [hidden, setHidden] = useState(false);
+  useEffect(() => {
+    const timer = window.setInterval(() => setLeft((value) => Math.max(0, value - 1)), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const minutes = Math.floor(left / 60);
+  const seconds = String(left % 60).padStart(2, '0');
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-raised px-4 py-2.5 text-sm">
+      {hidden ? (
+        <span className="text-ink-2">Timer hidden</span>
+      ) : (
+        <span className="font-semibold text-ink">
+          <Timer aria-hidden="true" className="mr-1.5 inline size-4 align-[-2px]" />
+          {left > 0 ? (
+            <>
+              Time left for this answer: {minutes}:{seconds}
+            </>
+          ) : (
+            'Time’s up for this answer. Finish your thought, then rate it.'
+          )}
+        </span>
+      )}
+      <p className="sr-only" aria-live="polite">
+        {left === 0 && !hidden ? 'Time’s up for this answer.' : ''}
+      </p>
+      <Button size="sm" variant="ghost" onClick={() => setHidden((value) => !value)}>
+        {hidden ? 'Show the timer' : 'Hide the timer'}
+      </Button>
+    </div>
   );
 }

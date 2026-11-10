@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Attendance for {{ course.code }}{% endblock %}
+{% block content %}
+  <p class="breadcrumb"><a href="{{ url_for('courses.show_course', course_id=course.id) }}">{{ course.code }} {{ course.title }}</a></p>
+  <h1>Attendance for {{ course.code }}</h1>
+  <form method="get" class="inline-form" aria-label="Choose the day">
+    <div class="field">
+      <label for="date">Day</label>
+      <input id="date" name="date" type="date" value="{{ day.isoformat() }}" max="{{ today.isoformat() }}">
+    </div>
+    <button type="submit" class="button-secondary">Show</button>
+  </form>
+
+  {% if sheet %}
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="date" value="{{ day.isoformat() }}">
+      <p>{{ day.strftime("%A %d %B %Y") }}: {{ sheet | selectattr("status") | list | length }} of {{ sheet | length }} marked. Students without a mark are saved as present.</p>
+      <div class="table-scroll" role="region" aria-label="Attendance sheet" tabindex="0">
+        <table class="attendance">
+          <thead><tr><th scope="col">Student</th>{% for status in statuses %}<th scope="col">{{ status | capitalize }}</th>{% endfor %}</tr></thead>
+          <tbody>
+            {% for student in sheet %}
+              {% set current = student.status or "present" %}
+              <tr>
+                <th scope="row" id="student-{{ student.id }}">{{ student.first_name }} {{ student.last_name }} <span class="muted">{{ student.roll_number }}</span></th>
+                {% for status in statuses %}
+                  <td>
+                    <input type="radio" id="status-{{ student.id }}-{{ status }}" name="status-{{ student.id }}" value="{{ status }}"
+                      {% if current == status %}checked{% endif %} aria-labelledby="student-{{ student.id }} status-{{ student.id }}-{{ status }}-label">
+                    <label id="status-{{ student.id }}-{{ status }}-label" for="status-{{ student.id }}-{{ status }}" class="visually-hidden">{{ status | capitalize }}</label>
+                  </td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="actions"><button type="submit">Save attendance</button></p>
+    </form>
+  {% else %}
+    <p>No active students are enrolled in this course. Enroll students from their own pages.</p>
+  {% endif %}
+{% endblock %}

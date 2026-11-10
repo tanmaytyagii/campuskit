@@ -22,7 +22,7 @@ test('discover a project, download a customized copy and move on to learning it'
 
   await page.getByRole('searchbox', { name: 'Search', exact: true }).fill('budget');
   await expect(page.getByRole('status').filter({ hasText: 'projects' })).toHaveText(
-    'Showing 1 of 3 projects',
+    'Showing 1 of 4 projects',
   );
   await page.getByRole('link', { name: 'Personal Expense Tracker', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Personal Expense Tracker');

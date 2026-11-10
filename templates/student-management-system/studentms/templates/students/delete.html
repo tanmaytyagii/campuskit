@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Delete {{ student.first_name }} {{ student.last_name }}{% endblock %}
+{% block content %}
+  <h1>Delete {{ student.first_name }} {{ student.last_name }}?</h1>
+  <div class="panel warning">
+    <p>This permanently deletes the student ({{ student.roll_number }}, {{ student.class_name }}), their {{ courses | length }} {{ 'enrollment' if courses | length == 1 else 'enrollments' }} and {{ marks }} attendance {{ 'mark' if marks == 1 else 'marks' }}.</p>
+    <p>To keep a copy first, run <code>flask --app studentms backup-db</code>.</p>
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <p class="actions">
+        <button type="submit" class="button-danger">Delete student</button>
+        <a href="{{ url_for('students.show_student', student_id=student.id) }}">Cancel</a>
+      </p>
+    </form>
+  </div>
+{% endblock %}

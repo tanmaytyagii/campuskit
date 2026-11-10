@@ -37,17 +37,26 @@ describe('compare page', () => {
 
   it('allows at most three projects', async () => {
     renderRoute('/compare?ids=attendance-system,expense-tracker,student-result-analyzer');
-    const boxes = await screen.findAllByRole('checkbox');
-    expect(boxes.every((box) => (box as HTMLInputElement).checked)).toBe(true);
+    const boxes = await screen.findAllByRole<HTMLInputElement>('checkbox');
+    expect(boxes.filter((box) => box.checked)).toHaveLength(3);
     expect(screen.getByText(/3 of 3 chosen/)).toBeInTheDocument();
+    // The fourth project can't be added until one is removed.
+    const fourth = screen.getByRole('checkbox', { name: /Student Management System/ });
+    expect(fourth).not.toBeChecked();
+    expect(fourth).toBeDisabled();
   });
 
   it('suggests projects for a goal with the rule it used', async () => {
     const user = userEvent.setup();
     renderRoute('/compare');
     await user.click(await screen.findByRole('radio', { name: 'A database-oriented project' }));
-    expect(screen.getByText('It saves data between runs.')).toBeInTheDocument();
-    expect(screen.getByText(/No project uses a database yet/)).toBeInTheDocument();
+    expect(screen.getByText('It stores its data in a database.')).toBeInTheDocument();
+    expect(screen.queryByText(/No project uses a database yet/)).toBeNull();
+    // One match: nothing to compare it with.
+    expect(screen.queryByRole('button', { name: /^Compare/ })).toBeNull();
+
+    await user.click(screen.getByRole('radio', { name: 'A Python project' }));
+    expect(screen.getByText('Python is one of its languages.')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Compare these' }));
     expect(await screen.findByRole('table', { name: 'Project comparison' })).toBeInTheDocument();
   });
